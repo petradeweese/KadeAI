@@ -39,3 +39,4 @@ class OrderResult:
     simulated_slippage: float
     nudged_limit_price: float | None = None
     notes: list[str] = field(default_factory=list)
+    lifecycle: dict[str, object] = field(default_factory=dict)

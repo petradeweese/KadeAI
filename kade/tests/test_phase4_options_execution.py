@@ -134,9 +134,9 @@ def test_paper_execution_supports_partial_fill_and_nudge() -> None:
 
     result = engine.stage_order(request, trades_today=0, daily_realized_pnl=0.0, confirm=True)
 
-    assert result.status in {"partial_fill", "filled"}
+    assert result.status in {"partially_filled", "filled"}
     assert result.filled_contracts > 0
-    if result.status == "partial_fill":
+    if result.status == "partially_filled":
         assert result.nudged_limit_price is not None
         assert result.remaining_contracts > 0
 

@@ -11,16 +11,22 @@ import yaml
 from kade.brain import AdvisorReasoningEngine, ConversationMemory, SessionPlanTracker, StyleProfileManager
 from kade.execution import PaperExecutionWorkflow
 from kade.execution.models import ExecutionRejection
-from kade.integrations.tts import KokoroTTSProvider
-from kade.integrations.wakeword import MockWakeWordDetector
+from kade.integrations.providers import build_stt_provider, build_tts_provider, build_wakeword_provider
 from kade.logging_utils import LogCategory, get_logger, log_event, setup_logging
 from kade.market.alpaca_client import MockAlpacaClient
 from kade.market.market_loop import MarketStateLoop
 from kade.options import OptionsSelectionPipeline, TradeIntent
 from kade.options.mock_chain import build_mock_chain
-from kade.runtime import RuntimePersistence, build_dashboard_state, build_voice_handlers, print_runtime_summary
+from kade.runtime import (
+    InteractionOrchestrator,
+    InteractionRuntimeState,
+    RuntimePersistence,
+    build_dashboard_state,
+    build_voice_handlers,
+    print_runtime_summary,
+)
 from kade.voice.formatter import SpokenResponseFormatter
-from kade.voice.models import Transcript, VoiceSessionState
+from kade.voice.models import VoiceSessionState
 from kade.voice.orchestrator import VoiceOrchestrator
 from kade.voice.router import VoiceCommandRouter
 
@@ -261,8 +267,18 @@ def main() -> None:
         command_window_ms=int(voice_config.get("command_window_ms", 8000)),
         self_trigger_prevention=bool(voice_config.get("self_trigger_prevention", True)),
     )
+    runtime_mode = str(voice_config.get("runtime_mode", "text_first"))
+    interaction_state = InteractionRuntimeState(
+        runtime_mode=runtime_mode,
+        voice_runtime_enabled=bool(voice_config.get("voice_runtime_enabled", False)),
+        text_command_input_enabled=bool(voice_config.get("text_command_input_enabled", True)),
+        wakeword_enabled=bool(voice_config.get("wakeword_enabled", False)),
+        stt_enabled=bool(voice_config.get("stt_enabled", False)),
+        tts_enabled=bool(voice_config.get("tts_enabled", False)),
+        command_history_limit=int(dict(voice_config.get("text_panel", {})).get("max_command_history", 25)),
+    )
     voice_orchestrator = VoiceOrchestrator(
-        wakeword_detector=MockWakeWordDetector(wake_word=voice_state.wake_word),
+        wakeword_detector=build_wakeword_provider(voice_config),
         router=VoiceCommandRouter(
             handlers=build_voice_handlers(
                 session_state=session_state,
@@ -276,26 +292,58 @@ def main() -> None:
             )
         ),
         formatter=SpokenResponseFormatter(),
-        tts_provider=KokoroTTSProvider(voice_config.get("kokoro", {})),
+        tts_provider=build_tts_provider(voice_config),
         state=voice_state,
         logger=LOGGER,
+        enable_tts=interaction_state.tts_enabled,
     )
-    if os.getenv("KADE_SIMULATE_VOICE", "1") == "1":
-        voice_orchestrator.process_wake_sample(f"{voice_state.wake_word} hey")
-        voice_result = voice_orchestrator.process_transcript(
-            Transcript(text=f"{voice_state.wake_word} status", received_at=datetime.utcnow(), provider="mock")
-        )
+    interaction = InteractionOrchestrator(
+        voice_orchestrator=voice_orchestrator,
+        stt_provider=build_stt_provider(voice_config),
+        state=interaction_state,
+        logger=LOGGER,
+    )
+
+    log_event(
+        LOGGER,
+        LogCategory.VOICE_EVENT,
+        "Interaction runtime configured",
+        runtime_mode=interaction_state.runtime_mode,
+        voice_runtime_enabled=interaction_state.voice_runtime_enabled,
+        wakeword_enabled=interaction_state.wakeword_enabled,
+        stt_enabled=interaction_state.stt_enabled,
+        tts_enabled=interaction_state.tts_enabled,
+    )
+    log_event(
+        LOGGER,
+        LogCategory.VOICE_EVENT,
+        "Provider selected",
+        wakeword_provider=voice_orchestrator.wakeword_detector.provider_name,
+        stt_provider=interaction.stt_provider.provider_name,
+        tts_provider=voice_orchestrator.tts_provider.provider_name,
+    )
+
+    default_text_command = os.getenv("KADE_TEXT_COMMAND", "status")
+    if interaction_state.text_command_input_enabled:
+        text_result = interaction.submit_text_command(default_text_command)
+        print(f"Text intent: {text_result['intent']}")
+        print(f"Text response: {text_result['spoken_text']}")
+
+    if os.getenv("KADE_SIMULATE_VOICE", "0") == "1":
+        voice_result = interaction.process_voice_sample(f"{voice_state.wake_word} status")
         if voice_result:
             print(f"Voice intent: {voice_result['intent']}")
             print(f"Voice response: {voice_result['spoken_text']}")
-            session_state.setdefault("recent_voice_events", []).append(
-                {
-                    "timestamp": datetime.utcnow().isoformat(),
-                    "intent": voice_result["intent"],
-                    "spoken_text": voice_result["spoken_text"],
-                }
-            )
-            persistence.retain_recent_voice_events(session_state)
+
+    session_state["interaction_runtime"] = {
+        "runtime_mode": interaction_state.runtime_mode,
+        "voice_runtime_enabled": interaction_state.voice_runtime_enabled,
+        "text_command_input_enabled": interaction_state.text_command_input_enabled,
+    }
+    session_state["command_interface_mode"] = interaction_state.runtime_mode
+    session_state["recent_command_history"] = interaction_state.recent_commands
+    persistence.retain_recent_voice_events(session_state)
+    persistence.retain_recent_commands(session_state)
 
     persistence.persist_memory(memory)
     persistence.persist_plans(plan_tracker)
@@ -318,7 +366,7 @@ def main() -> None:
         plan_tracker.snapshot(),
         advisor_payload,
         style_profile.response_guidance(),
-        voice_orchestrator.dashboard_payload(),
+        interaction.dashboard_payload(),
         persistence_meta,
         session_state,
         history_payload,

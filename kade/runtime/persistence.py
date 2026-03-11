@@ -115,6 +115,12 @@ class RuntimePersistence:
             int(self.session_cfg.get("recent_voice_events_limit", 25)),
         )
 
+    def retain_recent_commands(self, session_state: dict[str, object]) -> None:
+        session_state["recent_command_history"] = self.bounded(
+            list(session_state.get("recent_command_history", [])),
+            int(self.session_cfg.get("recent_command_history_limit", 40)),
+        )
+
     def persist_session(self, session_state: dict[str, object]) -> None:
         self.safe_save("session", lambda: self.session_store.save_session(session_state))
 
