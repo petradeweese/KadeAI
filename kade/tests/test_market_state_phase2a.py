@@ -30,6 +30,26 @@ MENTAL_MODEL_CONFIG = {
     },
 }
 
+RADAR_CONFIG = {
+    "base_score": 35,
+    "state_thresholds": {"heads_up_min": 45, "trigger_imminent_min": 58, "trigger_fired_min": 72},
+    "deduplication": {"meaningful_score_delta": 6},
+    "ranking": {"queue_size": 5},
+    "weights": {
+        "confidence": 12,
+        "trend_alignment": 10,
+        "volume_expansion": 8,
+        "qqq_confirmation": 7,
+        "breadth_alignment": 6,
+        "trap_risk": 10,
+        "regime_suitability": 6,
+    },
+    "confidence_scores": {"high": 1.0, "moderate": 0.55, "low": 0.2, "unknown": 0.0},
+    "qqq_confirmation_scores": {"confirmed": 1.0, "mixed": 0.4, "divergent": -0.7, "unknown": 0.0},
+    "trap_risk_penalty": {"low": 0.0, "moderate": -0.6, "high": -1.0, "unknown": -0.2},
+    "regime_bonus": {"momentum": 1.0, "trend": 0.6, "range": -0.5, "uncertain": -0.2, "unknown": 0.0},
+}
+
 
 def _bars(symbol: str, closes: list[float], volumes: list[float]) -> list[Bar]:
     bars: list[Bar] = []
@@ -55,6 +75,7 @@ def test_market_loop_populates_ticker_state_fields() -> None:
         timeframes={"trigger": "1m", "bias": "5m", "context": "15m"},
         bars_limit=60,
         mental_model_config=MENTAL_MODEL_CONFIG,
+        radar_config=RADAR_CONFIG,
     )
 
     states, debug_values = loop.update_once()
@@ -76,6 +97,8 @@ def test_market_loop_populates_ticker_state_fields() -> None:
     assert "confidence_score_internal" in debug_values["NVDA"]
     assert "breadth_bias" in debug_values["NVDA"]
     assert loop.latest_breadth["bias"] in {"risk_on", "risk_off", "mixed", "unknown"}
+    assert "queue" in loop.latest_radar
+    assert "by_symbol" in loop.latest_radar
 
 
 def test_mental_model_labels_bullish_and_confident() -> None:

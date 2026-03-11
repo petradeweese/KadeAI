@@ -53,6 +53,7 @@ def main() -> None:
         timeframes=tickers_config.get("timeframes", {}),
         bars_limit=market_state_config["market_loop"]["bars_limit"],
         mental_model_config=market_state_config["mental_model"],
+        radar_config=configs["radar_rules.yaml"]["radar"],
     )
 
     run_loop = os.getenv("KADE_RUN_MARKET_LOOP", "0") == "1"
@@ -62,9 +63,15 @@ def main() -> None:
         market_loop.run_forever(poll_seconds=poll_seconds)
     else:
         states, debug_values = market_loop.update_once()
-        dashboard_state = create_app_status(states, debug_values, market_loop.latest_breadth)
-        print("Kade Phase 2B initialized")
+        dashboard_state = create_app_status(
+            states,
+            debug_values,
+            market_loop.latest_breadth,
+            market_loop.latest_radar,
+        )
+        print("Kade Phase 3 initialized")
         print(f"Ticker cards: {dashboard_state['card_count']}")
+        print(f"Radar queue: {len(dashboard_state['radar']['queue'])}")
 
 
 if __name__ == "__main__":
