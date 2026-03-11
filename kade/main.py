@@ -1,12 +1,16 @@
-"""Entrypoint for the Kade Phase 1 local application."""
+"""Entrypoint for the Kade Phase 2A local application."""
 
 from __future__ import annotations
 
+import os
 from pathlib import Path
 
 import yaml
 
+from kade.dashboard.app import create_app_status
 from kade.logging_utils import LogCategory, get_logger, log_event, setup_logging
+from kade.market.alpaca_client import MockAlpacaClient
+from kade.market.market_loop import MarketStateLoop
 
 CONFIG_DIR = Path(__file__).parent / "config"
 LOGGER = get_logger(__name__)
@@ -26,6 +30,7 @@ def bootstrap_config() -> dict[str, dict]:
         "voice.yaml",
         "execution.yaml",
         "news.yaml",
+        "market_state.yaml",
     ]
     loaded_configs: dict[str, dict] = {}
     for name in config_names:
@@ -39,18 +44,27 @@ def main() -> None:
     log_event(LOGGER, LogCategory.APP_START, "Kade startup initiated")
 
     configs = bootstrap_config()
-    watchlist = configs["tickers.yaml"].get("watchlist", [])
+    tickers_config = configs["tickers.yaml"]
+    market_state_config = configs["market_state.yaml"]
 
-    log_event(
-        LOGGER,
-        LogCategory.APP_START,
-        "Kade Phase 1 initialized",
-        config_count=len(configs),
-        watchlist_count=len(watchlist),
+    market_loop = MarketStateLoop(
+        market_client=MockAlpacaClient(),
+        watchlist=tickers_config.get("watchlist", []),
+        timeframes=tickers_config.get("timeframes", {}),
+        bars_limit=market_state_config["market_loop"]["bars_limit"],
+        mental_model_config=market_state_config["mental_model"],
     )
-    print("Kade Phase 1 initialized")
-    print(f"Loaded {len(configs)} config files")
-    print(f"Watchlist: {', '.join(watchlist)}")
+
+    run_loop = os.getenv("KADE_RUN_MARKET_LOOP", "0") == "1"
+    if run_loop:
+        poll_seconds = market_state_config["market_loop"]["poll_seconds"]
+        log_event(LOGGER, LogCategory.APP_START, "Starting continuous market loop", poll_seconds=poll_seconds)
+        market_loop.run_forever(poll_seconds=poll_seconds)
+    else:
+        states, debug_values = market_loop.update_once()
+        dashboard_state = create_app_status(states, debug_values)
+        print("Kade Phase 2A initialized")
+        print(f"Ticker cards: {dashboard_state['card_count']}")
 
 
 if __name__ == "__main__":
