@@ -1,1 +1,5 @@
-"""Radar module placeholder for future opportunity detection workflows."""
+"""Radar module exports."""
+
+from kade.radar.engine import OpportunityRadar, RadarCycleResult, RadarEvent, RadarTickerResult
+
+__all__ = ["OpportunityRadar", "RadarCycleResult", "RadarEvent", "RadarTickerResult"]

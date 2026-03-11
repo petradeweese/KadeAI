@@ -10,6 +10,7 @@ from kade.logging_utils import LogCategory, get_logger, log_event
 from kade.market.context_intelligence import MarketContextIntelligence
 from kade.market.state_builder import MentalModelBuilder
 from kade.market.structure import MarketDataClient, TickerState
+from kade.radar import OpportunityRadar, RadarTickerResult
 
 
 class MarketStateLoop:
@@ -20,6 +21,7 @@ class MarketStateLoop:
         timeframes: dict[str, str],
         bars_limit: int,
         mental_model_config: dict,
+        radar_config: dict,
         logger: Logger | None = None,
     ) -> None:
         self.market_client = market_client
@@ -28,6 +30,7 @@ class MarketStateLoop:
         self.bars_limit = bars_limit
         self.model_builder = MentalModelBuilder(mental_model_config)
         self.context_intelligence = MarketContextIntelligence(mental_model_config)
+        self.radar = OpportunityRadar(radar_config, logger=logger)
         self.logger = logger or get_logger(__name__)
         self.latest_states: dict[str, TickerState] = {}
         self.latest_debug: dict[str, dict[str, float | str | None]] = {}
@@ -36,6 +39,7 @@ class MarketStateLoop:
             "advancing_ratio": None,
             "confirmation": "unknown",
         }
+        self.latest_radar: dict[str, object] = {"queue": [], "ranked": [], "by_symbol": {}, "events": []}
 
     def update_once(self) -> tuple[dict[str, TickerState], dict[str, dict[str, float | str | None]]]:
         bars_by_symbol: dict[str, dict[str, list]] = {}
@@ -142,7 +146,35 @@ class MarketStateLoop:
                 confidence=state.confidence_label,
             )
 
+        radar_cycle = self.radar.evaluate(self.latest_states, self.latest_debug, self.latest_breadth)
+        self.latest_radar = {
+            "queue": [self._serialize_radar_item(item) for item in radar_cycle.queue],
+            "ranked": [self._serialize_radar_item(item) for item in radar_cycle.ranked],
+            "by_symbol": {symbol: self._serialize_radar_item(item) for symbol, item in radar_cycle.per_ticker.items()},
+            "events": [
+                {
+                    "symbol": event.symbol,
+                    "event_type": event.event_type,
+                    "previous_state": event.previous_state,
+                    "state": event.state,
+                    "previous_score": event.previous_score,
+                    "score": event.score,
+                }
+                for event in radar_cycle.events
+            ],
+        }
+
         return self.latest_states, self.latest_debug
+
+    def _serialize_radar_item(self, item: RadarTickerResult) -> dict[str, object]:
+        return {
+            "symbol": item.symbol,
+            "state": item.state,
+            "score": round(item.score, 2),
+            "rank": item.rank,
+            "reasons": item.reasons,
+            "debug": item.debug,
+        }
 
     def run_forever(
         self,
