@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import os
+from datetime import datetime
 from pathlib import Path
 
 import yaml
@@ -14,8 +15,14 @@ from kade.execution.models import ExecutionRejection
 from kade.logging_utils import LogCategory, get_logger, log_event, setup_logging
 from kade.market.alpaca_client import MockAlpacaClient
 from kade.market.market_loop import MarketStateLoop
+from kade.integrations.tts import KokoroTTSProvider
+from kade.integrations.wakeword import MockWakeWordDetector
 from kade.options import OptionsSelectionPipeline, TradeIntent
 from kade.options.mock_chain import build_mock_chain
+from kade.voice.formatter import SpokenResponseFormatter
+from kade.voice.models import Transcript, VoiceSessionState
+from kade.voice.orchestrator import VoiceOrchestrator
+from kade.voice.router import VoiceCommandRouter
 
 CONFIG_DIR = Path(__file__).parent / "config"
 LOGGER = get_logger(__name__)
@@ -180,6 +187,90 @@ def main() -> None:
             }
             advisor_payload["top_radar"].append({"symbol": symbol, "stance": advice.stance, "summary": advice.summary})
 
+        def build_voice_handlers() -> dict:
+            def switch_mode(mode: str) -> dict[str, object]:
+                return {"mode": mode, "summary": f"Mode set to {mode}."}
+
+            def done_for_day() -> dict[str, object]:
+                return {"summary": "Done-for-day state enabled."}
+
+            def emergency_shutdown() -> dict[str, object]:
+                return {"summary": "Emergency shutdown guardrails are active."}
+
+            def radar() -> dict[str, object]:
+                top = market_loop.latest_radar.get("queue", [])[:1]
+                if not top:
+                    return {"summary": "No radar setup is currently queued."}
+                idea = top[0]
+                return {"top_symbol": idea.get("symbol"), "summary": f"Top conviction score is {idea.get('score', 'n/a')}."}
+
+            def status() -> dict[str, object]:
+                return {
+                    "summary": f"Tracking {len(states)} symbols with {len(plan_tracker.active_plans())} active plans."
+                }
+
+            def market_overview() -> dict[str, object]:
+                return {"summary": f"Market breadth is {market_loop.latest_breadth.get('bias', 'unknown')}."}
+
+            def memory_watchlist() -> dict[str, object]:
+                recent_intents = memory.snapshot(limit=5).get("intents", [])
+                watched = [item.get("symbol") for item in recent_intents if item.get("symbol")]
+                return {"watching": sorted(set(watched))}
+
+            def symbol_status(symbol: str) -> dict[str, object]:
+                if symbol not in states:
+                    return {"summary": f"{symbol} is not currently in the watchlist."}
+                state = states[symbol]
+                return {"summary": f"{symbol} is {state.trend} with {state.momentum} momentum."}
+
+            def symbol_opinion(symbol: str) -> dict[str, object]:
+                advice = advisor_payload["by_symbol"].get(symbol)
+                if not advice:
+                    return {"summary": f"No active advisor view for {symbol} yet."}
+                return {"summary": advice["summary"], "stance": advice["stance"]}
+
+            def fallback(mode: str, transcript: str) -> dict[str, object]:
+                return {"summary": f"I heard: {transcript}. Try radar, status, or mode commands."}
+
+            return {
+                "switch_mode": switch_mode,
+                "done_for_day": done_for_day,
+                "emergency_shutdown": emergency_shutdown,
+                "radar": radar,
+                "status": status,
+                "market_overview": market_overview,
+                "memory_watchlist": memory_watchlist,
+                "symbol_status": symbol_status,
+                "symbol_opinion": symbol_opinion,
+                "fallback": fallback,
+            }
+
+        voice_config = configs["voice.yaml"].get("voice", {})
+        voice_state = VoiceSessionState(
+            listening_mode=str(voice_config.get("listening_mode", "always_on")),
+            wake_word=str(voice_config.get("wake_word", "Kade")),
+            current_mode=str(voice_config.get("response_mode_default", "advisor")),
+            cooldown_ms=int(voice_config.get("cooldown_ms", 1000)),
+            command_window_ms=int(voice_config.get("command_window_ms", 8000)),
+            self_trigger_prevention=bool(voice_config.get("self_trigger_prevention", True)),
+        )
+        voice_orchestrator = VoiceOrchestrator(
+            wakeword_detector=MockWakeWordDetector(wake_word=voice_state.wake_word),
+            router=VoiceCommandRouter(handlers=build_voice_handlers()),
+            formatter=SpokenResponseFormatter(),
+            tts_provider=KokoroTTSProvider(voice_config.get("kokoro", {})),
+            state=voice_state,
+            logger=LOGGER,
+        )
+        if os.getenv("KADE_SIMULATE_VOICE", "1") == "1":
+            voice_orchestrator.process_wake_sample(f"{voice_state.wake_word} hey")
+            voice_result = voice_orchestrator.process_transcript(
+                Transcript(text=f"{voice_state.wake_word} status", received_at=datetime.utcnow(), provider="mock")
+            )
+            if voice_result:
+                print(f"Voice intent: {voice_result['intent']}")
+                print(f"Voice response: {voice_result['spoken_text']}")
+
         dashboard_state = create_app_status(
             states,
             debug_values,
@@ -191,8 +282,9 @@ def main() -> None:
             plan_tracker.snapshot(),
             advisor_payload,
             style_profile.response_guidance(),
+            voice_orchestrator.dashboard_payload(),
         )
-        print("Kade Phase 5 initialized")
+        print("Kade Phase 6 initialized")
         print(f"Ticker cards: {dashboard_state['card_count']}")
         print(f"Radar queue: {len(dashboard_state['radar']['queue'])}")
         print(f"Active plans: {len(dashboard_state['plans'].get('active', []))}")

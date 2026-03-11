@@ -16,6 +16,7 @@ def create_app_status(
     plan_payload: dict[str, object] | None = None,
     advisor_payload: dict[str, object] | None = None,
     style_payload: dict[str, object] | None = None,
+    voice_payload: dict[str, object] | None = None,
 ) -> dict:
     ticker_states = ticker_states or {}
     debug_values = debug_values or {}
@@ -27,6 +28,7 @@ def create_app_status(
     plan_payload = plan_payload or {"active": [], "all": [], "events": []}
     advisor_payload = advisor_payload or {"by_symbol": {}, "top_radar": []}
     style_payload = style_payload or {}
+    voice_payload = voice_payload or {}
 
     cards: list[dict] = []
     by_symbol = radar_payload.get("by_symbol", {})
@@ -75,5 +77,6 @@ def create_app_status(
             "events": radar_payload.get("events", []),
         },
         "execution": execution_payload,
+        "voice": voice_payload,
         "ticker_cards": cards,
     }

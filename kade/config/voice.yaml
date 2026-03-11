@@ -1,6 +1,20 @@
 voice:
+  listening_mode: always_on
   wake_word: Kade
-  tts_provider: placeholder
-  stt_provider: placeholder
+  wakeword_provider: mock
+  stt_provider: mock
+  tts_provider: kokoro
+  cooldown_ms: 1000
+  command_window_ms: 8000
+  self_trigger_prevention: true
+  response_mode_default: advisor
+  mock_behavior:
+    enabled: true
+    simulate_wakeword: true
+    simulate_stt: true
+  kokoro:
+    model: kokoro-v1
+    voice: Puck
+    mock_synthesis: true
   enable_spoken_news_alerts: false
   spoken_news_priority: high_only
