@@ -1,4 +1,4 @@
-"""Entrypoint for the Kade Phase 2A local application."""
+"""Entrypoint for the Kade Phase 2B local application."""
 
 from __future__ import annotations
 
@@ -62,8 +62,8 @@ def main() -> None:
         market_loop.run_forever(poll_seconds=poll_seconds)
     else:
         states, debug_values = market_loop.update_once()
-        dashboard_state = create_app_status(states, debug_values)
-        print("Kade Phase 2A initialized")
+        dashboard_state = create_app_status(states, debug_values, market_loop.latest_breadth)
+        print("Kade Phase 2B initialized")
         print(f"Ticker cards: {dashboard_state['card_count']}")
 
 

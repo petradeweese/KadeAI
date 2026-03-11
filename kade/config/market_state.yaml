@@ -18,3 +18,22 @@ mental_model:
   confidence:
     high_min: 0.70
     moderate_min: 0.45
+
+  regime:
+    baseline_strong_slope: 0.08
+    baseline_range_slope_max: 0.02
+    trend_slope_min: 0.05
+    momentum_slope_min: 0.08
+    range_slope_max: 0.02
+
+  breadth:
+    bullish_ratio_min: 0.60
+    bearish_ratio_max: 0.40
+    exclude_symbols: ["QQQ"]
+
+  trap_detection:
+    weak_vwap_break_distance_max: 0.003
+    failed_reclaim_buffer: 0.004
+    low_volume_breakout_acceleration_max: 0.05
+    moderate_signal_count_min: 1
+    high_signal_count_min: 2

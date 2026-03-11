@@ -1,4 +1,4 @@
-"""Polling market loop for Phase 2A ticker state updates."""
+"""Polling market loop for Phase 2B ticker state updates."""
 
 from __future__ import annotations
 
@@ -7,6 +7,7 @@ from collections.abc import Callable
 from logging import Logger
 
 from kade.logging_utils import LogCategory, get_logger, log_event
+from kade.market.context_intelligence import MarketContextIntelligence
 from kade.market.state_builder import MentalModelBuilder
 from kade.market.structure import MarketDataClient, TickerState
 
@@ -26,9 +27,15 @@ class MarketStateLoop:
         self.timeframes = timeframes
         self.bars_limit = bars_limit
         self.model_builder = MentalModelBuilder(mental_model_config)
+        self.context_intelligence = MarketContextIntelligence(mental_model_config)
         self.logger = logger or get_logger(__name__)
         self.latest_states: dict[str, TickerState] = {}
         self.latest_debug: dict[str, dict[str, float | str | None]] = {}
+        self.latest_breadth: dict[str, float | str | None] = {
+            "bias": "unknown",
+            "advancing_ratio": None,
+            "confirmation": "unknown",
+        }
 
     def update_once(self) -> tuple[dict[str, TickerState], dict[str, dict[str, float | str | None]]]:
         bars_by_symbol: dict[str, dict[str, list]] = {}
@@ -62,13 +69,77 @@ class MarketStateLoop:
             self.latest_states[symbol] = result.state
             self.latest_debug[symbol] = result.debug
 
+        spy_state = self.latest_states.get("SPY")
+        spy_debug = self.latest_debug.get("SPY")
+        baseline_regime = self.context_intelligence.baseline_regime(
+            qqq_state=self.latest_states["QQQ"],
+            spy_state=spy_state,
+            qqq_debug=self.latest_debug["QQQ"],
+            spy_debug=spy_debug,
+        )
+
+        breadth = self.context_intelligence.breadth_snapshot(self.latest_states)
+        previous_breadth = self.latest_breadth.get("bias")
+        self.latest_breadth = {
+            "bias": breadth.bias,
+            "advancing_ratio": breadth.advancing_ratio,
+            "confirmation": breadth.confirmation,
+            "baseline_regime": baseline_regime,
+        }
+        if previous_breadth != breadth.bias:
+            log_event(
+                self.logger,
+                LogCategory.MARKET_EVENT,
+                "Breadth context updated",
+                breadth_bias=breadth.bias,
+                advancing_ratio=breadth.advancing_ratio,
+                baseline_regime=baseline_regime,
+            )
+
+        for symbol in self.watchlist:
+            state = self.latest_states[symbol]
+            debug = self.latest_debug[symbol]
+            previous_regime = state.regime
+            previous_trap = state.trap_risk
+
+            state.regime = self.context_intelligence.ticker_regime(baseline_regime, state, debug)
+            state.trap_risk = self.context_intelligence.trap_risk(state, debug, bars_by_symbol[symbol]["trigger"])
+            state.qqq_confirmation = self.context_intelligence.qqq_confirmation_with_breadth(
+                state.qqq_confirmation,
+                breadth.bias,
+            )
+            debug["baseline_regime"] = baseline_regime
+            debug["breadth_bias"] = breadth.bias
+            debug["breadth_confirmation"] = breadth.confirmation
+            debug["breadth_advancing_ratio"] = breadth.advancing_ratio
+
+            if previous_regime != state.regime:
+                log_event(
+                    self.logger,
+                    LogCategory.MARKET_EVENT,
+                    "Regime changed",
+                    symbol=symbol,
+                    regime=state.regime,
+                    baseline_regime=baseline_regime,
+                )
+            if previous_trap != state.trap_risk and state.trap_risk in {"moderate", "high"}:
+                log_event(
+                    self.logger,
+                    LogCategory.MARKET_EVENT,
+                    "Trap risk detected",
+                    symbol=symbol,
+                    trap_risk=state.trap_risk,
+                )
+
             log_event(
                 self.logger,
                 LogCategory.MARKET_EVENT,
                 "Ticker state updated",
                 symbol=symbol,
-                trend=result.state.trend,
-                confidence=result.state.confidence_label,
+                trend=state.trend,
+                regime=state.regime,
+                trap_risk=state.trap_risk,
+                confidence=state.confidence_label,
             )
 
         return self.latest_states, self.latest_debug
