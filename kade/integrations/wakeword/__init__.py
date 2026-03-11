@@ -1,0 +1,1 @@
+"""Wakeword integration interface placeholder."""

@@ -1,0 +1,7 @@
+execution:
+  mode: paper
+  order_type: limit
+  max_slippage_per_contract: 0.10
+  adaptive_nudging_enabled: true
+  allow_split_orders: true
+  live_trading_enabled: false

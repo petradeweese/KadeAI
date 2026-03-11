@@ -1,0 +1,14 @@
+radar:
+  deduplicate: true
+  prioritize_by:
+    - market_regime
+    - trap_risk
+    - qqq_confirmation
+    - volume_context
+    - news_context
+
+states:
+  - heads_up
+  - trigger_imminent
+  - trigger_fired
+  - strong_setup

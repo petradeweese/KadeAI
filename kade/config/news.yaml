@@ -1,0 +1,8 @@
+news:
+  dashboard_panel_enabled: true
+  spoken_alerts_enabled: false
+  important_event_categories:
+    - earnings
+    - fed
+    - macro
+    - geopolitical
