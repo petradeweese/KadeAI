@@ -1,4 +1,4 @@
-"""Dashboard data wiring for Phase 3 radar visibility."""
+"""Dashboard data wiring for Kade status visibility."""
 
 from __future__ import annotations
 
@@ -12,6 +12,10 @@ def create_app_status(
     radar_payload: dict[str, object] | None = None,
     options_payload: dict[str, object] | None = None,
     execution_payload: dict[str, object] | None = None,
+    memory_payload: dict[str, object] | None = None,
+    plan_payload: dict[str, object] | None = None,
+    advisor_payload: dict[str, object] | None = None,
+    style_payload: dict[str, object] | None = None,
 ) -> dict:
     ticker_states = ticker_states or {}
     debug_values = debug_values or {}
@@ -19,10 +23,15 @@ def create_app_status(
     radar_payload = radar_payload or {"queue": [], "ranked": [], "by_symbol": {}, "events": []}
     options_payload = options_payload or {"by_symbol": {}}
     execution_payload = execution_payload or {"orders": [], "rejections": [], "debug": {}}
+    memory_payload = memory_payload or {"recent": [], "intents": [], "responses": [], "notes": []}
+    plan_payload = plan_payload or {"active": [], "all": [], "events": []}
+    advisor_payload = advisor_payload or {"by_symbol": {}, "top_radar": []}
+    style_payload = style_payload or {}
 
     cards: list[dict] = []
     by_symbol = radar_payload.get("by_symbol", {})
     options_by_symbol = options_payload.get("by_symbol", {})
+    advisor_by_symbol = advisor_payload.get("by_symbol", {})
     for symbol in sorted(ticker_states):
         state = ticker_states[symbol]
         cards.append(
@@ -46,6 +55,9 @@ def create_app_status(
                 "debug": debug_values.get(symbol, {}),
                 "option_candidates": options_by_symbol.get(symbol, {}).get("candidates", [])[:3],
                 "selected_option_plan": options_by_symbol.get(symbol, {}).get("selected_plan"),
+                "advisor_stance": advisor_by_symbol.get(symbol, {}).get("stance"),
+                "advisor_summary": advisor_by_symbol.get(symbol, {}).get("summary"),
+                "advisor_debug": advisor_by_symbol.get(symbol, {}).get("debug", {}),
             }
         )
 
@@ -53,6 +65,10 @@ def create_app_status(
         "status": "running",
         "card_count": len(cards),
         "breadth_context": breadth_context,
+        "style_profile": style_payload,
+        "memory": memory_payload,
+        "plans": plan_payload,
+        "advisor": advisor_payload,
         "radar": {
             "queue": radar_payload.get("queue", []),
             "top_ranked": radar_payload.get("ranked", [])[:3],

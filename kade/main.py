@@ -1,4 +1,4 @@
-"""Entrypoint for the Kade Phase 2B local application."""
+"""Entrypoint for Kade local application."""
 
 from __future__ import annotations
 
@@ -7,6 +7,7 @@ from pathlib import Path
 
 import yaml
 
+from kade.brain import AdvisorReasoningEngine, ConversationMemory, SessionPlanTracker, StyleProfileManager
 from kade.dashboard.app import create_app_status
 from kade.execution import PaperExecutionWorkflow
 from kade.execution.models import ExecutionRejection
@@ -35,6 +36,7 @@ def bootstrap_config() -> dict[str, dict]:
         "execution.yaml",
         "news.yaml",
         "market_state.yaml",
+        "brain.yaml",
     ]
     loaded_configs: dict[str, dict] = {}
     for name in config_names:
@@ -50,6 +52,12 @@ def main() -> None:
     configs = bootstrap_config()
     tickers_config = configs["tickers.yaml"]
     market_state_config = configs["market_state.yaml"]
+    brain_config = configs["brain.yaml"]
+
+    memory = ConversationMemory(brain_config, logger=LOGGER)
+    plan_tracker = SessionPlanTracker(brain_config, logger=LOGGER)
+    style_profile = StyleProfileManager(brain_config)
+    advisor = AdvisorReasoningEngine(brain_config, logger=LOGGER)
 
     market_loop = MarketStateLoop(
         market_client=MockAlpacaClient(),
@@ -91,6 +99,17 @@ def main() -> None:
                 ticker_state=target_state,
                 radar_context=market_loop.latest_radar.get("by_symbol", {}).get(target_symbol, {}),
             )
+            plan = plan_tracker.create_plan(
+                symbol=target_symbol,
+                direction=direction,
+                trigger_condition="VWAP break with QQQ alignment",
+                target_exit_idea="Scale near momentum exhaustion",
+                max_hold_minutes=intent.max_hold_minutes,
+                invalidation_concept="Reclaim against setup direction",
+            )
+
+            memory.record_user_intent(f"Watching {target_symbol} if VWAP confirms", symbol=target_symbol)
+            memory.add_structured_note("Seeded by radar top setup.", symbol=target_symbol, linked_plan_id=plan.plan_id)
 
             options_payload["by_symbol"][target_symbol] = {
                 "candidates": [
@@ -132,6 +151,35 @@ def main() -> None:
                 },
             }
 
+            if execution_payload["orders"]:
+                plan_tracker.update_status(plan.plan_id, "triggered", reason="paper workflow created staged orders")
+
+        advisor_payload = {"by_symbol": {}, "top_radar": []}
+        top_radar = market_loop.latest_radar.get("queue", [])[:3]
+        for idea in top_radar:
+            symbol = str(idea["symbol"])
+            advice = advisor.build_advice(
+                symbol=symbol,
+                ticker_state=states[symbol],
+                radar_context=market_loop.latest_radar.get("by_symbol", {}).get(symbol, {}),
+                breadth_context=market_loop.latest_breadth,
+                active_plans=plan_tracker.active_plans(),
+                memory=memory,
+                options_plan=options_payload.get("by_symbol", {}).get(symbol, {}).get("selected_plan"),
+            )
+            advice.summary = style_profile.apply_scaffold(advice.summary)
+            memory.record_kade_response(advice.summary, symbol=symbol, stance=advice.stance)
+            advisor_payload["by_symbol"][symbol] = {
+                "stance": advice.stance,
+                "summary": advice.summary,
+                "supporting_reasons": advice.supporting_reasons,
+                "cautionary_reasons": advice.cautionary_reasons,
+                "suggested_action": advice.suggested_action,
+                "linked_plan_id": advice.linked_plan_id,
+                "debug": advice.debug,
+            }
+            advisor_payload["top_radar"].append({"symbol": symbol, "stance": advice.stance, "summary": advice.summary})
+
         dashboard_state = create_app_status(
             states,
             debug_values,
@@ -139,12 +187,17 @@ def main() -> None:
             market_loop.latest_radar,
             options_payload,
             execution_payload,
+            memory.snapshot(limit=10),
+            plan_tracker.snapshot(),
+            advisor_payload,
+            style_profile.response_guidance(),
         )
-        print("Kade Phase 3 initialized")
+        print("Kade Phase 5 initialized")
         print(f"Ticker cards: {dashboard_state['card_count']}")
         print(f"Radar queue: {len(dashboard_state['radar']['queue'])}")
-        print(f"Option candidates: {len(options_payload['by_symbol'])}")
-        print(f"Execution orders: {len(execution_payload['orders'])}")
+        print(f"Active plans: {len(dashboard_state['plans'].get('active', []))}")
+        print(f"Recent memory entries: {len(dashboard_state['memory'].get('recent', []))}")
+        print(f"Advisor outputs: {len(dashboard_state['advisor'].get('by_symbol', {}))}")
 
 
 if __name__ == "__main__":
