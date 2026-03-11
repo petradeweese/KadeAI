@@ -5,6 +5,7 @@ from __future__ import annotations
 from logging import Logger
 
 from kade.execution.guardrails import ExecutionGuardrails
+from kade.execution.lifecycle import ExecutionLifecycle
 from kade.execution.models import ExecutionRejection, OrderRequest, OrderResult
 from kade.logging_utils import LogCategory, get_logger, log_event
 
@@ -39,6 +40,8 @@ class PaperExecutionEngine:
             log_event(self.logger, LogCategory.ORDER_EVENT, "Order rejected by guardrail", code=guardrail_failure.code)
             return ExecutionRejection(request=request, failure=guardrail_failure)
 
+        lifecycle = ExecutionLifecycle()
+
         if not confirm:
             return OrderResult(
                 request=request,
@@ -48,9 +51,12 @@ class PaperExecutionEngine:
                 avg_fill_price=None,
                 simulated_slippage=slippage,
                 notes=["Awaiting confirmation"],
+                lifecycle=lifecycle.snapshot(),
             )
 
-        result = self._simulate_fill(request, slippage)
+        lifecycle.transition("confirmed", "user_confirmed")
+        lifecycle.transition("submitted", "paper_submission")
+        result = self._simulate_fill(request, slippage, lifecycle=lifecycle)
         log_event(
             self.logger,
             LogCategory.ORDER_EVENT,
@@ -62,7 +68,7 @@ class PaperExecutionEngine:
         )
         return result
 
-    def _simulate_fill(self, request: OrderRequest, slippage: float) -> OrderResult:
+    def _simulate_fill(self, request: OrderRequest, slippage: float, lifecycle: ExecutionLifecycle) -> OrderResult:
         partial_ratio = self.paper_sim["partial_fill_ratio"] if self.paper_sim["allow_partial_fills"] else 1.0
         filled = int(request.contracts * partial_ratio)
         if request.contracts > 0 and filled == 0:
@@ -75,11 +81,14 @@ class PaperExecutionEngine:
         notes: list[str] = []
         status = "filled"
         if remaining > 0:
-            status = "partial_fill"
+            status = "partially_filled"
             notes.append("Partial fill simulated")
             if self.paper_sim["adaptive_nudging_enabled"]:
                 nudged_price = round(request.limit_price + self.paper_sim["nudge_step"], 2)
                 notes.append("Adaptive nudge suggested")
+
+        lifecycle.transition("partially_filled" if remaining > 0 else "filled", "paper_fill_update")
+        log_event(self.logger, LogCategory.ORDER_EVENT, "Execution lifecycle state change", state=lifecycle.state)
 
         return OrderResult(
             request=request,
@@ -90,6 +99,7 @@ class PaperExecutionEngine:
             simulated_slippage=slippage,
             nudged_limit_price=nudged_price,
             notes=notes,
+            lifecycle=lifecycle.snapshot(),
         )
 
     def _simulated_slippage(self, limit_price: float) -> float:

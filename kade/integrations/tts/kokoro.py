@@ -17,7 +17,11 @@ class KokoroTTSProvider(TTSProvider):
         self.model = str(config.get("model", "kokoro-v1"))
 
     def synthesize(self, text: str) -> TTSOutput:
-        metadata = {"model": self.model, "mock_synthesis": self.mock_synthesis}
+        metadata = {
+            "model": self.model,
+            "mock_synthesis": self.mock_synthesis,
+            "artifact_ready": not self.mock_synthesis,
+        }
         audio_uri = None
         if self.mock_synthesis:
             audio_uri = f"mock://kokoro/{self.voice.lower()}/{abs(hash(text)) % 100000}"

@@ -1,20 +1,46 @@
 voice:
+  runtime_mode: text_first
+  voice_runtime_enabled: false
+  text_command_input_enabled: true
   listening_mode: always_on
   wake_word: Kade
+  wakeword_enabled: false
+  stt_enabled: false
+  tts_enabled: false
   wakeword_provider: mock
   stt_provider: mock
   tts_provider: kokoro
+  provider_fallback: mock
   cooldown_ms: 1000
   command_window_ms: 8000
   self_trigger_prevention: true
   response_mode_default: advisor
-  mock_behavior:
+  text_panel:
     enabled: true
-    simulate_wakeword: true
-    simulate_stt: true
+    max_command_history: 25
+    placeholder: "Type a command for Kade"
+  wakeword_backends:
+    porcupine:
+      keyword: Kade
+      sensitivity: 0.5
+      enabled: false
+  stt_backends:
+    whisper:
+      model: tiny.en
+      language: en
+      temperature: 0.0
+      enabled: false
   kokoro:
     model: kokoro-v1
     voice: Puck
     mock_synthesis: true
+  mock_behavior:
+    enabled: true
+    simulate_wakeword: true
+    simulate_stt: true
+  backend_targets:
+    wakeword: porcupine
+    stt: whisper
+    tts: kokoro
   enable_spoken_news_alerts: false
   spoken_news_priority: high_only

@@ -22,6 +22,7 @@ class VoiceOrchestrator:
         tts_provider: TTSProvider,
         state: VoiceSessionState,
         logger: Logger | None = None,
+        enable_tts: bool = True,
     ) -> None:
         self.wakeword_detector = wakeword_detector
         self.router = router
@@ -29,6 +30,7 @@ class VoiceOrchestrator:
         self.tts_provider = tts_provider
         self.state = state
         self.logger = logger or get_logger(__name__)
+        self.enable_tts = enable_tts
 
     def process_wake_sample(self, text_sample: str, now: datetime | None = None) -> bool:
         now = now or datetime.utcnow()
@@ -66,14 +68,25 @@ class VoiceOrchestrator:
         spoken = self.formatter.format(routed, self.state.current_mode)
         log_event(self.logger, LogCategory.VOICE_EVENT, "Response formatted", response_type=spoken.response_type)
 
-        tts_output = self.tts_provider.synthesize(spoken.text)
-        log_event(
-            self.logger,
-            LogCategory.VOICE_EVENT,
-            "TTS provider invoked",
-            provider=tts_output.provider,
-            voice=tts_output.voice,
-        )
+        if self.enable_tts:
+            tts_output = self.tts_provider.synthesize(spoken.text)
+            log_event(
+                self.logger,
+                LogCategory.VOICE_EVENT,
+                "TTS provider invoked",
+                provider=tts_output.provider,
+                voice=tts_output.voice,
+            )
+        else:
+            tts_output = self.tts_provider.synthesize("")
+            tts_output = tts_output.__class__(
+                provider="disabled",
+                voice="none",
+                text=spoken.text,
+                generated_at=tts_output.generated_at,
+                audio_uri=None,
+                metadata={"reason": "tts_disabled"},
+            )
 
         self.state.last_spoken_response = spoken.text
         self.state.recent_events.append(
