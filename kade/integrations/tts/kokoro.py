@@ -7,6 +7,7 @@ from pathlib import Path
 
 from kade.integrations.health import ProviderHealth
 from kade.integrations.tts.base import TTSOutput, TTSProvider
+from kade.utils.time import utc_now
 
 
 class KokoroTTSProvider(TTSProvider):
@@ -45,7 +46,7 @@ class KokoroTTSProvider(TTSProvider):
             provider=self.provider_name,
             voice=self.voice,
             text=text,
-            generated_at=datetime.utcnow(),
+            generated_at=utc_now(),
             audio_uri=audio_uri,
             metadata=metadata,
         )

@@ -6,6 +6,7 @@ from kade.brain.reasoning import AdvisorReasoningEngine
 from kade.brain.style_profile import StyleProfileManager
 from kade.market.context_intelligence import MarketContextIntelligence
 from kade.market.structure import TickerState
+from kade.utils.time import utc_now
 
 BRAIN_CONFIG = {
     "memory": {
@@ -78,7 +79,7 @@ def test_plan_tracker_create_update_and_cleanup() -> None:
 
     assert tracker.plans[plan.plan_id].status == "exited"
 
-    tracker.plans[plan.plan_id].updated_at = datetime.utcnow() - timedelta(minutes=30)
+    tracker.plans[plan.plan_id].updated_at = utc_now() - timedelta(minutes=30)
     removed = tracker.cleanup_expired()
     assert plan.plan_id in removed
 

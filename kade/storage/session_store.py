@@ -6,6 +6,7 @@ from datetime import datetime
 from pathlib import Path
 
 from kade.storage.base import JsonFileStore
+from kade.utils.time import utc_now
 
 
 class SessionStore(JsonFileStore):
@@ -30,7 +31,7 @@ class SessionStore(JsonFileStore):
 
 
 def rollover_session(payload: dict[str, object], now: datetime | None = None) -> dict[str, object]:
-    now = now or datetime.utcnow()
+    now = now or utc_now()
     day_key = now.date().isoformat()
     if payload.get("day_key") == day_key:
         payload.setdefault("day_key", day_key)

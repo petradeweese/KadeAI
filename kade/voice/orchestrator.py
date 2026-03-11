@@ -11,6 +11,7 @@ from kade.logging_utils import LogCategory, get_logger, log_event
 from kade.voice.formatter import SpokenResponseFormatter
 from kade.voice.models import Transcript, VoiceCommandEvent, VoiceSessionState, WakeWordEvent
 from kade.voice.router import VoiceCommandRouter
+from kade.utils.time import utc_now
 
 
 class VoiceOrchestrator:
@@ -33,7 +34,7 @@ class VoiceOrchestrator:
         self.enable_tts = enable_tts
 
     def process_wake_sample(self, text_sample: str, now: datetime | None = None) -> bool:
-        now = now or datetime.utcnow()
+        now = now or utc_now()
         event = self.wakeword_detector.detect(text_sample, now=now)
         if not event:
             return False
@@ -47,7 +48,7 @@ class VoiceOrchestrator:
         return True
 
     def process_transcript(self, transcript: Transcript, now: datetime | None = None) -> dict[str, object] | None:
-        now = now or datetime.utcnow()
+        now = now or utc_now()
         if not self.state.command_window_active(now):
             return None
 

@@ -9,6 +9,7 @@ from typing import Callable
 
 from kade.brain.models import MemoryItem
 from kade.logging_utils import LogCategory, get_logger, log_event
+from kade.utils.time import parse_utc_iso, utc_now
 
 
 class ConversationMemory:
@@ -77,7 +78,7 @@ class ConversationMemory:
         symbol: str | None,
         metadata: dict[str, object],
     ) -> MemoryItem:
-        now = datetime.utcnow()
+        now = utc_now()
         item_id = f"{item_type}-{int(now.timestamp() * 1000)}-{len(content)}"
         normalized_meta = {key: value for key, value in metadata.items() if isinstance(value, (str, int, float, bool))}
         return MemoryItem(
@@ -105,7 +106,7 @@ class ConversationMemory:
             item_type=str(payload.get("item_type", "unknown")),
             symbol=payload.get("symbol") if isinstance(payload.get("symbol"), str) else None,
             content=str(payload.get("content", "")),
-            created_at=datetime.fromisoformat(str(payload.get("created_at"))),
+            created_at=parse_utc_iso(str(payload.get("created_at"))),
             metadata=payload.get("metadata", {}) if isinstance(payload.get("metadata"), dict) else {},
         )
 
