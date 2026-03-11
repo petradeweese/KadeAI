@@ -9,6 +9,25 @@ MENTAL_MODEL_CONFIG = {
     "momentum_macd_hist": {"bullish": 0.02, "bearish": -0.02},
     "volume_acceleration": {"strong": 0.2, "weak": -0.1},
     "confidence": {"high_min": 0.7, "moderate_min": 0.45},
+    "regime": {
+        "baseline_strong_slope": 0.08,
+        "baseline_range_slope_max": 0.02,
+        "trend_slope_min": 0.05,
+        "momentum_slope_min": 0.08,
+        "range_slope_max": 0.02,
+    },
+    "breadth": {
+        "bullish_ratio_min": 0.6,
+        "bearish_ratio_max": 0.4,
+        "exclude_symbols": ["QQQ"],
+    },
+    "trap_detection": {
+        "weak_vwap_break_distance_max": 0.003,
+        "failed_reclaim_buffer": 0.004,
+        "low_volume_breakout_acceleration_max": 0.05,
+        "moderate_signal_count_min": 1,
+        "high_signal_count_min": 2,
+    },
 }
 
 
@@ -49,10 +68,14 @@ def test_market_loop_populates_ticker_state_fields() -> None:
     assert nvda.momentum is not None
     assert nvda.volume_state is not None
     assert nvda.qqq_confirmation is not None
+    assert nvda.regime in {"trend", "range", "momentum", "slow", "unknown"}
+    assert nvda.trap_risk in {"low", "moderate", "high", "unknown"}
     assert nvda.confidence_label in {"high", "moderate", "low"}
     assert isinstance(nvda.confidence_reason, str)
     assert nvda.updated_at is not None
     assert "confidence_score_internal" in debug_values["NVDA"]
+    assert "breadth_bias" in debug_values["NVDA"]
+    assert loop.latest_breadth["bias"] in {"risk_on", "risk_off", "mixed", "unknown"}
 
 
 def test_mental_model_labels_bullish_and_confident() -> None:
