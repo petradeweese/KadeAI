@@ -1,0 +1,22 @@
+memory:
+  recent_intents_limit: 30
+  recent_responses_limit: 30
+  structured_notes_limit: 80
+  recall_limit_per_symbol: 8
+
+plans:
+  expiration_minutes: 480
+
+style_profile:
+  defaults:
+    profile_name: petra
+    tone: calm_analytical
+    verbosity: balanced
+    directness: direct
+    common_phrases:
+      - "Let the setup confirm"
+      - "Protect downside first"
+
+advisor:
+  wording:
+    include_debug_summary: true
