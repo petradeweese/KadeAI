@@ -41,6 +41,7 @@ class PaperExecutionEngine:
             return ExecutionRejection(request=request, failure=guardrail_failure)
 
         lifecycle = ExecutionLifecycle()
+        log_event(self.logger, LogCategory.ORDER_EVENT, "Execution lifecycle state change", state=lifecycle.state, reason="staged")
 
         if not confirm:
             return OrderResult(
@@ -83,11 +84,14 @@ class PaperExecutionEngine:
         if remaining > 0:
             status = "partially_filled"
             notes.append("Partial fill simulated")
+            lifecycle.transition("partially_filled", "paper_fill_update")
             if self.paper_sim["adaptive_nudging_enabled"]:
                 nudged_price = round(request.limit_price + self.paper_sim["nudge_step"], 2)
                 notes.append("Adaptive nudge suggested")
+                notes.append("Nudge pending follow-up fill")
+        else:
+            lifecycle.transition("filled", "paper_fill_update")
 
-        lifecycle.transition("partially_filled" if remaining > 0 else "filled", "paper_fill_update")
         log_event(self.logger, LogCategory.ORDER_EVENT, "Execution lifecycle state change", state=lifecycle.state)
 
         return OrderResult(

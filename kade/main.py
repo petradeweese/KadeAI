@@ -10,12 +10,17 @@ import yaml
 from kade.brain import AdvisorReasoningEngine, ConversationMemory, SessionPlanTracker, StyleProfileManager
 from kade.execution import PaperExecutionWorkflow
 from kade.execution.models import ExecutionRejection
-from kade.integrations.providers import build_stt_provider, build_tts_provider, build_wakeword_provider
+from kade.integrations.diagnostics import ProviderDiagnostics
+from kade.integrations.providers import (
+    build_market_data_provider,
+    build_options_data_provider,
+    build_stt_provider,
+    build_tts_provider,
+    build_wakeword_provider,
+)
 from kade.logging_utils import LogCategory, get_logger, log_event, setup_logging
-from kade.market.alpaca_client import MockAlpacaClient
 from kade.market.market_loop import MarketStateLoop
 from kade.options import OptionsSelectionPipeline, TradeIntent
-from kade.options.mock_chain import build_mock_chain
 from kade.runtime import (
     InteractionOrchestrator,
     InteractionRuntimeState,
@@ -79,8 +84,20 @@ def main() -> None:
     radar_history, advisor_history, execution_history, session_state = persistence.restore_startup_state(memory, plan_tracker)
     session_state = persistence.apply_rollover(session_state)
 
+    provider_runtime = configs["execution.yaml"].get("providers", {})
+    market_data_provider = build_market_data_provider(provider_runtime)
+    options_data_provider = build_options_data_provider(provider_runtime)
+
+    log_event(
+        LOGGER,
+        LogCategory.APP_START,
+        "Data providers selected",
+        market_data_provider=market_data_provider.provider_name,
+        options_data_provider=options_data_provider.provider_name,
+    )
+
     market_loop = MarketStateLoop(
-        market_client=MockAlpacaClient(),
+        market_client=market_data_provider,
         watchlist=tickers_config.get("watchlist", []),
         timeframes=tickers_config.get("timeframes", {}),
         bars_limit=market_state_config["market_loop"]["bars_limit"],
@@ -116,7 +133,7 @@ def main() -> None:
             desired_position_size_usd=configs["trading_rules.yaml"]["positioning"]["default_position_size_usd"],
             max_hold_minutes=configs["trading_rules.yaml"]["positioning"]["max_hold_minutes"],
         )
-        chain = build_mock_chain(target_symbol, target_state.last_price)
+        chain = options_data_provider.get_option_chain(target_symbol, target_state.last_price)
         options_pipeline = OptionsSelectionPipeline(configs["execution.yaml"]["execution"]["option_selection"])
         selected_plan = options_pipeline.build_plan(
             intent,
@@ -173,6 +190,9 @@ def main() -> None:
                 "symbol": target_symbol,
                 "intent": intent.__dict__,
                 "order_preview": [workflow.engine.preview_order(req) for req in order_requests],
+                "latest_lifecycle": [
+                    r.lifecycle for r in staged_results if not isinstance(r, ExecutionRejection)
+                ],
             },
         }
 
@@ -211,6 +231,7 @@ def main() -> None:
                         "remaining_contracts": result.remaining_contracts,
                         "avg_fill_price": result.avg_fill_price,
                         "nudged_limit_price": result.nudged_limit_price,
+                        "lifecycle": result.lifecycle,
                     }
                 )
                 if result.filled_contracts > 0:
@@ -307,6 +328,17 @@ def main() -> None:
         replay_runtime=ReplayRuntime(retention_limit=int(dict(voice_config.get("replay_debug", {})).get("retention_limit", 40))),
     )
 
+    diagnostics = ProviderDiagnostics(policy=str(provider_runtime.get("diagnostics_policy", "warn_on_degraded")), logger=LOGGER)
+    provider_diagnostics = diagnostics.evaluate(
+        {
+            "market_data": market_data_provider.health_snapshot(active=True),
+            "options_data": options_data_provider.health_snapshot(active=True),
+            "wakeword": voice_orchestrator.wakeword_detector.health_snapshot(active=interaction_state.wakeword_enabled),
+            "stt": interaction.stt_provider.health_snapshot(active=interaction_state.stt_enabled),
+            "tts": voice_orchestrator.tts_provider.health_snapshot(active=interaction_state.tts_enabled),
+        }
+    )
+
     log_event(
         LOGGER,
         LogCategory.VOICE_EVENT,
@@ -347,6 +379,14 @@ def main() -> None:
     session_state["recent_command_history"] = interaction_state.recent_commands
     session_state["provider_health"] = interaction_state.provider_health
     session_state["provider_health_history"] = interaction_state.provider_health_history
+    session_state["provider_diagnostics"] = provider_diagnostics
+    session_state["provider_selection"] = {
+        "market_data": market_data_provider.provider_name,
+        "options_data": options_data_provider.provider_name,
+        "wakeword": voice_orchestrator.wakeword_detector.provider_name,
+        "stt": interaction.stt_provider.provider_name,
+        "tts": voice_orchestrator.tts_provider.provider_name,
+    }
     session_state["replay_debug"] = interaction.replay_runtime.snapshot()
     persistence.retain_recent_voice_events(session_state)
     persistence.retain_recent_commands(session_state)
@@ -373,7 +413,7 @@ def main() -> None:
         plan_tracker.snapshot(),
         advisor_payload,
         style_profile.response_guidance(),
-        interaction.dashboard_payload(),
+        {**interaction.dashboard_payload(), "provider_diagnostics": provider_diagnostics, "provider_selection": session_state.get("provider_selection", {})},
         persistence_meta,
         session_state,
         history_payload,
