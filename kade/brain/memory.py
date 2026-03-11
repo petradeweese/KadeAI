@@ -5,15 +5,17 @@ from __future__ import annotations
 from collections import deque
 from datetime import datetime
 from logging import Logger
+from typing import Callable
 
 from kade.brain.models import MemoryItem
 from kade.logging_utils import LogCategory, get_logger, log_event
 
 
 class ConversationMemory:
-    def __init__(self, config: dict, logger: Logger | None = None) -> None:
+    def __init__(self, config: dict, logger: Logger | None = None, autosave: Callable[[], None] | None = None) -> None:
         self.config = config
         self.logger = logger or get_logger(__name__)
+        self.autosave = autosave
         memory_cfg = config.get("memory", {})
         self.recent_intents = deque(maxlen=memory_cfg.get("recent_intents_limit", 25))
         self.recent_responses = deque(maxlen=memory_cfg.get("recent_responses_limit", 25))
@@ -23,19 +25,33 @@ class ConversationMemory:
         item = self._build_item("user_intent", content, symbol, metadata)
         self.recent_intents.append(item)
         self._log_write(item)
+        self._trigger_autosave()
         return item
 
     def record_kade_response(self, content: str, symbol: str | None = None, **metadata: object) -> MemoryItem:
         item = self._build_item("kade_response", content, symbol, metadata)
         self.recent_responses.append(item)
         self._log_write(item)
+        self._trigger_autosave()
         return item
 
     def add_structured_note(self, content: str, symbol: str | None = None, **metadata: object) -> MemoryItem:
         item = self._build_item("structured_note", content, symbol, metadata)
         self.structured_notes.append(item)
         self._log_write(item)
+        self._trigger_autosave()
         return item
+
+    def restore(self, payload: dict[str, list[dict[str, object]]]) -> None:
+        self.recent_intents.clear()
+        self.recent_responses.clear()
+        self.structured_notes.clear()
+        for raw in payload.get("intents", []):
+            self.recent_intents.append(self._deserialize(raw))
+        for raw in payload.get("responses", []):
+            self.recent_responses.append(self._deserialize(raw))
+        for raw in payload.get("notes", []):
+            self.structured_notes.append(self._deserialize(raw))
 
     def recall_for_symbol(self, symbol: str, limit: int = 8) -> list[MemoryItem]:
         pooled = [*self.recent_intents, *self.recent_responses, *self.structured_notes]
@@ -83,6 +99,16 @@ class ConversationMemory:
             "metadata": item.metadata,
         }
 
+    def _deserialize(self, payload: dict[str, object]) -> MemoryItem:
+        return MemoryItem(
+            item_id=str(payload.get("item_id", "missing-item-id")),
+            item_type=str(payload.get("item_type", "unknown")),
+            symbol=payload.get("symbol") if isinstance(payload.get("symbol"), str) else None,
+            content=str(payload.get("content", "")),
+            created_at=datetime.fromisoformat(str(payload.get("created_at"))),
+            metadata=payload.get("metadata", {}) if isinstance(payload.get("metadata"), dict) else {},
+        )
+
     def _log_write(self, item: MemoryItem) -> None:
         log_event(
             self.logger,
@@ -92,3 +118,7 @@ class ConversationMemory:
             symbol=item.symbol,
             item_id=item.item_id,
         )
+
+    def _trigger_autosave(self) -> None:
+        if self.autosave:
+            self.autosave()

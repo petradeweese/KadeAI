@@ -1,0 +1,10 @@
+storage:
+  root_dir: .kade_storage
+  autosave: true
+  history:
+    radar_limit: 150
+    advisor_limit: 120
+    execution_limit: 200
+  session:
+    rollover: daily_utc
+    recent_voice_events_limit: 25
