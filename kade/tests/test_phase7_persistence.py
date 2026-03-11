@@ -3,6 +3,7 @@ from datetime import datetime, timedelta
 from kade.brain.memory import ConversationMemory
 from kade.brain.plans import SessionPlanTracker
 from kade.storage import ExecutionStore, MemoryStore, PlanStore, RadarStore, SessionStore, rollover_session
+from kade.utils.time import utc_now, utc_now_iso
 
 BRAIN_CONFIG = {
     "memory": {
@@ -52,8 +53,8 @@ def test_history_store_retains_and_loads(tmp_path) -> None:
     radar_store = RadarStore(tmp_path)
     execution_store = ExecutionStore(tmp_path)
 
-    radar_events = [{"event_type": "heads_up", "symbol": "NVDA", "timestamp": datetime.utcnow().isoformat()}]
-    execution_events = [{"event_type": "paper_order_request", "symbol": "NVDA", "timestamp": datetime.utcnow().isoformat()}]
+    radar_events = [{"event_type": "heads_up", "symbol": "NVDA", "timestamp": utc_now_iso()}]
+    execution_events = [{"event_type": "paper_order_request", "symbol": "NVDA", "timestamp": utc_now_iso()}]
     radar_store.save_events(radar_events)
     execution_store.save_events(execution_events)
 
@@ -63,13 +64,13 @@ def test_history_store_retains_and_loads(tmp_path) -> None:
 
 def test_session_rollover_resets_daily_state() -> None:
     payload = {
-        "day_key": (datetime.utcnow().date() - timedelta(days=1)).isoformat(),
+        "day_key": (utc_now().date() - timedelta(days=1)).isoformat(),
         "trades_today": 4,
         "daily_realized_pnl": 100.0,
         "done_for_day": True,
         "recent_voice_events": [{"intent": "status"}],
     }
-    rolled = rollover_session(payload, now=datetime.utcnow())
+    rolled = rollover_session(payload, now=utc_now())
 
     assert rolled["trades_today"] == 0
     assert rolled["daily_realized_pnl"] == 0.0

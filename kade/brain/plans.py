@@ -8,6 +8,7 @@ from typing import Callable
 
 from kade.brain.models import PlanStatusEvent, TradePlan
 from kade.logging_utils import LogCategory, get_logger, log_event
+from kade.utils.time import parse_utc_iso, utc_now
 
 VALID_STATUSES = {"watching", "triggered", "active", "exited", "cancelled"}
 ALLOWED_TRANSITIONS = {
@@ -39,7 +40,7 @@ class SessionPlanTracker:
         notes: list[str] | None = None,
     ) -> TradePlan:
         self._validate_status(status)
-        now = datetime.utcnow()
+        now = utc_now()
         plan_id = f"plan-{symbol}-{int(now.timestamp() * 1000)}"
         plan = TradePlan(
             plan_id=plan_id,
@@ -70,7 +71,7 @@ class SessionPlanTracker:
                 plan_id=plan_id,
                 from_status=plan.status,
                 to_status=new_status,
-                changed_at=datetime.utcnow(),
+                changed_at=utc_now(),
                 reason=reason,
             )
             self.status_events.append(event)
@@ -91,7 +92,7 @@ class SessionPlanTracker:
     def add_note(self, plan_id: str, note: str) -> TradePlan:
         plan = self.plans[plan_id]
         plan.notes.append(note)
-        plan.updated_at = datetime.utcnow()
+        plan.updated_at = utc_now()
         log_event(self.logger, LogCategory.REASONING_EVENT, "Plan note added", plan_id=plan_id, symbol=plan.symbol)
         self._trigger_autosave()
         return plan
@@ -110,7 +111,7 @@ class SessionPlanTracker:
         return [plan for plan in self.plans.values() if plan.status in {"watching", "triggered", "active"}]
 
     def cleanup_expired(self, now: datetime | None = None) -> list[str]:
-        now = now or datetime.utcnow()
+        now = now or utc_now()
         expiry_minutes = self.config.get("plans", {}).get("expiration_minutes", 480)
         cutoff = now - timedelta(minutes=expiry_minutes)
         removed: list[str] = []
@@ -184,8 +185,8 @@ class SessionPlanTracker:
             invalidation_concept=str(payload["invalidation_concept"]),
             status=str(payload["status"]),
             notes=[str(item) for item in payload.get("notes", [])],
-            created_at=datetime.fromisoformat(str(payload["created_at"])),
-            updated_at=datetime.fromisoformat(str(payload["updated_at"])),
+            created_at=parse_utc_iso(str(payload["created_at"])),
+            updated_at=parse_utc_iso(str(payload["updated_at"])),
         )
 
     def _deserialize_event(self, payload: dict[str, object]) -> PlanStatusEvent:
@@ -193,7 +194,7 @@ class SessionPlanTracker:
             plan_id=str(payload["plan_id"]),
             from_status=str(payload["from_status"]),
             to_status=str(payload["to_status"]),
-            changed_at=datetime.fromisoformat(str(payload["changed_at"])),
+            changed_at=parse_utc_iso(str(payload["changed_at"])),
             reason=str(payload["reason"]) if payload.get("reason") is not None else None,
         )
 

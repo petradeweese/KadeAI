@@ -4,6 +4,7 @@ from __future__ import annotations
 
 from dataclasses import dataclass, field
 from datetime import datetime
+from kade.utils.time import utc_now
 
 
 VALID_TRANSITIONS: dict[str, set[str]] = {
@@ -34,7 +35,7 @@ class ExecutionLifecycle:
     def transition(self, to_state: str, reason: str, now: datetime | None = None) -> bool:
         if to_state not in VALID_TRANSITIONS.get(self.state, set()):
             return False
-        now = now or datetime.utcnow()
+        now = now or utc_now()
         self.events.append(
             ExecutionLifecycleEvent(
                 from_state=self.state,

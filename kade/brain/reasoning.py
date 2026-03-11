@@ -9,6 +9,7 @@ from kade.brain.memory import ConversationMemory
 from kade.brain.models import AdvisorOutput, TradePlan
 from kade.logging_utils import LogCategory, get_logger, log_event
 from kade.market.structure import TickerState
+from kade.utils.time import utc_now
 
 
 class AdvisorReasoningEngine:
@@ -101,7 +102,7 @@ class AdvisorReasoningEngine:
             cautionary_reasons=cautions[:4],
             suggested_action=suggested_action,
             linked_plan_id=linked_plan.plan_id if linked_plan else None,
-            generated_at=datetime.utcnow(),
+            generated_at=utc_now(),
             debug={
                 "score": score,
                 "radar_score": radar_score,

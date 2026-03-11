@@ -1,4 +1,3 @@
-from datetime import datetime
 
 import yaml
 
@@ -10,6 +9,7 @@ from kade.voice.formatter import SpokenResponseFormatter
 from kade.voice.models import VoiceSessionState
 from kade.voice.orchestrator import VoiceOrchestrator
 from kade.voice.router import VoiceCommandRouter
+from kade.utils.time import utc_now
 
 
 def _interaction() -> InteractionOrchestrator:
@@ -51,7 +51,7 @@ def _interaction() -> InteractionOrchestrator:
 
 def test_provider_health_reported_in_dashboard_payload() -> None:
     interaction = _interaction()
-    interaction.submit_text_command("status", now=datetime.utcnow())
+    interaction.submit_text_command("status", now=utc_now())
     payload = interaction.dashboard_payload()
 
     assert payload["provider_health"]["wakeword"]["state"] == "disabled"
@@ -71,8 +71,8 @@ def test_text_panel_response_is_structured_with_debug() -> None:
 
 def test_replay_debug_returns_recent_records() -> None:
     interaction = _interaction()
-    interaction.submit_text_command("status", now=datetime.utcnow())
-    interaction.submit_text_command("radar", now=datetime.utcnow())
+    interaction.submit_text_command("status", now=utc_now())
+    interaction.submit_text_command("radar", now=utc_now())
 
     replay_payload = interaction.replay_recent_commands(2)
     assert replay_payload["debug"]["returned"] == 2

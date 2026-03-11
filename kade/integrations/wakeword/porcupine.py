@@ -7,6 +7,7 @@ from datetime import datetime
 from kade.integrations.health import ProviderHealth
 from kade.integrations.wakeword.base import WakeWordDetector
 from kade.voice.models import WakeWordEvent
+from kade.utils.time import utc_now
 
 
 class PorcupineWakeWordDetector(WakeWordDetector):
@@ -20,7 +21,7 @@ class PorcupineWakeWordDetector(WakeWordDetector):
         self.access_key_present = bool(str(cfg.get("access_key", "")).strip())
 
     def detect(self, text_sample: str, now: datetime | None = None) -> WakeWordEvent | None:
-        now = now or datetime.utcnow()
+        now = now or utc_now()
         if self.keyword.lower() in text_sample.lower():
             return WakeWordEvent(
                 wake_word=self.keyword,

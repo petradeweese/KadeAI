@@ -4,6 +4,7 @@ from __future__ import annotations
 
 from dataclasses import dataclass, field
 from datetime import datetime
+from kade.utils.time import utc_now_iso
 
 
 @dataclass
@@ -42,7 +43,7 @@ class ReplayRuntime:
             "requested": count,
             "returned": len(replay_items),
             "items": replay_items,
-            "generated_at": datetime.utcnow().isoformat(),
+            "generated_at": utc_now_iso(),
         }
         return replay_items
 

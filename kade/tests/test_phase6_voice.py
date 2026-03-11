@@ -7,6 +7,7 @@ from kade.voice.formatter import SpokenResponseFormatter
 from kade.voice.models import Transcript, VoiceSessionState, WakeWordEvent
 from kade.voice.orchestrator import VoiceOrchestrator
 from kade.voice.router import VoiceCommandRouter
+from kade.utils.time import utc_now
 
 
 def _build_handlers() -> dict:
@@ -26,7 +27,7 @@ def _build_handlers() -> dict:
 
 def test_voice_session_state_transitions_and_cooldown() -> None:
     state = VoiceSessionState(cooldown_ms=1000, command_window_ms=2000)
-    now = datetime.utcnow()
+    now = utc_now()
 
     assert state.can_accept_wake(now)
     state.open_command_window(now)
@@ -84,7 +85,7 @@ def test_orchestrator_transcript_to_spoken_response_flow() -> None:
         tts_provider=KokoroTTSProvider({"voice": "Puck", "mock_synthesis": True}),
         state=state,
     )
-    now = datetime.utcnow()
+    now = utc_now()
 
     opened = orchestrator.handle_wake_event(WakeWordEvent(wake_word="Kade", detected_at=now, source="developer"))
     transcript = Transcript(text="Kade status", received_at=now, provider="mock")

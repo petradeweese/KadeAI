@@ -1,98 +1,95 @@
-# Kade (Phase 1)
+# Kade
 
-Kade is a local AI trading assistant focused on being a conversational trading co-pilot. This repository currently implements **Phase 1** foundations:
+Kade is a local, config-driven AI trading copilot built as a **Python modular monolith**. It runs as one process with clear module boundaries for market sensing, setup detection, reasoning, options planning, execution simulation, runtime interaction, and persistence.
 
-1. Project skeleton and modular package layout
-2. Config-driven defaults for trading behavior and system personality
-3. Alpaca market data client wrapper scaffolding
-4. Indicator engine for core intraday signals
-5. Canonical ticker state placeholder model for future mental model logic
-6. Lightweight shared logging utilities
-7. Basic unit tests for indicator calculations
+## Current architecture
 
-## Architecture docs
-- See `ARCHITECTURE.md` for module boundaries, data flow, and phase progression.
+Core modules in `kade/`:
 
-## Architecture
+- `market/` — market state loop, indicator engine, context intelligence, Alpaca boundary + mock client.
+- `radar/` — setup scoring and queue/event generation over market state snapshots.
+- `options/` — options intent-to-contract selection pipeline with deterministic mock chain support.
+- `execution/` — paper execution workflow, guardrails, and lifecycle state transitions.
+- `brain/` — reasoning output generation, conversation memory, style profile, and session plan tracking.
+- `voice/` — wake/transcript orchestration, command routing, and spoken response formatting.
+- `runtime/` — text/voice interaction orchestration, replay/debug payloads, persistence wiring, and dashboard bootstrap helpers.
+- `storage/` — file-backed JSON stores for session, radar history, plans, memory, and execution history.
 
-Kade uses a **modular monolith** architecture in Python:
+Supporting boundaries:
 
-- `kade/main.py`: bootstrap/config entrypoint (not a full runtime loop yet)
-- `kade/logging_utils.py`: reusable logging setup with event categories
-- `kade/market/`: market data client wrappers, indicator logic, and state models
-- `kade/dashboard/`: local dashboard placeholder
-- `kade/brain/`, `kade/radar/`, `kade/options/`, `kade/execution/`, `kade/news/`: placeholder packages for future phases
-- `kade/integrations/`: pluggable stubs for STT/TTS/wakeword integrations
-- `kade/config/`: all tunable YAML files
+- `integrations/` — pluggable providers for wakeword, STT, and TTS (mock and runtime-oriented adapters).
+- `dashboard/` — local dashboard app surface for runtime state.
+- `config/` — YAML configuration for watchlist, rules, personality, voice/runtime modes, persistence, and execution constraints.
 
-## What's implemented now
+## Runtime mode today
 
-### Config files
-The following YAML files are included in `kade/config/`:
+Kade runs in **MacBook text-first mode by default**:
 
-- `tickers.yaml`
-- `trading_rules.yaml`
-- `radar_rules.yaml`
-- `personality.yaml`
-- `voice.yaml`
-- `execution.yaml`
-- `news.yaml`
+- text commands are the primary interaction path;
+- voice stack is fully wired (wakeword/STT/TTS/orchestrator) but disabled by default via runtime flags;
+- provider readiness is still tracked and surfaced in runtime/dashboard payloads even when voice is disabled.
 
-### Market engine
-- `AlpacaClient` wrapper interface with clear methods for:
-  - latest quote
-  - latest trade
-  - historical bars
-- `MockAlpacaClient` for local development and tests
-- Structured market state dataclasses in `kade/market/structure.py`, including a Phase 1 `TickerState` placeholder
-- **Note:** Alpaca transport/API integration is scaffolded only in Phase 1 (`NotImplementedError` for live calls)
+## Persistence and session behavior
 
-### Indicator engine
-Implemented in `kade/market/indicators.py`:
+Kade persists local JSON state under configured storage paths:
 
-- VWAP
-- RSI
-- MACD
-- Volume acceleration
-- Regression trend slope
-- Higher highs / lower highs detection
-- Consolidation / breakout detection
+- session/day payload (including done-for-day state and rollover markers),
+- radar event history,
+- execution history,
+- reasoning memory,
+- plan tracker state.
 
-### Logging
-`kade/logging_utils.py` provides:
-- reusable logger initialization
-- expandable log categories
-- structured, readable event logs
+Session rollover resets day-scoped counters/flags when the calendar day changes while preserving longer-lived artifacts (for example advisor history and persisted memory/plan stores).
 
-`kade/main.py` now emits startup and config-loading events.
+## Testing status
 
-### Tests
-Basic unit tests for indicator calculations live in `kade/tests/test_indicators.py`.
+The repository includes phase-oriented pytest coverage across:
 
-## Setup
+- market indicators/state/context,
+- radar scoring,
+- options + execution paper flow,
+- brain reasoning/memory/plans,
+- persistence round-trips and rollover,
+- voice orchestration,
+- runtime readiness and interaction behavior.
+
+Run checks with:
+
+```bash
+pytest -q
+```
+
+## Real vs mocked right now
+
+Real-ish runtime pieces:
+
+- end-to-end local orchestration across market → radar → brain/options/execution → runtime/dashboard payloads,
+- deterministic persistence and replay tooling,
+- provider interfaces for voice stack and market boundaries.
+
+Mocked/simulated pieces:
+
+- market transport uses local mock Alpaca client in default runtime path,
+- options chain data uses mock chain generation,
+- execution is paper workflow only (no live broker routing),
+- voice providers are typically configured to mock/degraded local modes by default.
+
+## Phase 10 (not yet started)
+
+Phase 10 is expected to focus on **runtime hardening and integration maturity** (not yet implemented in this cleanup), such as:
+
+- deeper production-readiness around provider/integration boundaries,
+- stronger end-to-end runtime validation and observability,
+- incremental reduction of mocked edges where safe.
+
+This repository remains in pre-Phase-10 state; this pass is maintenance/consistency only.
+
+## Quick start
 
 ```bash
 python -m venv .venv
 source .venv/bin/activate
 pip install -r requirements.txt
 pytest -q
-```
-
-## Config-driven design
-All tunable thresholds are stored in YAML under `kade/config/`. Indicator and structure logic accepts externally supplied thresholds and avoids hard-coded trading limits in signal logic.
-
-## Local run
-
-```bash
 python -m kade.main
 ```
-
-The current app bootstraps configuration and reports basic status. It does not yet run a persistent market monitoring loop.
-
-## Phase 2 (recommended)
-
-1. Real-time market loop and watchlist state updates
-2. Opportunity radar state machine and dedup logic
-3. Trade idea evaluation pipeline (advisor mode)
-4. Options chain filtering/scoring scaffolding
-5. Dashboard live ticker cards + debug panel wiring

@@ -1,4 +1,3 @@
-from datetime import datetime
 
 from kade.execution.lifecycle import ExecutionLifecycle
 from kade.integrations.providers import build_stt_provider, build_tts_provider, build_wakeword_provider
@@ -9,6 +8,7 @@ from kade.voice.formatter import SpokenResponseFormatter
 from kade.voice.models import VoiceSessionState
 from kade.voice.orchestrator import VoiceOrchestrator
 from kade.voice.router import VoiceCommandRouter
+from kade.utils.time import utc_now
 
 
 def _handlers() -> dict:
@@ -47,7 +47,7 @@ def test_text_first_routing_is_default_path() -> None:
         stt_enabled=False,
         tts_enabled=False,
     )
-    result = _interaction(state).submit_text_command("status", now=datetime.utcnow())
+    result = _interaction(state).submit_text_command("status", now=utc_now())
 
     assert result["intent"] == "status"
     assert result["raw_result"]["tts"]["provider"] == "disabled"
@@ -102,7 +102,7 @@ def test_dashboard_payload_tracks_typed_command_and_latest_result() -> None:
         tts_enabled=False,
     )
     interaction = _interaction(state)
-    interaction.submit_text_command("what was i watching", now=datetime.utcnow())
+    interaction.submit_text_command("what was i watching", now=utc_now())
     payload = interaction.dashboard_payload()
 
     assert payload["current_typed_command"] == "what was i watching"

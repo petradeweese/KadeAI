@@ -3,7 +3,6 @@
 from __future__ import annotations
 
 import os
-from datetime import datetime
 from pathlib import Path
 
 import yaml
@@ -30,6 +29,7 @@ from kade.voice.formatter import SpokenResponseFormatter
 from kade.voice.models import VoiceSessionState
 from kade.voice.orchestrator import VoiceOrchestrator
 from kade.voice.router import VoiceCommandRouter
+from kade.utils.time import utc_now_iso
 
 CONFIG_DIR = Path(__file__).parent / "config"
 LOGGER = get_logger(__name__)
@@ -100,7 +100,7 @@ def main() -> None:
     execution_payload = {"orders": [], "rejections": [], "debug": {}}
 
     for event in market_loop.latest_radar.get("events", []):
-        radar_history.append({**event, "timestamp": datetime.utcnow().isoformat()})
+        radar_history.append({**event, "timestamp": utc_now_iso()})
     radar_history = persistence.persist_radar_history(radar_history)
 
     if os.getenv("KADE_RUN_PHASE4_DEMO", "1") == "1":
@@ -180,7 +180,7 @@ def main() -> None:
             execution_history.append(
                 {
                     "event_type": "paper_order_request",
-                    "timestamp": datetime.utcnow().isoformat(),
+                    "timestamp": utc_now_iso(),
                     "symbol": request.symbol,
                     "option_symbol": request.option_symbol,
                     "contracts": request.contracts,
@@ -192,7 +192,7 @@ def main() -> None:
                 execution_history.append(
                     {
                         "event_type": "guardrail_failure",
-                        "timestamp": datetime.utcnow().isoformat(),
+                        "timestamp": utc_now_iso(),
                         "symbol": result.request.symbol,
                         "option_symbol": result.request.option_symbol,
                         "code": result.failure.code,
@@ -203,7 +203,7 @@ def main() -> None:
                 execution_history.append(
                     {
                         "event_type": "paper_order_status",
-                        "timestamp": datetime.utcnow().isoformat(),
+                        "timestamp": utc_now_iso(),
                         "symbol": result.request.symbol,
                         "option_symbol": result.request.option_symbol,
                         "status": result.status,
@@ -248,7 +248,7 @@ def main() -> None:
         advisor_payload["top_radar"].append({"symbol": symbol, "stance": advice.stance, "summary": advice.summary})
         advisor_history.append(
             {
-                "timestamp": datetime.utcnow().isoformat(),
+                "timestamp": utc_now_iso(),
                 "symbol": symbol,
                 "stance": advice.stance,
                 "summary": advice.summary,

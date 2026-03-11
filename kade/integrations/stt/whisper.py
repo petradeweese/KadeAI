@@ -7,6 +7,7 @@ from datetime import datetime
 from kade.integrations.health import ProviderHealth
 from kade.integrations.stt.base import STTProvider
 from kade.voice.models import Transcript
+from kade.utils.time import utc_now
 
 
 class WhisperSTTProvider(STTProvider):
@@ -25,7 +26,7 @@ class WhisperSTTProvider(STTProvider):
         text = audio_hint.strip() or ""
         return Transcript(
             text=text,
-            received_at=datetime.utcnow(),
+            received_at=utc_now(),
             provider=self.provider_name,
             metadata={
                 "model": self.model,
@@ -40,7 +41,7 @@ class WhisperSTTProvider(STTProvider):
     def developer_transcript(self, text: str) -> Transcript:
         return Transcript(
             text=text,
-            received_at=datetime.utcnow(),
+            received_at=utc_now(),
             provider=self.provider_name,
             metadata={"source": "developer", "model": self.model, "runtime_mode": self.runtime_mode},
         )

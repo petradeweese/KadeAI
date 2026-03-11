@@ -4,9 +4,9 @@ from __future__ import annotations
 
 import json
 from dataclasses import dataclass
-from datetime import datetime
 from pathlib import Path
 from typing import Any
+from kade.utils.time import utc_now_iso
 
 
 @dataclass
@@ -24,11 +24,11 @@ class JsonFileStore:
 
     def load(self, default: Any) -> Any:
         if not self.path.exists():
-            self.metadata.loaded_at = datetime.utcnow().isoformat()
+            self.metadata.loaded_at = utc_now_iso()
             return default
         with self.path.open("r", encoding="utf-8") as handle:
             payload = json.load(handle)
-        self.metadata.loaded_at = datetime.utcnow().isoformat()
+        self.metadata.loaded_at = utc_now_iso()
         return payload
 
     def save(self, payload: Any) -> None:
@@ -38,7 +38,7 @@ class JsonFileStore:
             json.dump(payload, handle, indent=2, sort_keys=True)
             handle.write("\n")
         temp_path.replace(self.path)
-        self.metadata.saved_at = datetime.utcnow().isoformat()
+        self.metadata.saved_at = utc_now_iso()
 
     def metadata_snapshot(self) -> dict[str, str | None]:
         return {

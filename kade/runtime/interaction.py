@@ -11,6 +11,7 @@ from kade.logging_utils import LogCategory, get_logger, log_event
 from kade.runtime.replay import ReplayRuntime
 from kade.voice.models import Transcript, WakeWordEvent
 from kade.voice.orchestrator import VoiceOrchestrator
+from kade.utils.time import utc_now, utc_now_iso
 
 
 @dataclass
@@ -53,7 +54,7 @@ class InteractionOrchestrator:
         self.replay_runtime = replay_runtime or ReplayRuntime()
 
     def submit_text_command(self, command: str, now: datetime | None = None, include_debug: bool = True) -> dict[str, object]:
-        now = now or datetime.utcnow()
+        now = now or utc_now()
         log_event(
             self.logger,
             LogCategory.VOICE_EVENT,
@@ -98,7 +99,7 @@ class InteractionOrchestrator:
         return {"replay": replay, "debug": self.replay_runtime.last_replay}
 
     def process_voice_sample(self, audio_hint: str, now: datetime | None = None) -> dict[str, object] | None:
-        now = now or datetime.utcnow()
+        now = now or utc_now()
         if not self.state.voice_runtime_enabled or not self.state.wakeword_enabled or not self.state.stt_enabled:
             log_event(self.logger, LogCategory.VOICE_EVENT, "Voice runtime disabled", runtime_mode=self.state.runtime_mode)
             self._refresh_provider_health()
@@ -175,7 +176,7 @@ class InteractionOrchestrator:
             "tts": self.voice_orchestrator.tts_provider.health_snapshot(active=self.state.tts_enabled).as_dict(),
         }
         self.state.provider_health = health_map
-        snapshot = {"timestamp": datetime.utcnow().isoformat(), "providers": health_map}
+        snapshot = {"timestamp": utc_now_iso(), "providers": health_map}
         self.state.provider_health_history.append(snapshot)
         self.state.retain_history()
         for name, provider in health_map.items():
