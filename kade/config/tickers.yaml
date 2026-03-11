@@ -1,0 +1,12 @@
+watchlist:
+  - NVDA
+  - MSFT
+  - QQQ
+  - SPY
+  - META
+  - AMD
+
+timeframes:
+  trigger: 1m
+  bias: 5m
+  context: 15m

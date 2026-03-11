@@ -1,0 +1,1 @@
+"""Kade trading assistant package."""

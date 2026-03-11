@@ -1,0 +1,6 @@
+voice:
+  wake_word: Kade
+  tts_provider: placeholder
+  stt_provider: placeholder
+  enable_spoken_news_alerts: false
+  spoken_news_priority: high_only
