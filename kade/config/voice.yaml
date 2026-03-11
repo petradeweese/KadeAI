@@ -19,21 +19,35 @@ voice:
     enabled: true
     max_command_history: 25
     placeholder: "Type a command for Kade"
+    include_debug_default: true
+  provider_health:
+    enabled: true
+    history_limit: 20
+    policy: warn_on_degraded
+  replay_debug:
+    enabled: true
+    retention_limit: 40
   wakeword_backends:
     porcupine:
       keyword: Kade
       sensitivity: 0.5
       enabled: false
+      access_key: ""
   stt_backends:
     whisper:
       model: tiny.en
       language: en
       temperature: 0.0
       enabled: false
+      runtime_mode: deterministic_text
+      supports_realtime_audio: false
   kokoro:
     model: kokoro-v1
     voice: Puck
     mock_synthesis: true
+    output_mode: artifact_uri
+    artifact_dir: .kade_storage/tts
+    artifact_uri_prefix: file://
   mock_behavior:
     enabled: true
     simulate_wakeword: true

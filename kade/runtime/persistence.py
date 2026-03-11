@@ -121,6 +121,13 @@ class RuntimePersistence:
             int(self.session_cfg.get("recent_command_history_limit", 40)),
         )
 
+
+    def retain_provider_health_history(self, session_state: dict[str, object]) -> None:
+        session_state["provider_health_history"] = self.bounded(
+            list(session_state.get("provider_health_history", [])),
+            int(self.session_cfg.get("provider_health_history_limit", 20)),
+        )
+
     def persist_session(self, session_state: dict[str, object]) -> None:
         self.safe_save("session", lambda: self.session_store.save_session(session_state))
 

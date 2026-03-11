@@ -9,3 +9,4 @@ storage:
     rollover: daily_utc
     recent_voice_events_limit: 25
     recent_command_history_limit: 40
+    provider_health_history_limit: 20

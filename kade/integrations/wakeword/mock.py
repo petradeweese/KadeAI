@@ -4,6 +4,7 @@ from __future__ import annotations
 
 from datetime import datetime
 
+from kade.integrations.health import ProviderHealth
 from kade.integrations.wakeword.base import WakeWordDetector
 from kade.voice.models import WakeWordEvent
 
@@ -22,3 +23,12 @@ class MockWakeWordDetector(WakeWordDetector):
 
     def developer_trigger(self, now: datetime | None = None) -> WakeWordEvent:
         return WakeWordEvent(wake_word=self.wake_word, detected_at=now or datetime.utcnow(), source="developer")
+
+    def health_snapshot(self, active: bool) -> ProviderHealth:
+        return ProviderHealth(
+            provider_type="wakeword",
+            provider_name=self.provider_name,
+            state="mock",
+            active=active,
+            metadata={"wake_word": self.wake_word, "deterministic": True},
+        )
