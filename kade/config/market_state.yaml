@@ -1,0 +1,20 @@
+market_loop:
+  poll_seconds: 5
+  bars_limit: 60
+
+mental_model:
+  trend_slope:
+    bullish: 0.04
+    bearish: -0.04
+  momentum_rsi:
+    bullish: 58
+    bearish: 42
+  momentum_macd_hist:
+    bullish: 0.02
+    bearish: -0.02
+  volume_acceleration:
+    strong: 0.20
+    weak: -0.10
+  confidence:
+    high_min: 0.70
+    moderate_min: 0.45

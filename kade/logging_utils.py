@@ -3,10 +3,10 @@
 from __future__ import annotations
 
 import logging
-from enum import StrEnum
+from enum import Enum
 
 
-class LogCategory(StrEnum):
+class LogCategory(str, Enum):
     CONFIG_LOAD = "CONFIG_LOAD"
     APP_START = "APP_START"
     MARKET_EVENT = "MARKET_EVENT"
