@@ -15,6 +15,8 @@ class LogCategory(str, Enum):
     ORDER_EVENT = "ORDER_EVENT"
     NEWS_EVENT = "NEWS_EVENT"
     VOICE_EVENT = "VOICE_EVENT"
+    STORAGE_EVENT = "STORAGE_EVENT"
+    SESSION_EVENT = "SESSION_EVENT"
 
 
 def setup_logging(level: int = logging.INFO) -> None:
