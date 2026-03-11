@@ -6,6 +6,8 @@ from abc import ABC, abstractmethod
 from dataclasses import dataclass, field
 from datetime import datetime
 
+from kade.integrations.health import ProviderHealth
+
 
 @dataclass
 class TTSOutput:
@@ -23,3 +25,7 @@ class TTSProvider(ABC):
     @abstractmethod
     def synthesize(self, text: str) -> TTSOutput:
         """Return speech payload metadata; playback handled elsewhere."""
+
+    @abstractmethod
+    def health_snapshot(self, active: bool) -> ProviderHealth:
+        """Return current backend readiness and runtime metadata."""

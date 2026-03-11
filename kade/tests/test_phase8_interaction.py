@@ -50,7 +50,7 @@ def test_text_first_routing_is_default_path() -> None:
     result = _interaction(state).submit_text_command("status", now=datetime.utcnow())
 
     assert result["intent"] == "status"
-    assert result["tts"]["provider"] == "disabled"
+    assert result["raw_result"]["tts"]["provider"] == "disabled"
 
 
 def test_voice_disabled_feature_flags_block_voice_processing() -> None:

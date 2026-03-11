@@ -20,6 +20,7 @@ from kade.options.mock_chain import build_mock_chain
 from kade.runtime import (
     InteractionOrchestrator,
     InteractionRuntimeState,
+    ReplayRuntime,
     RuntimePersistence,
     build_dashboard_state,
     build_voice_handlers,
@@ -276,6 +277,7 @@ def main() -> None:
         stt_enabled=bool(voice_config.get("stt_enabled", False)),
         tts_enabled=bool(voice_config.get("tts_enabled", False)),
         command_history_limit=int(dict(voice_config.get("text_panel", {})).get("max_command_history", 25)),
+        provider_health_history_limit=int(dict(voice_config.get("provider_health", {})).get("history_limit", 20)),
     )
     voice_orchestrator = VoiceOrchestrator(
         wakeword_detector=build_wakeword_provider(voice_config),
@@ -302,6 +304,7 @@ def main() -> None:
         stt_provider=build_stt_provider(voice_config),
         state=interaction_state,
         logger=LOGGER,
+        replay_runtime=ReplayRuntime(retention_limit=int(dict(voice_config.get("replay_debug", {})).get("retention_limit", 40))),
     )
 
     log_event(
@@ -327,13 +330,13 @@ def main() -> None:
     if interaction_state.text_command_input_enabled:
         text_result = interaction.submit_text_command(default_text_command)
         print(f"Text intent: {text_result['intent']}")
-        print(f"Text response: {text_result['spoken_text']}")
+        print(f"Text response: {text_result['formatted_response']}")
 
     if os.getenv("KADE_SIMULATE_VOICE", "0") == "1":
         voice_result = interaction.process_voice_sample(f"{voice_state.wake_word} status")
         if voice_result:
             print(f"Voice intent: {voice_result['intent']}")
-            print(f"Voice response: {voice_result['spoken_text']}")
+            print(f"Voice response: {voice_result['formatted_response']}")
 
     session_state["interaction_runtime"] = {
         "runtime_mode": interaction_state.runtime_mode,
@@ -342,8 +345,12 @@ def main() -> None:
     }
     session_state["command_interface_mode"] = interaction_state.runtime_mode
     session_state["recent_command_history"] = interaction_state.recent_commands
+    session_state["provider_health"] = interaction_state.provider_health
+    session_state["provider_health_history"] = interaction_state.provider_health_history
+    session_state["replay_debug"] = interaction.replay_runtime.snapshot()
     persistence.retain_recent_voice_events(session_state)
     persistence.retain_recent_commands(session_state)
+    persistence.retain_provider_health_history(session_state)
 
     persistence.persist_memory(memory)
     persistence.persist_plans(plan_tracker)
