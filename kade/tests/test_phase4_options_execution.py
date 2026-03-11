@@ -134,11 +134,10 @@ def test_paper_execution_supports_partial_fill_and_nudge() -> None:
 
     result = engine.stage_order(request, trades_today=0, daily_realized_pnl=0.0, confirm=True)
 
-    assert result.status in {"partially_filled", "filled"}
+    assert result.status == "partially_filled"
     assert result.filled_contracts > 0
-    if result.status == "partially_filled":
-        assert result.nudged_limit_price is not None
-        assert result.remaining_contracts > 0
+    assert result.nudged_limit_price is not None
+    assert result.remaining_contracts > 0
 
 
 def test_pipeline_builds_ranked_candidates_and_plan() -> None:

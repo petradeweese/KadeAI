@@ -46,5 +46,7 @@ class PorcupineWakeWordDetector(WakeWordDetector):
                 "keyword": self.keyword,
                 "sensitivity": self.sensitivity,
                 "access_key_present": self.access_key_present,
+                "enabled": self.enabled,
+                "mode": "deterministic_text_match",
             },
         )

@@ -46,3 +46,23 @@ execution:
     max_trades_per_day: 5
     daily_loss_limit_usd: 3000
     max_slippage_cap_per_contract: 0.12
+
+providers:
+  market_data_provider: mock
+  options_data_provider: mock
+  diagnostics_policy: warn_on_degraded
+  market_data_backends:
+    alpaca:
+      enabled: false
+      api_key: ""
+      secret_key: ""
+      base_url: https://paper-api.alpaca.markets
+      data_url: https://data.alpaca.markets
+      mock_on_unavailable: true
+  options_data_backends:
+    alpaca:
+      enabled: false
+      supported: false
+      api_key: ""
+      secret_key: ""
+      mock_on_unavailable: true

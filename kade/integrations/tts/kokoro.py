@@ -30,16 +30,20 @@ class KokoroTTSProvider(TTSProvider):
             "output_mode": self.output_mode,
         }
         audio_uri = None
+        artifact_uri = None
         if text.strip():
             slug = f"{abs(hash(text)) % 100000}.txt"
             artifact_path = self.artifact_dir / slug
             artifact_path.parent.mkdir(parents=True, exist_ok=True)
             artifact_path.write_text(text, encoding="utf-8")
             metadata["artifact_path"] = artifact_path.as_posix()
-            audio_uri = f"{self.artifact_uri_prefix}{artifact_path.as_posix()}"
+            artifact_uri = f"{self.artifact_uri_prefix}{artifact_path.as_posix()}"
+            metadata["artifact_uri"] = artifact_uri
+            audio_uri = artifact_uri
         if self.mock_synthesis:
             metadata["provider_mode"] = "mock"
             audio_uri = f"mock://kokoro/{self.voice.lower()}/{abs(hash(text)) % 100000}"
+            metadata["output_mode"] = "artifact_uri"
         else:
             metadata["provider_mode"] = "runtime"
         return TTSOutput(
@@ -63,5 +67,6 @@ class KokoroTTSProvider(TTSProvider):
                 "model": self.model,
                 "output_mode": self.output_mode,
                 "artifact_dir": self.artifact_dir.as_posix(),
+                "mock_synthesis": self.mock_synthesis,
             },
         )

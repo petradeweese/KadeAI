@@ -21,6 +21,7 @@ class WhisperSTTProvider(STTProvider):
         self.enabled = bool(cfg.get("enabled", False))
         self.runtime_mode = str(cfg.get("runtime_mode", "deterministic_text"))
         self.supports_realtime_audio = bool(cfg.get("supports_realtime_audio", False))
+        self.supports_deterministic_text = bool(cfg.get("supports_deterministic_text", True))
 
     def transcribe(self, audio_hint: str) -> Transcript:
         text = audio_hint.strip() or ""
@@ -34,7 +35,10 @@ class WhisperSTTProvider(STTProvider):
                 "temperature": self.temperature,
                 "runtime_mode": self.runtime_mode,
                 "supports_realtime_audio": self.supports_realtime_audio,
-                "deterministic": not self.enabled,
+                "supports_deterministic_text": self.supports_deterministic_text,
+                "enabled": self.enabled,
+                "deterministic": self.runtime_mode.startswith("deterministic"),
+                "supports_deterministic_text": self.supports_deterministic_text,
             },
         )
 
@@ -47,9 +51,14 @@ class WhisperSTTProvider(STTProvider):
         )
 
     def health_snapshot(self, active: bool) -> ProviderHealth:
-        state = "ready" if self.enabled else "disabled"
         if not self.enabled and self.runtime_mode.startswith("deterministic"):
             state = "mock"
+        elif self.enabled and self.supports_realtime_audio:
+            state = "ready"
+        elif self.enabled:
+            state = "degraded"
+        else:
+            state = "disabled"
         return ProviderHealth(
             provider_type="stt",
             provider_name=self.provider_name,
@@ -61,5 +70,7 @@ class WhisperSTTProvider(STTProvider):
                 "temperature": self.temperature,
                 "runtime_mode": self.runtime_mode,
                 "supports_realtime_audio": self.supports_realtime_audio,
+                "supports_deterministic_text": self.supports_deterministic_text,
+                "enabled": self.enabled,
             },
         )

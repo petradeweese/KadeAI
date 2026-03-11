@@ -1,7 +1,9 @@
-"""Factory helpers for selecting voice providers from config."""
+"""Factory helpers for selecting runtime providers from config."""
 
 from __future__ import annotations
 
+from kade.integrations.marketdata import AlpacaMarketDataProvider, MarketDataProvider, MockMarketDataProvider
+from kade.integrations.options_data import AlpacaOptionsDataProvider, MockOptionsDataProvider, OptionsDataProvider
 from kade.integrations.stt import MockSTTProvider, STTProvider, WhisperSTTProvider
 from kade.integrations.tts import KokoroTTSProvider, TTSProvider
 from kade.integrations.wakeword import MockWakeWordDetector, PorcupineWakeWordDetector, WakeWordDetector
@@ -10,6 +12,28 @@ from kade.integrations.wakeword import MockWakeWordDetector, PorcupineWakeWordDe
 def _use_mock(provider_name: str, cfg: dict[str, object]) -> bool:
     fallback = str(cfg.get("provider_fallback", "mock"))
     return provider_name == "mock" or fallback == "mock"
+
+
+def build_market_data_provider(runtime_cfg: dict[str, object]) -> MarketDataProvider:
+    provider_name = str(runtime_cfg.get("market_data_provider", "mock"))
+    backends = dict(runtime_cfg.get("market_data_backends", {}))
+    if provider_name == "alpaca":
+        provider = AlpacaMarketDataProvider(dict(backends.get("alpaca", {})))
+        if provider.health_snapshot(active=True).state != "ready" and provider.mock_on_unavailable:
+            return MockMarketDataProvider()
+        return provider
+    return MockMarketDataProvider()
+
+
+def build_options_data_provider(runtime_cfg: dict[str, object]) -> OptionsDataProvider:
+    provider_name = str(runtime_cfg.get("options_data_provider", "mock"))
+    backends = dict(runtime_cfg.get("options_data_backends", {}))
+    if provider_name in {"alpaca", "alpaca_options"}:
+        provider = AlpacaOptionsDataProvider(dict(backends.get("alpaca", {})))
+        if provider.health_snapshot(active=True).state != "ready" and provider.mock_on_unavailable:
+            return MockOptionsDataProvider()
+        return provider
+    return MockOptionsDataProvider()
 
 
 def build_wakeword_provider(voice_cfg: dict[str, object]) -> WakeWordDetector:
