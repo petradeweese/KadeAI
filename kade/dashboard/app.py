@@ -10,14 +10,19 @@ def create_app_status(
     debug_values: dict[str, dict[str, float | str | None]] | None = None,
     breadth_context: dict[str, float | str | None] | None = None,
     radar_payload: dict[str, object] | None = None,
+    options_payload: dict[str, object] | None = None,
+    execution_payload: dict[str, object] | None = None,
 ) -> dict:
     ticker_states = ticker_states or {}
     debug_values = debug_values or {}
     breadth_context = breadth_context or {}
     radar_payload = radar_payload or {"queue": [], "ranked": [], "by_symbol": {}, "events": []}
+    options_payload = options_payload or {"by_symbol": {}}
+    execution_payload = execution_payload or {"orders": [], "rejections": [], "debug": {}}
 
     cards: list[dict] = []
     by_symbol = radar_payload.get("by_symbol", {})
+    options_by_symbol = options_payload.get("by_symbol", {})
     for symbol in sorted(ticker_states):
         state = ticker_states[symbol]
         cards.append(
@@ -39,6 +44,8 @@ def create_app_status(
                 "radar_debug": by_symbol.get(symbol, {}).get("debug", {}),
                 "updated_at": state.updated_at.isoformat() if state.updated_at else None,
                 "debug": debug_values.get(symbol, {}),
+                "option_candidates": options_by_symbol.get(symbol, {}).get("candidates", [])[:3],
+                "selected_option_plan": options_by_symbol.get(symbol, {}).get("selected_plan"),
             }
         )
 
@@ -51,5 +58,6 @@ def create_app_status(
             "top_ranked": radar_payload.get("ranked", [])[:3],
             "events": radar_payload.get("events", []),
         },
+        "execution": execution_payload,
         "ticker_cards": cards,
     }
