@@ -43,6 +43,7 @@ class InteractionRuntimeState:
     provider_diagnostics: dict[str, object] = field(default_factory=dict)
     latest_target_move_board: dict[str, object] = field(default_factory=dict)
     latest_trade_idea_opinion: dict[str, object] = field(default_factory=dict)
+    latest_trade_plan: dict[str, object] = field(default_factory=dict)
     latest_backtest_run_summary: dict[str, object] = field(default_factory=dict)
     recent_backtest_evaluations: dict[str, list[dict[str, object]]] = field(default_factory=dict)
     latest_historical_data: dict[str, object] = field(default_factory=dict)
@@ -67,6 +68,8 @@ class InteractionOrchestrator:
         timeline: RuntimeTimeline | None = None,
         target_move_handler: Callable[[dict[str, object]], dict[str, object]] | None = None,
         trade_idea_handler: Callable[[dict[str, object]], dict[str, object]] | None = None,
+        trade_plan_handler: Callable[[dict[str, object]], dict[str, object]] | None = None,
+        trade_plan_status_handler: Callable[[dict[str, object]], dict[str, object]] | None = None,
     ) -> None:
         self.voice_orchestrator = voice_orchestrator
         self.stt_provider = stt_provider
@@ -76,6 +79,8 @@ class InteractionOrchestrator:
         self.timeline = timeline or RuntimeTimeline()
         self.target_move_handler = target_move_handler
         self.trade_idea_handler = trade_idea_handler
+        self.trade_plan_handler = trade_plan_handler
+        self.trade_plan_status_handler = trade_plan_status_handler
 
     def submit_text_command(self, command: str, now: datetime | None = None, include_debug: bool = True) -> dict[str, object]:
         now = now or utc_now()
@@ -112,6 +117,10 @@ class InteractionOrchestrator:
             return self.submit_target_move_request(dict(payload["target_move_request"]), now=now)
         if payload.get("trade_idea_request"):
             return self.submit_trade_idea_opinion(dict(payload["trade_idea_request"]), now=now)
+        if payload.get("trade_plan_request"):
+            return self.submit_trade_plan_request(dict(payload["trade_plan_request"]), now=now)
+        if payload.get("trade_plan_status_request"):
+            return self.submit_trade_plan_status_request(dict(payload["trade_plan_status_request"]), now=now)
 
         command = str(payload.get("command", "")).strip()
         include_debug = bool(payload.get("include_debug", True))
@@ -129,6 +138,12 @@ class InteractionOrchestrator:
         if command.lower().startswith("trade_idea"):
             parsed = self._parse_trade_idea_command(command)
             return self.submit_trade_idea_opinion(parsed, now=now)
+        if command.lower().startswith("trade_plan_status"):
+            parsed = self._parse_trade_idea_command(command)
+            return self.submit_trade_plan_status_request(parsed, now=now)
+        if command.lower().startswith("trade_plan"):
+            parsed = self._parse_trade_idea_command(command)
+            return self.submit_trade_plan_request(parsed, now=now)
         return self.submit_text_command(command=command, now=now, include_debug=include_debug)
 
     def submit_target_move_request(self, request_payload: dict[str, object], now: datetime | None = None) -> dict[str, object]:
@@ -213,6 +228,90 @@ class InteractionOrchestrator:
         self._refresh_provider_health()
         return response
 
+
+    def submit_trade_plan_request(self, request_payload: dict[str, object], now: datetime | None = None) -> dict[str, object]:
+        now = now or utc_now()
+        if self.trade_plan_handler is None:
+            return {
+                "intent": "trade_plan",
+                "formatted_response": "Trade-plan builder is not configured.",
+                "advisor_radar_status_summary": self.state.latest_advisor_or_status,
+                "provider_mode": {},
+                "timestamp": now.isoformat(),
+                "raw_result": {"intent": "trade_plan", "trade_plan": {}},
+            }
+
+        plan = self.trade_plan_handler(request_payload)
+        self.state.latest_trade_plan = plan
+        self.timeline.add_event(
+            "trade_plan_generated",
+            now.isoformat(),
+            {
+                "symbol": request_payload.get("symbol"),
+                "stance": plan.get("stance"),
+                "risk_posture": plan.get("risk_posture"),
+                "status": plan.get("status"),
+                "entry_trigger": dict(plan.get("entry_plan", {})).get("trigger_condition"),
+                "invalidation": dict(plan.get("invalidation_plan", {})).get("invalidation_condition"),
+            },
+        )
+        response = {
+            "intent": "trade_plan",
+            "formatted_response": f"Generated trade plan for {plan.get('symbol', request_payload.get('symbol', 'symbol'))} with posture {plan.get('risk_posture', 'watch_only')}.",
+            "advisor_radar_status_summary": self.state.latest_advisor_or_status,
+            "provider_mode": {
+                "stt": self.stt_provider.provider_name,
+                "tts": "disabled",
+                "wakeword": self.voice_orchestrator.wakeword_detector.provider_name,
+            },
+            "timestamp": now.isoformat(),
+            "raw_result": {"intent": "trade_plan", "trade_plan": plan},
+        }
+        self._record(
+            command=f"trade_plan {request_payload}",
+            result={"intent": "trade_plan", "spoken_text": response["formatted_response"], "trade_plan": plan},
+            source="text_panel",
+            now=now,
+        )
+        self._refresh_provider_health()
+        return response
+
+
+    def submit_trade_plan_status_request(self, request_payload: dict[str, object], now: datetime | None = None) -> dict[str, object]:
+        now = now or utc_now()
+        if self.trade_plan_status_handler is None:
+            return {
+                "intent": "trade_plan_status",
+                "formatted_response": "Trade-plan status handler is not configured.",
+                "advisor_radar_status_summary": self.state.latest_advisor_or_status,
+                "provider_mode": {},
+                "timestamp": now.isoformat(),
+                "raw_result": {"intent": "trade_plan_status", "trade_plan": {}},
+            }
+        plan = self.trade_plan_status_handler(request_payload)
+        self.state.latest_trade_plan = plan
+        self.timeline.add_event(
+            "trade_plan_status_changed",
+            now.isoformat(),
+            {
+                "plan_id": plan.get("plan_id"),
+                "symbol": plan.get("symbol"),
+                "status": plan.get("status"),
+                "risk_posture": plan.get("risk_posture"),
+            },
+        )
+        response = {
+            "intent": "trade_plan_status",
+            "formatted_response": f"Trade plan {plan.get('plan_id', '')} status is now {plan.get('status', 'unknown')}.",
+            "advisor_radar_status_summary": self.state.latest_advisor_or_status,
+            "provider_mode": {"stt": self.stt_provider.provider_name, "tts": "disabled", "wakeword": self.voice_orchestrator.wakeword_detector.provider_name},
+            "timestamp": now.isoformat(),
+            "raw_result": {"intent": "trade_plan_status", "trade_plan": plan},
+        }
+        self._record(command=f"trade_plan_status {request_payload}", result={"intent": "trade_plan_status", "spoken_text": response["formatted_response"], "trade_plan": plan}, source="text_panel", now=now)
+        self._refresh_provider_health()
+        return response
+
     def command_history_viewer(self) -> dict[str, object]:
         return {"count": len(self.state.recent_commands), "history": list(self.state.recent_commands)}
 
@@ -265,7 +364,7 @@ class InteractionOrchestrator:
                 "provider_health": self.state.provider_health,
                 "provider_health_history": self.state.provider_health_history,
                 "replay_debug": self.replay_runtime.snapshot(),
-                "text_panel_commands": ["status", "radar", "what do you think about NVDA", "what is NVDA doing", "what was I watching"],
+                "text_panel_commands": ["status", "radar", "what do you think about NVDA", "what is NVDA doing", "what was I watching", "trade_plan symbol=NVDA direction=put target=184.3 minutes=60"],
                 "timeline": self.timeline.snapshot(),
                 "provider_diagnostics": self.state.provider_diagnostics,
                 "latest_radar_signals": self.state.latest_radar_signals,
@@ -276,6 +375,7 @@ class InteractionOrchestrator:
                 },
                 "target_move_board": self.state.latest_target_move_board,
                 "trade_idea_opinion": self.state.latest_trade_idea_opinion,
+                "trade_plan": self.state.latest_trade_plan,
                 "backtesting": {
                     "latest_run_summary": self.state.latest_backtest_run_summary,
                     "recent_evaluations": self.state.recent_backtest_evaluations,

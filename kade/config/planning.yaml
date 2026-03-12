@@ -1,0 +1,8 @@
+planning:
+  stance_to_risk_posture:
+    strong: full
+    agree: full
+    cautious: reduced
+    pass: watch_only
+  stale_trade_timing_minutes: 20
+  checklist_verbosity: standard

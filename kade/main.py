@@ -9,6 +9,7 @@ from pathlib import Path
 import yaml
 
 from kade.brain import AdvisorReasoningEngine, ConversationMemory, SessionPlanTracker, StyleProfileManager, TradeIdeaOpinionEngine, TradeIdeaOpinionRequest
+from kade.planning import TradePlanBuilder, TradePlanContext
 from kade.data.history import HistoryService
 from kade.execution import PaperExecutionWorkflow
 from kade.execution.models import ExecutionRejection
@@ -63,6 +64,7 @@ def bootstrap_config() -> dict[str, dict]:
         "dashboard.yaml",
         "backtesting.yaml",
         "history.yaml",
+        "planning.yaml",
     ]
     loaded_configs: dict[str, dict] = {}
     for name in config_names:
@@ -322,6 +324,7 @@ def main() -> None:
     )
     scenario_engine = TargetMoveScenarioBoard(configs["execution.yaml"]["execution"]["option_scenarios"])
     opinion_engine = TradeIdeaOpinionEngine(brain_config.get("trade_idea_opinion", {}), logger=LOGGER)
+    trade_plan_builder = TradePlanBuilder(configs["planning.yaml"].get("planning", {}))
 
     def build_trade_idea_opinion(payload: dict[str, object]) -> dict[str, object]:
         symbol = str(payload.get("symbol", "")).upper()
@@ -383,6 +386,103 @@ def main() -> None:
         chain = options_data_provider.get_option_chain(symbol, current_price)
         return scenario_engine.generate(request, chain)
 
+
+    def build_trade_plan(payload: dict[str, object]) -> dict[str, object]:
+        symbol = str(payload.get("symbol", "")).upper()
+        state = states.get(symbol)
+        if state is None:
+            return {
+                "plan_id": f"plan-{symbol}-missing",
+                "symbol": symbol,
+                "direction": str(payload.get("direction", "unknown")),
+                "status": "watching",
+                "risk_posture": "pass",
+                "entry_plan": {"trigger_condition": "No state loaded"},
+                "invalidation_plan": {"invalidation_condition": "Missing ticker state"},
+                "target_plan": {},
+                "hold_plan": {"max_hold_minutes": 0},
+                "execution_checklist": ["Load symbol state before planning."],
+                "generated_at": utc_now_iso(),
+                "debug": {"reason": "missing_symbol_state"},
+            }
+
+        opinion_payload = payload.get("trade_idea_opinion")
+        if not isinstance(opinion_payload, dict):
+            latest = interaction_state.latest_trade_idea_opinion
+            opinion_payload = latest if str(latest.get("symbol", "")).upper() == symbol else None
+
+        board_payload = payload.get("target_move_board")
+        if not isinstance(board_payload, dict):
+            latest_board = interaction_state.latest_target_move_board
+            board_payload = latest_board if str(dict(latest_board.get("request", {})).get("symbol", "")).upper() == symbol else None
+
+        context = TradePlanContext(
+            symbol=symbol,
+            direction=str(payload.get("direction", "")),
+            ticker_state=state,
+            radar_context=market_loop.latest_radar.get("by_symbol", {}).get(symbol, {}),
+            breadth_context=market_loop.latest_breadth,
+            source_mode=str(payload.get("source_mode", "operator_request")),
+            trade_idea_opinion=opinion_payload,
+            target_move_board=board_payload,
+            user_request_context=dict(payload),
+        )
+        decision = trade_plan_builder.build(context)
+        plan = plan_tracker.create_plan(
+            symbol=symbol,
+            direction=str(payload.get("direction", "")) or decision.debug.get("direction", "unknown"),
+            trigger_condition=decision.entry_plan.trigger_condition,
+            target_exit_idea=decision.target_plan.primary_target,
+            max_hold_minutes=decision.hold_plan.max_hold_minutes,
+            invalidation_concept=decision.invalidation_plan.invalidation_condition,
+            status="ready" if decision.risk_posture in {"full", "reduced"} else "watching",
+            notes=list(decision.notes),
+            source_mode=context.source_mode,
+            stance=decision.stance,
+            confidence_label=decision.confidence_label,
+            target_plausibility=decision.target_plausibility,
+            market_alignment=decision.market_alignment,
+            regime_fit=decision.regime_fit,
+            trap_risk=decision.trap_risk,
+            entry_plan={
+                "entry_style": decision.entry_plan.entry_style,
+                "trigger_condition": decision.entry_plan.trigger_condition,
+                "confirmation_signals": decision.entry_plan.confirmation_signals,
+                "avoid_if": decision.entry_plan.avoid_if,
+            },
+            invalidation_plan={
+                "invalidation_condition": decision.invalidation_plan.invalidation_condition,
+                "soft_invalidation": decision.invalidation_plan.soft_invalidation,
+                "hard_invalidation": decision.invalidation_plan.hard_invalidation,
+            },
+            target_plan={
+                "primary_target": decision.target_plan.primary_target,
+                "secondary_target": decision.target_plan.secondary_target,
+                "scale_out_guidance": decision.target_plan.scale_out_guidance,
+            },
+            hold_plan={
+                "max_hold_minutes": decision.hold_plan.max_hold_minutes,
+                "expected_time_window": decision.hold_plan.expected_time_window,
+                "stale_trade_rule": decision.hold_plan.stale_trade_rule,
+            },
+            risk_posture=decision.risk_posture,
+            execution_checklist=list(decision.execution_checklist),
+            linked_target_move_board=dict(decision.linked_target_move_board),
+            linked_trade_idea_opinion=dict(decision.linked_trade_idea_opinion),
+            debug=dict(decision.debug),
+        )
+        return plan_tracker._serialize(plan)
+
+
+    def update_trade_plan_status(payload: dict[str, object]) -> dict[str, object]:
+        plan_id = str(payload.get("plan_id", ""))
+        new_status = str(payload.get("status", ""))
+        reason = str(payload.get("reason")) if payload.get("reason") is not None else None
+        if plan_id not in plan_tracker.plans:
+            return {"plan_id": plan_id, "status": "unknown", "debug": {"reason": "missing_plan"}}
+        plan = plan_tracker.update_status(plan_id, new_status, reason=reason)
+        return plan_tracker._serialize(plan)
+
     runtime_mode = str(voice_config.get("runtime_mode", "text_first"))
     interaction_state = InteractionRuntimeState(
         runtime_mode=runtime_mode,
@@ -425,6 +525,8 @@ def main() -> None:
         timeline=RuntimeTimeline(retention=int(dict(dashboard_cfg.get("timeline", {})).get("retention", 200))),
         target_move_handler=build_target_move_board,
         trade_idea_handler=build_trade_idea_opinion,
+        trade_plan_handler=build_trade_plan,
+        trade_plan_status_handler=update_trade_plan_status,
     )
 
     diagnostics = ProviderDiagnostics(policy=str(provider_runtime.get("diagnostics_policy", "warn_on_degraded")), logger=LOGGER)
