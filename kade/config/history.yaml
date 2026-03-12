@@ -1,0 +1,14 @@
+history:
+  root_dir: .kade_storage/history
+  supported_timeframes: ["1m", "5m", "15m"]
+  batch_symbol_limit: 25
+  metadata_summary_limit: 30
+  downloader:
+    chunk_days: 5
+    requests_per_minute: 180
+    pacing_sleep_seconds: 0.35
+  replay:
+    future_window: 12
+    trigger_lookback_bars: 20
+    bias_lookback_bars: 20
+    context_lookback_bars: 20

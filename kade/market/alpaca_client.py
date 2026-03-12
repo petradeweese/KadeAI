@@ -35,6 +35,9 @@ class AlpacaClient:
     def get_bars(self, symbol: str, timeframe: str, limit: int = 200) -> list[Bar]:
         raise NotImplementedError("Alpaca API integration will be added in Phase 2.")
 
+    def get_historical_bars(self, symbol: str, timeframe: str, start: datetime, end: datetime) -> list[Bar]:
+        raise NotImplementedError("Alpaca historical API integration will be added in a later phase.")
+
 
 class MockAlpacaClient:
     """Deterministic mock market client for local dev/testing."""
@@ -47,18 +50,29 @@ class MockAlpacaClient:
 
     def get_bars(self, symbol: str, timeframe: str, limit: int = 200) -> list[Bar]:
         now = datetime.now(timezone.utc)
+        return self.get_historical_bars(symbol=symbol, timeframe=timeframe, start=now - timedelta(minutes=limit), end=now)[-limit:]
+
+    def get_historical_bars(self, symbol: str, timeframe: str, start: datetime, end: datetime) -> list[Bar]:
+        if timeframe != "1m":
+            raise ValueError("MockAlpacaClient historical bars currently support only 1m timeframe")
+        start_utc = start if start.tzinfo else start.replace(tzinfo=timezone.utc)
+        end_utc = end if end.tzinfo else end.replace(tzinfo=timezone.utc)
         bars: list[Bar] = []
-        for i in range(limit):
-            close = 100 + (i * 0.05)
+        cursor = start_utc.replace(second=0, microsecond=0)
+        index = 0
+        while cursor <= end_utc:
+            close = 100 + (index * 0.05)
             bars.append(
                 Bar(
                     symbol=symbol,
-                    timestamp=now - timedelta(minutes=limit - i),
+                    timestamp=cursor,
                     open=close - 0.1,
                     high=close + 0.2,
                     low=close - 0.2,
                     close=close,
-                    volume=1000 + (i * 10),
+                    volume=1000 + (index * 10),
                 )
             )
+            cursor += timedelta(minutes=1)
+            index += 1
         return bars

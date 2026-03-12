@@ -3,11 +3,13 @@
 from __future__ import annotations
 
 import os
+from datetime import datetime, timedelta, timezone
 from pathlib import Path
 
 import yaml
 
 from kade.brain import AdvisorReasoningEngine, ConversationMemory, SessionPlanTracker, StyleProfileManager, TradeIdeaOpinionEngine, TradeIdeaOpinionRequest
+from kade.data.history import HistoryService
 from kade.execution import PaperExecutionWorkflow
 from kade.execution.models import ExecutionRejection
 from kade.integrations.diagnostics import ProviderDiagnostics
@@ -60,6 +62,7 @@ def bootstrap_config() -> dict[str, dict]:
         "storage.yaml",
         "dashboard.yaml",
         "backtesting.yaml",
+        "history.yaml",
     ]
     loaded_configs: dict[str, dict] = {}
     for name in config_names:
@@ -90,6 +93,29 @@ def main() -> None:
     provider_runtime = configs["execution.yaml"].get("providers", {})
     market_data_provider = build_market_data_provider(provider_runtime)
     options_data_provider = build_options_data_provider(provider_runtime)
+
+    history_service = HistoryService.from_config(
+        provider=market_data_provider,
+        logger=LOGGER,
+        history_config=configs["history.yaml"].get("history", {}),
+        mental_model_config=market_state_config["mental_model"],
+    )
+    history_runtime = persistence.load_history_runtime()
+
+    history_symbols = [symbol.strip().upper() for symbol in os.getenv("KADE_HISTORY_DOWNLOAD_SYMBOLS", "").split(",") if symbol.strip()]
+    if history_symbols:
+        days = int(os.getenv("KADE_HISTORY_DAYS", "30"))
+        end_ts = datetime.now(timezone.utc)
+        start_ts = end_ts - timedelta(days=days)
+        download_summary = history_service.download(history_symbols, start=start_ts, end=end_ts)
+        cache_status = history_service.cache_status(history_symbols, start=start_ts, end=end_ts)
+        history_runtime = persistence.persist_history_runtime(
+            {
+                "last_download": download_summary.__dict__,
+                "cache_status": cache_status.__dict__,
+                "recent_downloads": list(history_runtime.get("recent_downloads", [])) + [download_summary.__dict__],
+            }
+        )
 
     log_event(
         LOGGER,
@@ -524,7 +550,7 @@ def main() -> None:
         plan_tracker.snapshot(),
         advisor_payload,
         style_profile.response_guidance(),
-        {**interaction.dashboard_payload(), "provider_diagnostics": provider_diagnostics, "provider_selection": session_state.get("provider_selection", {})},
+        {**interaction.dashboard_payload(), "provider_diagnostics": provider_diagnostics, "provider_selection": session_state.get("provider_selection", {}), "historical_data": history_runtime},
         persistence_meta,
         session_state,
         history_payload,
