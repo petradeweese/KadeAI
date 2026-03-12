@@ -29,6 +29,22 @@ class TradePlan:
     created_at: datetime
     updated_at: datetime
     notes: list[str] = field(default_factory=list)
+    source_mode: str = "operator_request"
+    stance: str = "cautious"
+    confidence_label: str = "medium"
+    target_plausibility: str = "possible_but_stretched"
+    market_alignment: str = "mixed"
+    regime_fit: str = "unclear"
+    trap_risk: str = "unknown"
+    entry_plan: dict[str, object] = field(default_factory=dict)
+    invalidation_plan: dict[str, object] = field(default_factory=dict)
+    target_plan: dict[str, object] = field(default_factory=dict)
+    hold_plan: dict[str, object] = field(default_factory=dict)
+    risk_posture: str = "watch_only"
+    execution_checklist: list[str] = field(default_factory=list)
+    linked_target_move_board: dict[str, object] = field(default_factory=dict)
+    linked_trade_idea_opinion: dict[str, object] = field(default_factory=dict)
+    debug: dict[str, object] = field(default_factory=dict)
 
 
 @dataclass
