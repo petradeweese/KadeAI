@@ -8,7 +8,7 @@ from typing import Callable
 
 from kade.brain import ConversationMemory, SessionPlanTracker
 from kade.logging_utils import LogCategory, log_event
-from kade.storage import ExecutionStore, MemoryStore, PlanStore, RadarStore, SessionStore, rollover_session
+from kade.storage import BacktestStore, ExecutionStore, MemoryStore, PlanStore, RadarStore, SessionStore, rollover_session
 
 
 @dataclass
@@ -21,6 +21,7 @@ class RuntimePersistence:
     radar_store: RadarStore
     execution_store: ExecutionStore
     session_store: SessionStore
+    backtest_store: BacktestStore
     history_cfg: dict[str, object]
     session_cfg: dict[str, object]
 
@@ -36,6 +37,7 @@ class RuntimePersistence:
             radar_store=RadarStore(storage_root),
             execution_store=ExecutionStore(storage_root),
             session_store=SessionStore(storage_root),
+            backtest_store=BacktestStore(storage_root),
             history_cfg=history_cfg,
             session_cfg=session_cfg,
         )
@@ -131,6 +133,15 @@ class RuntimePersistence:
     def persist_session(self, session_state: dict[str, object]) -> None:
         self.safe_save("session", lambda: self.session_store.save_session(session_state))
 
+
+    def load_backtest_summaries(self) -> list[dict[str, object]]:
+        return self.safe_load("backtesting", self.backtest_store.load_summaries, [])
+
+    def persist_backtest_summaries(self, summaries: list[dict[str, object]]) -> list[dict[str, object]]:
+        bounded = self.bounded(summaries, int(self.history_cfg.get("backtest_limit", 40)))
+        self.safe_save("backtesting", lambda: self.backtest_store.save_summaries(bounded))
+        return bounded
+
     def metadata_snapshot(self) -> dict[str, object]:
         return {
             "memory": self.memory_store.metadata_snapshot(),
@@ -138,4 +149,5 @@ class RuntimePersistence:
             "radar": self.radar_store.metadata_snapshot(),
             "execution": self.execution_store.metadata_snapshot(),
             "session": self.session_store.metadata_snapshot(),
+            "backtesting": self.backtest_store.metadata_snapshot(),
         }

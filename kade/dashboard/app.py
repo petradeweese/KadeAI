@@ -131,6 +131,7 @@ def create_app_status(
             "timeline": voice_payload.get("timeline", {"retention": 0, "events": []}),
             "target_move_board": voice_payload.get("target_move_board", {}),
             "trade_idea_opinion": voice_payload.get("trade_idea_opinion", {}),
+            "backtesting": voice_payload.get("backtesting", {}),
         },
         "session": session_payload,
         "history": history_payload,
