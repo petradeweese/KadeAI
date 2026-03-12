@@ -52,6 +52,8 @@ class InteractionRuntimeState:
     recent_backtest_evaluations: dict[str, list[dict[str, object]]] = field(default_factory=dict)
     latest_historical_data: dict[str, object] = field(default_factory=dict)
     latest_premarket_gameplan: dict[str, object] = field(default_factory=dict)
+    latest_visual_explanation: dict[str, object] = field(default_factory=dict)
+    visual_explanation_history: list[dict[str, object]] = field(default_factory=list)
 
     def retain_history(self) -> None:
         self.recent_commands = self.recent_commands[-self.command_history_limit :]
@@ -79,6 +81,7 @@ class InteractionOrchestrator:
         trade_review_handler: Callable[[dict[str, object]], dict[str, object]] | None = None,
         latest_trade_review_handler: Callable[[dict[str, object]], dict[str, object]] | None = None,
         premarket_gameplan_handler: Callable[[dict[str, object]], dict[str, object]] | None = None,
+        visual_explanation_handler: Callable[[dict[str, object]], dict[str, object]] | None = None,
     ) -> None:
         self.voice_orchestrator = voice_orchestrator
         self.stt_provider = stt_provider
@@ -94,6 +97,7 @@ class InteractionOrchestrator:
         self.trade_review_handler = trade_review_handler
         self.latest_trade_review_handler = latest_trade_review_handler
         self.premarket_gameplan_handler = premarket_gameplan_handler
+        self.visual_explanation_handler = visual_explanation_handler
 
     def _provider_mode(self, tts_provider: str = "disabled") -> dict[str, str]:
         return {
@@ -186,6 +190,9 @@ class InteractionOrchestrator:
         if command.lower().startswith("premarket_gameplan"):
             parsed = self._parse_trade_idea_command(command)
             return self.submit_premarket_gameplan_request(parsed, now=now)
+        if command.lower().startswith("visual_explain"):
+            parsed = self._parse_trade_idea_command(command)
+            return self.submit_visual_explanation_request(parsed, now=now)
         return self.submit_text_command(command=command, now=now, include_debug=include_debug)
 
     def submit_target_move_request(self, request_payload: dict[str, object], now: datetime | None = None) -> dict[str, object]:
@@ -532,6 +539,54 @@ class InteractionOrchestrator:
         payload = self.latest_trade_review_handler(dict(request_payload or {}))
         return self.submit_trade_review_request(payload, now=now)
 
+
+    def submit_visual_explanation_request(self, request_payload: dict[str, object], now: datetime | None = None) -> dict[str, object]:
+        now = now or utc_now()
+        if self.visual_explanation_handler is None:
+            return {
+                "intent": "visual_explanation",
+                "formatted_response": "Visual explainability handler is not configured.",
+                "advisor_radar_status_summary": self.state.latest_advisor_or_status,
+                "provider_mode": self._provider_mode("disabled"),
+                "timestamp": now.isoformat(),
+                "raw_result": {"intent": "visual_explanation", "visual_explainability": {}},
+            }
+
+        prior_symbol = str(self.state.latest_visual_explanation.get("symbol", ""))
+        snapshot = self.visual_explanation_handler(request_payload)
+        self.state.latest_visual_explanation = snapshot
+        self.state.visual_explanation_history.append(snapshot)
+        self.state.visual_explanation_history = self.state.visual_explanation_history[-20:]
+        symbol = str(snapshot.get("symbol") or request_payload.get("symbol") or "")
+        view_type = str(snapshot.get("view_type") or request_payload.get("view_type") or "opinion")
+        charts = list(snapshot.get("charts", []))
+        overlays = sum(len(list(item.get("overlays", []))) for item in charts if isinstance(item, dict))
+        self.timeline.add_event(
+            "visual_explanation_generated",
+            now.isoformat(),
+            {"symbol": symbol, "view_type": view_type, "timeframe_count": len(charts), "overlay_count": overlays},
+        )
+        if prior_symbol and symbol and prior_symbol != symbol:
+            self.timeline.add_event("active_symbol_changed", now.isoformat(), {"symbol": symbol, "view_type": view_type})
+        self.timeline.add_event("chart_context_changed", now.isoformat(), {"symbol": symbol, "view_type": view_type, "timeframes": [c.get("timeframe") for c in charts if isinstance(c, dict)]})
+
+        response = {
+            "intent": "visual_explanation",
+            "formatted_response": f"Generated visual explanation for {symbol or 'symbol'} ({view_type}).",
+            "advisor_radar_status_summary": self.state.latest_advisor_or_status,
+            "provider_mode": self._provider_mode("disabled"),
+            "timestamp": now.isoformat(),
+            "raw_result": {"intent": "visual_explanation", "visual_explainability": snapshot},
+        }
+        self._record(
+            command=f"visual_explain {request_payload}",
+            result={"intent": "visual_explanation", "spoken_text": response["formatted_response"], "visual_explainability": snapshot},
+            source="text_panel",
+            now=now,
+        )
+        self._refresh_provider_health()
+        return response
+
     def command_history_viewer(self) -> dict[str, object]:
         return {"count": len(self.state.recent_commands), "history": list(self.state.recent_commands)}
 
@@ -584,7 +639,7 @@ class InteractionOrchestrator:
                 "provider_health": self.state.provider_health,
                 "provider_health_history": self.state.provider_health_history,
                 "replay_debug": self.replay_runtime.snapshot(),
-                "text_panel_commands": ["status", "radar", "premarket_gameplan", "what do you think about NVDA", "what is NVDA doing", "what was I watching", "trade_plan symbol=NVDA direction=put target=184.3 minutes=60", "trade_plan_check plan_id=plan-NVDA-1 symbol=NVDA"],
+                "text_panel_commands": ["status", "radar", "premarket_gameplan", "visual_explain symbol=NVDA view_type=plan", "what do you think about NVDA", "what is NVDA doing", "what was I watching", "trade_plan symbol=NVDA direction=put target=184.3 minutes=60", "trade_plan_check plan_id=plan-NVDA-1 symbol=NVDA"],
                 "timeline": self.timeline.snapshot(),
                 "provider_diagnostics": self.state.provider_diagnostics,
                 "latest_radar_signals": self.state.latest_radar_signals,
@@ -608,6 +663,10 @@ class InteractionOrchestrator:
                 },
                 "historical_data": self.state.latest_historical_data,
                 "premarket_gameplan": self.state.latest_premarket_gameplan,
+                "visual_explainability": {
+                    "latest": self.state.latest_visual_explanation,
+                    "history": self.state.visual_explanation_history,
+                },
             }
         )
         return payload

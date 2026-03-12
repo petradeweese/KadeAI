@@ -145,6 +145,14 @@ def create_app_status(
             "trade_review": _panel(voice_payload.get("trade_review"), {"latest_review": {}, "metrics_summary": {}, "history": []}),
             "backtesting": _panel(voice_payload.get("backtesting"), {"latest_run_summary": {}, "recent_evaluations": {}}),
             "historical_data": _panel(voice_payload.get("historical_data"), {"last_download": {}, "cache_status": {}, "recent_downloads": [], "index_status": {}}),
+            "visual_explainability": {
+                "active_symbol": dict(voice_payload.get("visual_explainability", {}).get("latest", {})).get("symbol"),
+                "active_view": dict(voice_payload.get("visual_explainability", {}).get("latest", {})).get("view_type"),
+                "charts": list(dict(voice_payload.get("visual_explainability", {}).get("latest", {})).get("charts", [])),
+                "side_panels": list(dict(voice_payload.get("visual_explainability", {}).get("latest", {})).get("side_panels", [])),
+                "generated_at": dict(voice_payload.get("visual_explainability", {}).get("latest", {})).get("generated_at"),
+                "history": list(dict(voice_payload.get("visual_explainability", {})).get("history", [])),
+            },
 
             "premarket_gameplan": {
                 "summary": dict(premarket_gameplan_payload.get("summary", {})),

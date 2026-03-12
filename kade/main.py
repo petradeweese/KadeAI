@@ -43,6 +43,7 @@ from kade.voice.router import VoiceCommandRouter
 from kade.tracking import TradePlanMonitor, TradePlanTrackingContext, to_payload as tracking_payload
 from kade.utils.time import utc_now_iso
 from kade.review import TradeReviewAnalyzer, TradeReviewContext, ReviewMetricsAggregator, review_to_payload, metrics_to_payload
+from kade.visuals import VisualExplainabilityRequest, VisualExplainabilityService
 
 CONFIG_DIR = Path(__file__).parent / "config"
 LOGGER = get_logger(__name__)
@@ -73,6 +74,7 @@ def bootstrap_config() -> dict[str, dict]:
         "review.yaml",
         "market_intelligence.yaml",
         "gameplan.yaml",
+        "visuals.yaml",
     ]
     loaded_configs: dict[str, dict] = {}
     for name in config_names:
@@ -337,8 +339,10 @@ def main() -> None:
     review_cfg = dict(configs["review.yaml"].get("review", {}))
     market_intelligence_cfg = dict(configs["market_intelligence.yaml"].get("market_intelligence", {}))
     gameplan_cfg = dict(configs["gameplan.yaml"].get("gameplan", {}))
+    visuals_cfg = dict(configs["visuals.yaml"].get("visuals", {}))
     market_intelligence_service = MarketIntelligenceService(market_intelligence_cfg)
     gameplan_service = PremarketGameplanService(gameplan_cfg)
+    visual_service = VisualExplainabilityService(visuals_cfg)
     market_intelligence_snapshot = market_intelligence_service.build_snapshot(
         ticker_states=states,
         latest_breadth=market_loop.latest_breadth,
@@ -365,6 +369,7 @@ def main() -> None:
     review_analyzer = TradeReviewAnalyzer(review_cfg)
     review_metrics = ReviewMetricsAggregator(review_cfg)
     trade_review_history: list[dict[str, object]] = list(session_state.get("trade_review_history", []))
+    visual_history: list[dict[str, object]] = list(session_state.get("visual_explanation_history", []))
 
 
     def build_trade_idea_opinion(payload: dict[str, object]) -> dict[str, object]:
@@ -618,6 +623,42 @@ def main() -> None:
         plan = plan_tracker.update_status(plan_id, new_status, reason=reason)
         return plan_tracker._serialize(plan)
 
+    def build_visual_explanation(payload: dict[str, object]) -> dict[str, object]:
+        symbol = str(payload.get("symbol", "")).upper()
+        view_type = str(payload.get("view_type", "opinion")).lower()
+        raw_timeframes = payload.get("timeframes")
+        if isinstance(raw_timeframes, str):
+            timeframes = tuple(item.strip() for item in raw_timeframes.split(",") if item.strip())
+        elif isinstance(raw_timeframes, (list, tuple)):
+            timeframes = tuple(str(item) for item in raw_timeframes)
+        else:
+            timeframes = tuple(visuals_cfg.get("default_timeframes", ["1m", "5m", "15m"]))
+
+        bars_limit = int(visuals_cfg.get("bar_window_sizes", {}).get("1m", 90))
+        bars_1m = market_data_provider.get_bars(symbol, "1m", bars_limit)
+        state = states.get(symbol)
+        latest_plan = interaction_state.latest_trade_plan if str(interaction_state.latest_trade_plan.get("symbol", "")).upper() == symbol else {}
+        latest_tracking = interaction_state.latest_trade_plan_tracking if str(interaction_state.latest_trade_plan_tracking.get("symbol", "")).upper() == symbol else {}
+        latest_opinion = interaction_state.latest_trade_idea_opinion if str(interaction_state.latest_trade_idea_opinion.get("symbol", "")).upper() == symbol else {}
+        snapshot = visual_service.build_visual_explanation(
+            request=VisualExplainabilityRequest(symbol=symbol, view_type=view_type, timeframes=timeframes, plan_id=str(payload.get("plan_id")) if payload.get("plan_id") else None),
+            bars_1m=bars_1m,
+            state=state,
+            opinion=dict(payload.get("opinion", latest_opinion)) if isinstance(payload.get("opinion", latest_opinion), dict) else latest_opinion,
+            trade_plan=dict(payload.get("trade_plan", latest_plan)) if isinstance(payload.get("trade_plan", latest_plan), dict) else latest_plan,
+            tracking=dict(payload.get("tracking", latest_tracking)) if isinstance(payload.get("tracking", latest_tracking), dict) else latest_tracking,
+            gameplan=interaction_state.latest_premarket_gameplan,
+            market_intelligence=market_intelligence_payload,
+            review=interaction_state.latest_trade_review,
+        )
+        visual_history.append(snapshot)
+        retention = int(visuals_cfg.get("history_retention", 20))
+        del visual_history[:-retention]
+        session_state["visual_explanation_history"] = visual_history
+        session_state["latest_visual_explanation"] = snapshot
+        persistence.persist_session(session_state)
+        return snapshot
+
     runtime_mode = str(voice_config.get("runtime_mode", "text_first"))
     interaction_state = InteractionRuntimeState(
         runtime_mode=runtime_mode,
@@ -671,6 +712,7 @@ def main() -> None:
             ticker_states=states,
             explicit_symbols=list(payload.get("symbols") or []),
         ),
+        visual_explanation_handler=build_visual_explanation,
     )
 
     if session_state.get("latest_target_move_board"):
@@ -690,6 +732,8 @@ def main() -> None:
     interaction.state.recent_backtest_evaluations = dict(session_state.get("recent_backtest_evaluations", {}))
     interaction.state.latest_historical_data = dict(session_state.get("latest_historical_data", {}))
     interaction.state.latest_premarket_gameplan = dict(session_state.get("latest_premarket_gameplan", gameplan_payload))
+    interaction.state.latest_visual_explanation = dict(session_state.get("latest_visual_explanation", {}))
+    interaction.state.visual_explanation_history = list(session_state.get("visual_explanation_history", []))[-int(visuals_cfg.get("history_retention", 20)) :]
     trade_plan_tracking_history[:] = trade_plan_tracking_history[-int(tracking_cfg.get("history_limit", 40)) :]
 
     diagnostics = ProviderDiagnostics(policy=str(provider_runtime.get("diagnostics_policy", "warn_on_degraded")), logger=LOGGER)
@@ -867,6 +911,8 @@ def main() -> None:
     session_state["recent_backtest_evaluations"] = interaction_state.recent_backtest_evaluations
     session_state["latest_historical_data"] = interaction_state.latest_historical_data
     session_state["latest_premarket_gameplan"] = interaction_state.latest_premarket_gameplan or gameplan_payload
+    session_state["latest_visual_explanation"] = interaction_state.latest_visual_explanation
+    session_state["visual_explanation_history"] = interaction_state.visual_explanation_history
     session_state["latest_market_regime"] = regime_label
     persistence.retain_recent_voice_events(session_state)
     persistence.retain_recent_commands(session_state)
