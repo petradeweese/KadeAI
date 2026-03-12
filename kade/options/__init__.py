@@ -2,6 +2,7 @@
 
 from kade.options.models import OptionCandidate, OptionContract, SelectedOptionPlan, TradeIntent
 from kade.options.pipeline import OptionsSelectionPipeline
+from kade.options.scenario import TargetMoveScenarioBoard, TargetMoveScenarioRequest
 
 __all__ = [
     "OptionCandidate",
@@ -9,4 +10,6 @@ __all__ = [
     "SelectedOptionPlan",
     "TradeIntent",
     "OptionsSelectionPipeline",
+    "TargetMoveScenarioBoard",
+    "TargetMoveScenarioRequest",
 ]

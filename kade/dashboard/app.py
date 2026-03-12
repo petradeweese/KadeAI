@@ -129,6 +129,7 @@ def create_app_status(
                 "emergency_shutdown": session_payload.get("emergency_shutdown", False),
             },
             "timeline": voice_payload.get("timeline", {"retention": 0, "events": []}),
+            "target_move_board": voice_payload.get("target_move_board", {}),
         },
         "session": session_payload,
         "history": history_payload,
