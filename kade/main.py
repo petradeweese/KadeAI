@@ -40,6 +40,7 @@ from kade.voice.orchestrator import VoiceOrchestrator
 from kade.voice.router import VoiceCommandRouter
 from kade.tracking import TradePlanMonitor, TradePlanTrackingContext, to_payload as tracking_payload
 from kade.utils.time import utc_now_iso
+from kade.review import TradeReviewAnalyzer, TradeReviewContext, ReviewMetricsAggregator, review_to_payload, metrics_to_payload
 
 CONFIG_DIR = Path(__file__).parent / "config"
 LOGGER = get_logger(__name__)
@@ -67,6 +68,7 @@ def bootstrap_config() -> dict[str, dict]:
         "history.yaml",
         "planning.yaml",
         "tracking.yaml",
+        "review.yaml",
     ]
     loaded_configs: dict[str, dict] = {}
     for name in config_names:
@@ -329,6 +331,11 @@ def main() -> None:
     trade_plan_builder = TradePlanBuilder(configs["planning.yaml"].get("planning", {}))
     trade_plan_monitor = TradePlanMonitor(plan_tracker, configs["tracking.yaml"].get("tracking", {}))
     trade_plan_tracking_history: list[dict[str, object]] = list(session_state.get("trade_plan_tracking_history", []))
+    review_cfg = configs["review.yaml"].get("review", {})
+    review_analyzer = TradeReviewAnalyzer(review_cfg)
+    review_metrics = ReviewMetricsAggregator(review_cfg)
+    trade_review_history: list[dict[str, object]] = list(session_state.get("trade_review_history", []))
+
 
     def build_trade_idea_opinion(payload: dict[str, object]) -> dict[str, object]:
         symbol = str(payload.get("symbol", "")).upper()
@@ -512,6 +519,66 @@ def main() -> None:
         persistence.persist_session(session_state)
         return tracking
 
+    def review_trade_plan(payload: dict[str, object]) -> dict[str, object]:
+        plan_id = str(payload.get("plan_id", "")).strip()
+        symbol = str(payload.get("symbol", "")).upper()
+        plan = plan_tracker.plans.get(plan_id)
+        if plan is None and symbol:
+            plans = plan_tracker.plans_for_symbol(symbol)
+            plan = plans[0] if plans else None
+        if plan is None:
+            latest = {
+                "plan_id": plan_id,
+                "symbol": symbol,
+                "review_label": "unknown",
+                "discipline_label": "unknown",
+                "outcome_label": "unknown",
+                "summary": "No matching plan found for review.",
+                "strengths": [],
+                "mistakes": ["Missing plan context."],
+                "lessons": ["Review requires a persisted plan."],
+                "reviewed_at": utc_now_iso(),
+            }
+            metrics_payload = metrics_to_payload(review_metrics.build_snapshot(trade_review_history), compact=True)
+            return {"latest_review": latest, "metrics_summary": metrics_payload}
+
+        snapshots = [item for item in trade_plan_tracking_history if str(item.get("plan_id")) == plan.plan_id]
+        context = TradeReviewContext(
+            plan=plan_tracker._serialize(plan),
+            tracking_snapshots=snapshots,
+            final_status=str(payload.get("final_status")) if payload.get("final_status") is not None else None,
+            execution_state=dict(payload.get("execution_state", {})) if isinstance(payload.get("execution_state"), dict) else None,
+            exit_reason=str(payload.get("exit_reason")) if payload.get("exit_reason") is not None else None,
+            realized_outcome=dict(payload.get("realized_outcome", {})) if isinstance(payload.get("realized_outcome"), dict) else None,
+            notes=str(payload.get("notes")) if payload.get("notes") is not None else None,
+        )
+        result = review_analyzer.review(context)
+        latest_review = review_to_payload(result)
+        latest_review["plan"] = plan_tracker._serialize(plan)
+        trade_review_history.append(latest_review)
+        limit = int(review_cfg.get("history_limit", 120))
+        del trade_review_history[:-limit]
+        metrics_snapshot = review_metrics.build_snapshot(trade_review_history)
+        metrics_payload = metrics_to_payload(metrics_snapshot, compact=True)
+
+        session_state["trade_review_history"] = trade_review_history
+        session_state["latest_trade_review"] = latest_review
+        session_state["trade_review_metrics"] = metrics_payload
+        persistence.persist_session(session_state)
+
+        return {"latest_review": latest_review, "metrics_summary": metrics_payload}
+
+    def review_latest_trade_plan_payload(payload: dict[str, object]) -> dict[str, object]:
+        closed = [plan for plan in plan_tracker.plans.values() if plan.status in {"exited", "cancelled"}]
+        if not closed:
+            return dict(payload)
+        latest = sorted(closed, key=lambda item: item.updated_at, reverse=True)[0]
+        merged = dict(payload)
+        merged["plan_id"] = latest.plan_id
+        merged.setdefault("symbol", latest.symbol)
+        merged.setdefault("final_status", latest.status)
+        return merged
+
     def update_trade_plan_status(payload: dict[str, object]) -> dict[str, object]:
         plan_id = str(payload.get("plan_id", ""))
         new_status = str(payload.get("status", ""))
@@ -566,10 +633,16 @@ def main() -> None:
         trade_plan_handler=build_trade_plan,
         trade_plan_status_handler=update_trade_plan_status,
         trade_plan_tracking_handler=evaluate_trade_plan_tracking,
+        trade_review_handler=review_trade_plan,
+        latest_trade_review_handler=review_latest_trade_plan_payload,
     )
 
     if session_state.get("latest_trade_plan_tracking"):
         interaction.state.latest_trade_plan_tracking = dict(session_state.get("latest_trade_plan_tracking", {}))
+    if session_state.get("latest_trade_review"):
+        interaction.state.latest_trade_review = dict(session_state.get("latest_trade_review", {}))
+    interaction.state.trade_review_history = list(session_state.get("trade_review_history", []))
+    interaction.state.trade_review_metrics = dict(session_state.get("trade_review_metrics", {}))
 
     diagnostics = ProviderDiagnostics(policy=str(provider_runtime.get("diagnostics_policy", "warn_on_degraded")), logger=LOGGER)
     provider_diagnostics = diagnostics.evaluate(

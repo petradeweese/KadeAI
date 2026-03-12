@@ -45,6 +45,9 @@ class InteractionRuntimeState:
     latest_trade_idea_opinion: dict[str, object] = field(default_factory=dict)
     latest_trade_plan: dict[str, object] = field(default_factory=dict)
     latest_trade_plan_tracking: dict[str, object] = field(default_factory=dict)
+    latest_trade_review: dict[str, object] = field(default_factory=dict)
+    trade_review_history: list[dict[str, object]] = field(default_factory=list)
+    trade_review_metrics: dict[str, object] = field(default_factory=dict)
     latest_backtest_run_summary: dict[str, object] = field(default_factory=dict)
     recent_backtest_evaluations: dict[str, list[dict[str, object]]] = field(default_factory=dict)
     latest_historical_data: dict[str, object] = field(default_factory=dict)
@@ -72,6 +75,8 @@ class InteractionOrchestrator:
         trade_plan_handler: Callable[[dict[str, object]], dict[str, object]] | None = None,
         trade_plan_status_handler: Callable[[dict[str, object]], dict[str, object]] | None = None,
         trade_plan_tracking_handler: Callable[[dict[str, object]], dict[str, object]] | None = None,
+        trade_review_handler: Callable[[dict[str, object]], dict[str, object]] | None = None,
+        latest_trade_review_handler: Callable[[dict[str, object]], dict[str, object]] | None = None,
     ) -> None:
         self.voice_orchestrator = voice_orchestrator
         self.stt_provider = stt_provider
@@ -84,6 +89,8 @@ class InteractionOrchestrator:
         self.trade_plan_handler = trade_plan_handler
         self.trade_plan_status_handler = trade_plan_status_handler
         self.trade_plan_tracking_handler = trade_plan_tracking_handler
+        self.trade_review_handler = trade_review_handler
+        self.latest_trade_review_handler = latest_trade_review_handler
 
     def submit_text_command(self, command: str, now: datetime | None = None, include_debug: bool = True) -> dict[str, object]:
         now = now or utc_now()
@@ -392,6 +399,84 @@ class InteractionOrchestrator:
     def update_trade_plan_status_from_context(self, request_payload: dict[str, object], now: datetime | None = None) -> dict[str, object]:
         return self.submit_trade_plan_tracking_request(request_payload, now=now)
 
+    def submit_trade_review_request(self, request_payload: dict[str, object], now: datetime | None = None) -> dict[str, object]:
+        now = now or utc_now()
+        if self.trade_review_handler is None:
+            return {
+                "intent": "trade_review",
+                "formatted_response": "Trade-review handler is not configured.",
+                "advisor_radar_status_summary": self.state.latest_advisor_or_status,
+                "provider_mode": {},
+                "timestamp": now.isoformat(),
+                "raw_result": {"intent": "trade_review", "trade_review": {}},
+            }
+
+        review_payload = self.trade_review_handler(request_payload)
+        latest = dict(review_payload.get("latest_review", {}))
+        metrics = dict(review_payload.get("metrics_summary", {}))
+        self.state.latest_trade_review = latest
+        self.state.trade_review_metrics = metrics
+        if latest:
+            self.state.trade_review_history.append(latest)
+            self.state.trade_review_history = self.state.trade_review_history[-self.state.execution_history_limit :]
+
+        self.timeline.add_event(
+            "trade_review_generated",
+            now.isoformat(),
+            {
+                "plan_id": latest.get("plan_id"),
+                "symbol": latest.get("symbol"),
+                "review_label": latest.get("review_label"),
+                "discipline_label": latest.get("discipline_label"),
+                "final_status": latest.get("final_status"),
+            },
+        )
+        if latest.get("discipline_label") in {"invalidation_ignored", "posture_not_respected", "stale_not_respected"}:
+            self.timeline.add_event(
+                "discipline_issue_detected",
+                now.isoformat(),
+                {
+                    "plan_id": latest.get("plan_id"),
+                    "symbol": latest.get("symbol"),
+                    "discipline_label": latest.get("discipline_label"),
+                    "review_label": latest.get("review_label"),
+                    "final_status": latest.get("final_status"),
+                },
+            )
+        self.timeline.add_event(
+            "review_metrics_updated",
+            now.isoformat(),
+            {
+                "review_count": metrics.get("review_count", 0),
+                "invalidation_respected_rate": metrics.get("invalidation_respected_rate", 0.0),
+                "posture_respected_rate": metrics.get("posture_respected_rate", 0.0),
+            },
+        )
+
+        response = {
+            "intent": "trade_review",
+            "formatted_response": str(latest.get("summary", "Trade review generated.")),
+            "advisor_radar_status_summary": self.state.latest_advisor_or_status,
+            "provider_mode": {"stt": self.stt_provider.provider_name, "tts": "disabled", "wakeword": self.voice_orchestrator.wakeword_detector.provider_name},
+            "timestamp": now.isoformat(),
+            "raw_result": {"intent": "trade_review", "trade_review": review_payload},
+        }
+        self._record(
+            command=f"trade_review {request_payload}",
+            result={"intent": "trade_review", "spoken_text": response["formatted_response"], "trade_review": review_payload},
+            source="text_panel",
+            now=now,
+        )
+        self._refresh_provider_health()
+        return response
+
+    def review_latest_completed_plan(self, request_payload: dict[str, object] | None = None, now: datetime | None = None) -> dict[str, object]:
+        now = now or utc_now()
+        if self.latest_trade_review_handler is None:
+            return self.submit_trade_review_request(dict(request_payload or {}), now=now)
+        payload = self.latest_trade_review_handler(dict(request_payload or {}))
+        return self.submit_trade_review_request(payload, now=now)
+
     def command_history_viewer(self) -> dict[str, object]:
         return {"count": len(self.state.recent_commands), "history": list(self.state.recent_commands)}
 
@@ -457,6 +542,11 @@ class InteractionOrchestrator:
                 "trade_idea_opinion": self.state.latest_trade_idea_opinion,
                 "trade_plan": self.state.latest_trade_plan,
                 "trade_plan_tracking": self.state.latest_trade_plan_tracking,
+                "trade_review": {
+                    "latest_review": self.state.latest_trade_review,
+                    "metrics_summary": self.state.trade_review_metrics,
+                    "history": self.state.trade_review_history,
+                },
                 "backtesting": {
                     "latest_run_summary": self.state.latest_backtest_run_summary,
                     "recent_evaluations": self.state.recent_backtest_evaluations,
