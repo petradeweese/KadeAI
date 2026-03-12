@@ -20,6 +20,7 @@ def create_app_status(
     persistence_payload: dict[str, object] | None = None,
     session_payload: dict[str, object] | None = None,
     history_payload: dict[str, object] | None = None,
+    market_intelligence_payload: dict[str, object] | None = None,
 ) -> dict:
     ticker_states = ticker_states or {}
     debug_values = debug_values or {}
@@ -35,6 +36,7 @@ def create_app_status(
     persistence_payload = persistence_payload or {}
     session_payload = session_payload or {}
     history_payload = history_payload or {"radar": [], "advisor": [], "execution": []}
+    market_intelligence_payload = market_intelligence_payload or {}
 
     cards: list[dict] = []
     by_symbol = radar_payload.get("by_symbol", {})
@@ -141,6 +143,16 @@ def create_app_status(
             "trade_review": _panel(voice_payload.get("trade_review"), {"latest_review": {}, "metrics_summary": {}, "history": []}),
             "backtesting": _panel(voice_payload.get("backtesting"), {"latest_run_summary": {}, "recent_evaluations": {}}),
             "historical_data": _panel(voice_payload.get("historical_data"), {"last_download": {}, "cache_status": {}, "recent_downloads": [], "index_status": {}}),
+            "market_intelligence": {
+                "market_clock": dict(market_intelligence_payload.get("market_clock", {})),
+                "market_calendar": list(market_intelligence_payload.get("market_calendar", [])),
+                "regime": dict(market_intelligence_payload.get("regime", {})),
+                "key_news": list(market_intelligence_payload.get("key_news", []))[:5],
+                "top_movers": list(market_intelligence_payload.get("top_movers", []))[:5],
+                "most_active": list(market_intelligence_payload.get("most_active", []))[:5],
+                "cross_symbol_context": dict(market_intelligence_payload.get("cross_symbol_context", {})),
+                "generated_at": market_intelligence_payload.get("generated_at"),
+            },
         },
         "session": session_payload,
         "history": history_payload,

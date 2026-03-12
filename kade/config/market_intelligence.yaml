@@ -1,0 +1,45 @@
+market_intelligence:
+  enabled: true
+  history_retention: 25
+  sources:
+    clock: true
+    calendar: true
+    news: true
+    movers: true
+    earnings: true
+  alpaca:
+    enabled: false
+    api_key: ""
+    secret_key: ""
+    base_url: https://paper-api.alpaca.markets
+    data_url: https://data.alpaca.markets
+  regime:
+    trend_threshold_pct: 0.35
+    chop_threshold_pct: 0.12
+    volatile_threshold_pct: 1.2
+  news:
+    max_items: 12
+    classification_keywords:
+      earnings: [earnings, eps, revenue, quarter, guidance]
+      analyst: [analyst, upgrade, downgrade, price target, overweight, underweight]
+      macro: [cpi, jobs, fed, rates, inflation, treasury, fomc]
+      sector: [sector, industry, peers, semiconductor, biotech, energy]
+      product_company: [launch, product, partnership, acquisition, merger]
+      guidance: [outlook, guidance, forecast, raises, cuts]
+      regulatory: [sec, fda, doj, antitrust, regulation, regulatory]
+  movers:
+    top_movers_limit: 10
+    most_active_limit: 10
+  cross_symbol:
+    benchmarks: [QQQ, SPY]
+    conflict_threshold_pct: 0.25
+    sector_proxy_by_symbol:
+      NVDA: SMH
+      AMD: SMH
+      TSLA: XLY
+      AAPL: XLK
+      MSFT: XLK
+      META: XLC
+      AMZN: XLY
+  earnings:
+    earnings_limit: 8

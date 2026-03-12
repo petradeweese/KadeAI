@@ -23,6 +23,7 @@ from kade.integrations.providers import (
 )
 from kade.logging_utils import LogCategory, get_logger, log_event, setup_logging
 from kade.market.market_loop import MarketStateLoop
+from kade.market.intelligence import MarketIntelligenceService
 from kade.options import OptionsSelectionPipeline, TargetMoveScenarioBoard, TargetMoveScenarioRequest, TradeIntent
 from kade.runtime import (
     InteractionOrchestrator,
@@ -69,6 +70,7 @@ def bootstrap_config() -> dict[str, dict]:
         "planning.yaml",
         "tracking.yaml",
         "review.yaml",
+        "market_intelligence.yaml",
     ]
     loaded_configs: dict[str, dict] = {}
     for name in config_names:
@@ -331,6 +333,18 @@ def main() -> None:
     planning_cfg = dict(configs["planning.yaml"].get("planning", {}))
     tracking_cfg = dict(configs["tracking.yaml"].get("tracking", {}))
     review_cfg = dict(configs["review.yaml"].get("review", {}))
+    market_intelligence_cfg = dict(configs["market_intelligence.yaml"].get("market_intelligence", {}))
+    market_intelligence_service = MarketIntelligenceService(market_intelligence_cfg)
+    market_intelligence_snapshot = market_intelligence_service.build_snapshot(
+        ticker_states=states,
+        latest_breadth=market_loop.latest_breadth,
+        watchlist=tickers_config.get("watchlist", []),
+    )
+    market_intelligence_payload = market_intelligence_snapshot.to_payload()
+    session_state["latest_market_intelligence"] = market_intelligence_payload
+    retention = int(market_intelligence_cfg.get("history_retention", 25))
+    history = list(session_state.get("market_intelligence_history", [])) + [market_intelligence_payload]
+    session_state["market_intelligence_history"] = history[-retention:] if retention > 0 else []
 
     trade_plan_builder = TradePlanBuilder(planning_cfg)
     trade_plan_monitor = TradePlanMonitor(plan_tracker, tracking_cfg)
@@ -708,6 +722,44 @@ def main() -> None:
     ]
     interaction.ingest_execution_events(execution_events)
 
+    previous_regime = str(session_state.get("latest_market_regime", ""))
+    interaction.timeline.add_event(
+        "market_intelligence_updated",
+        utc_now_iso(),
+        {
+            "regime_label": dict(market_intelligence_payload.get("regime", {})).get("regime_label"),
+            "confidence": dict(market_intelligence_payload.get("regime", {})).get("regime_confidence"),
+            "headline_count": len(list(market_intelligence_payload.get("key_news", []))),
+            "movers_count": len(list(market_intelligence_payload.get("top_movers", []))),
+            "major_reasons": list(dict(market_intelligence_payload.get("regime", {})).get("reasons", []))[:3],
+        },
+    )
+    regime_label = str(dict(market_intelligence_payload.get("regime", {})).get("regime_label", "unknown"))
+    if previous_regime and previous_regime != regime_label:
+        interaction.timeline.add_event(
+            "regime_changed",
+            utc_now_iso(),
+            {
+                "from": previous_regime,
+                "to": regime_label,
+                "confidence": dict(market_intelligence_payload.get("regime", {})).get("regime_confidence"),
+                "major_reasons": list(dict(market_intelligence_payload.get("regime", {})).get("reasons", []))[:3],
+            },
+        )
+    major_catalysts = [
+        item for item in list(market_intelligence_payload.get("key_news", [])) if str(item.get("catalyst_type")) in {"macro", "earnings", "regulatory"}
+    ]
+    if major_catalysts:
+        interaction.timeline.add_event(
+            "major_catalyst_detected",
+            utc_now_iso(),
+            {
+                "count": len(major_catalysts),
+                "headlines": [str(item.get("headline", "")) for item in major_catalysts[:3]],
+                "catalysts": [str(item.get("catalyst_type", "unknown")) for item in major_catalysts[:3]],
+            },
+        )
+
     log_event(
         LOGGER,
         LogCategory.VOICE_EVENT,
@@ -767,6 +819,7 @@ def main() -> None:
     session_state["latest_backtest_run_summary"] = interaction_state.latest_backtest_run_summary
     session_state["recent_backtest_evaluations"] = interaction_state.recent_backtest_evaluations
     session_state["latest_historical_data"] = interaction_state.latest_historical_data
+    session_state["latest_market_regime"] = regime_label
     persistence.retain_recent_voice_events(session_state)
     persistence.retain_recent_commands(session_state)
     persistence.retain_provider_health_history(session_state)
@@ -782,20 +835,21 @@ def main() -> None:
         "execution": execution_history,
     }
     dashboard_state = build_dashboard_state(
-        states,
-        debug_values,
-        market_loop.latest_breadth,
-        market_loop.latest_radar,
-        options_payload,
-        execution_payload,
-        memory.snapshot(limit=10),
-        plan_tracker.snapshot(),
-        advisor_payload,
-        style_profile.response_guidance(),
-        {**interaction.dashboard_payload(), "provider_diagnostics": provider_diagnostics, "provider_selection": session_state.get("provider_selection", {}), "historical_data": history_runtime},
-        persistence_meta,
-        session_state,
-        history_payload,
+        states=states,
+        debug_values=debug_values,
+        latest_breadth=market_loop.latest_breadth,
+        latest_radar=market_loop.latest_radar,
+        options_payload=options_payload,
+        execution_payload=execution_payload,
+        memory_payload=memory.snapshot(limit=10),
+        plan_payload=plan_tracker.snapshot(),
+        advisor_payload=advisor_payload,
+        style_payload=style_profile.response_guidance(),
+        voice_payload={**interaction.dashboard_payload(), "provider_diagnostics": provider_diagnostics, "provider_selection": session_state.get("provider_selection", {}), "historical_data": history_runtime},
+        persistence_payload=persistence_meta,
+        session_payload=session_state,
+        history_payload=history_payload,
+        market_intelligence_payload=market_intelligence_payload,
     )
     print_runtime_summary(dashboard_state, session_state, history_payload)
 
