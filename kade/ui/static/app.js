@@ -24,6 +24,50 @@ function renderCard(id, title, rows, raw) {
   el.innerHTML = `<h3>${title}</h3>${list}<details><summary>Show raw</summary><pre>${escapeHtml(JSON.stringify(raw || {}, null, 2))}</pre></details>`;
 }
 
+function renderVisualCard(id, visual, layoutState) {
+  const el = document.getElementById(id);
+  const charts = visual.charts || [];
+  const firstChart = charts[0] || {};
+  const levels = (firstChart.overlays || []).filter(o => String(o.overlay_type || '').includes('line'));
+  const hasBars = Array.isArray(firstChart.bars) && firstChart.bars.length > 0;
+  const sideReasons = ((visual.side_panels || [])[0] || {}).items || [];
+
+  let body = '';
+  if (hasBars || levels.length > 0) {
+    body = `
+      <div class="visual-head">
+        <div><strong>${visual.active_symbol || layoutState.active_symbol || 'n/a'}</strong></div>
+        <div>${firstChart.timeframe || 'n/a'} • ${visual.active_view || layoutState.active_view || 'plan'}</div>
+      </div>
+      <div class="chart-stage">
+        <div>Bars: ${firstChart.bars?.length || 0}</div>
+        <div>Overlays: ${(firstChart.overlays || []).length}</div>
+      </div>
+      <div class="levels-grid">
+        <div>Entry: ${levelValue(levels, ['trigger_line', 'entry'])}</div>
+        <div>Invalidation: ${levelValue(levels, ['invalidation_line'])}</div>
+        <div>Target: ${levelValue(levels, ['target_line'])}</div>
+        <div>VWAP: ${levelValue(levels, ['vwap_line'])}</div>
+      </div>
+      <div class="metric">Summary: ${sideReasons.slice(0, 3).join(', ') || 'Context aligned for deterministic setup review.'}</div>
+    `;
+  } else {
+    body = `
+      <div class="visual-empty">
+        <strong>${visual.active_symbol || layoutState.active_symbol || 'Symbol not set'}</strong>
+        <p>No chart bars are available yet. Kade is ready to show entry, invalidation, target and VWAP levels when data arrives.</p>
+      </div>
+    `;
+  }
+
+  el.innerHTML = `<h3>Visual Explainability</h3>${body}<details><summary>Show raw</summary><pre>${escapeHtml(JSON.stringify(visual || {}, null, 2))}</pre></details>`;
+}
+
+function levelValue(levels, types) {
+  const item = levels.find(l => types.includes(l.overlay_type));
+  return item?.value ?? 'n/a';
+}
+
 function renderDashboard(payload) {
   const oc = payload.operator_console || {};
   const market = oc.market_intelligence || {};
@@ -41,8 +85,41 @@ function renderDashboard(payload) {
 
   document.getElementById('workspace-mode').textContent = layoutState.active_workspace_mode || 'overview';
   document.getElementById('active-symbol').textContent = layoutState.active_symbol || '-';
+  document.getElementById('active-direction').textContent = layoutState.active_direction || '-';
+  document.getElementById('active-horizon').textContent = String(layoutState.active_horizon || '-');
   document.getElementById('last-intent').textContent = layoutState.last_interpreted_intent || '-';
   document.getElementById('workspace-title').textContent = MODE_TITLES[layoutState.active_workspace_mode] || MODE_TITLES.overview;
+
+  renderCard('market-context-card', 'Market Context Strip', [
+    `Symbol: ${layoutState.active_symbol || trade.symbol || 'n/a'}`,
+    `Direction: ${layoutState.active_direction || trade.direction || 'n/a'}`,
+    `Regime: ${market.regime?.label || 'unknown'}`,
+    `Breadth/Posture: ${premarket.market_posture?.posture_label || 'mixed'}`,
+  ], {layoutState, market: market.regime, posture: premarket.market_posture});
+
+  renderCard('trade-idea-card', 'Trade Idea', [
+    `Symbol: ${trade.symbol || layoutState.active_symbol || 'n/a'}`,
+    `Stance: ${trade.stance || trade.direction || layoutState.active_direction || 'n/a'}`,
+    `Trigger: ${trade.entry || 'n/a'}`,
+    `Invalidation: ${trade.invalidation || 'n/a'}`,
+    `Target: ${trade.target || 'n/a'}`,
+  ], trade);
+
+  renderCard('target-move-card', 'Target Move Board', [
+    `Candidates: ${(target.candidates || []).length}`,
+    `Best candidate: ${target.candidates?.[0]?.symbol || 'n/a'}`,
+    `Symbol: ${(target.request || {}).symbol || layoutState.active_symbol || 'n/a'}`,
+  ], target);
+
+  renderCard('trade-plan-card', 'Trade Plan', [
+    `Symbol: ${plan.symbol || layoutState.active_symbol || 'n/a'}`,
+    `Entry/Trigger: ${plan.trigger || 'n/a'}`,
+    `Stop/Invalidation: ${plan.invalidation || 'n/a'}`,
+    `Target: ${plan.target || 'n/a'}`,
+    `Checklist: ${(plan.checklist || []).slice(0, 2).join(', ') || 'n/a'}`,
+  ], plan);
+
+  renderVisualCard('visual-card', visual, layoutState);
 
   renderCard('market-card', 'Market Intelligence', [
     `Regime: ${market.regime?.label || 'unknown'}`,
@@ -67,34 +144,10 @@ function renderDashboard(payload) {
     `Watchlist: ${(premarket.watchlist_priorities || []).slice(0,3).join(', ') || 'n/a'}`,
   ], { movers: market.top_movers, active: market.most_active, watchlist: premarket.watchlist_priorities });
 
-  renderCard('trade-idea-card', 'Trade Idea', [
-    `Symbol: ${trade.symbol || layoutState.active_symbol || 'n/a'}`,
-    `Stance: ${trade.stance || 'n/a'}`,
-    `Entry: ${trade.entry || 'n/a'}`,
-    `Target: ${trade.target || 'n/a'}`,
-  ], trade);
-
-  renderCard('target-move-card', 'Target Move Board', [
-    `Candidates: ${(target.candidates || []).length}`,
-    `Active symbol: ${(target.request || {}).symbol || layoutState.active_symbol || 'n/a'}`,
-  ], target);
-
-  renderCard('trade-plan-card', 'Trade Plan', [
-    `Plan: ${plan.plan_id || 'n/a'}`,
-    `Status: ${plan.status || 'n/a'}`,
-    `Symbol: ${plan.symbol || layoutState.active_symbol || 'n/a'}`,
-  ], plan);
-
   renderCard('tracking-card', 'Trade Plan Tracking', [
     `Tracking status: ${tracking.status_after || 'n/a'}`,
     `Plan: ${tracking.plan_id || plan.plan_id || 'n/a'}`,
   ], tracking);
-
-  renderCard('visual-card', 'Visual Explainability', [
-    `Active symbol: ${visual.active_symbol || layoutState.active_symbol || 'n/a'}`,
-    `Active view: ${visual.active_view || layoutState.active_view || 'n/a'}`,
-    `Charts: ${(visual.charts || []).length}`,
-  ], visual);
 
   renderCard('strategy-card', 'Strategy Intelligence', [
     `Setups: ${(strategy.setup_archetypes || []).length}`,
@@ -161,7 +214,7 @@ async function postJson(path, payload) {
 function addMessage(role, text) {
   const el = document.createElement('div');
   el.className = `msg ${role}`;
-  el.textContent = `${role === 'user' ? 'You' : 'Kade'}: ${text}`;
+  el.innerHTML = `<span class="speaker">${role === 'user' ? 'You' : 'Kade'}</span><span>${escapeHtml(text)}</span>`;
   transcriptEl.appendChild(el);
   transcriptEl.scrollTop = transcriptEl.scrollHeight;
 }
@@ -178,7 +231,7 @@ chatForm.addEventListener('submit', async (e) => {
   const data = await postJson(path, {[key]: text});
 
   if (path === '/api/chat') {
-    interpretedEl.textContent = `Interpreted action: ${data.interpreted_action?.intent || 'n/a'} (${data.interpreted_action?.source || 'heuristic'})`;
+    interpretedEl.textContent = `Action: ${data.interpreted_action?.intent || 'n/a'} (${data.interpreted_action?.source || 'heuristic'})`;
     addMessage('kade', data.reply || 'Done');
     renderDashboard(data.dashboard);
   } else {

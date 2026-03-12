@@ -74,9 +74,9 @@ def test_intent_to_workspace_mapping_and_prioritization() -> None:
     assert intent_to_workspace_mode("unknown") == "overview"
 
     trade_layout = build_workspace_layout("trade", active_symbol="NVDA")
-    assert trade_layout.panel_priority_map["trade_idea"] == 1
-    assert trade_layout.panel_priority_map["visual_explainability"] == 4
-    assert "timeline" in trade_layout.collapsed_panels
+    assert trade_layout.panel_priority_map["visual_explainability"] == 1
+    assert trade_layout.panel_priority_map["trade_idea"] == 2
+    assert "market_intelligence" in trade_layout.collapsed_panels
     assert "trade_plan" in trade_layout.highlighted_panels
 
 
@@ -132,3 +132,49 @@ def test_llm_intent_parse_cannot_override_trade_logic_fields() -> None:
     interpreted = chat._interpret("Should I consider a put on NVDA within an hour?")
     assert interpreted.intent == "trade_idea"
     assert interpreted.payload == {"symbol": "NVDA", "direction": "put"}
+
+
+def test_trade_prompt_extracts_symbol_direction_and_horizon() -> None:
+    parser = ChatIntentParser()
+    parsed = parser.parse("Should I consider a put on NVDA within an hour?")
+
+    assert parsed.intent == "trade_idea"
+    assert parsed.payload["symbol"] == "NVDA"
+    assert parsed.payload["direction"] == "put"
+    assert parsed.payload["horizon_minutes"] == 60
+
+
+def test_backend_propagates_active_symbol_direction_and_horizon() -> None:
+    backend = OperatorBackend(llm_enabled=False)
+    result = backend.chat("Should I consider a put on NVDA within an hour?")
+
+    assert result["layout_state"]["active_workspace_mode"] == "trade"
+    assert result["layout_state"]["active_symbol"] == "NVDA"
+    assert result["layout_state"]["active_direction"] == "put"
+    assert result["layout_state"]["active_horizon"] == 60
+
+
+def test_trade_mode_collapses_secondary_panels_by_default() -> None:
+    trade_layout = build_workspace_layout("trade", active_symbol="NVDA")
+
+    for key in ("market_intelligence", "premarket_gameplan", "radar", "movers", "execution_monitor", "timeline", "provider_diagnostics"):
+        assert key in trade_layout.collapsed_panels
+
+
+def test_ui_template_includes_secondary_collapsible_section() -> None:
+    with open("kade/ui/templates/index.html", encoding="utf-8") as handle:
+        html = handle.read()
+
+    assert "Secondary Panels" in html
+    assert "active-direction" in html
+    assert "market-context-card" in html
+
+
+def test_visual_explainability_panel_has_polished_sparse_fallback() -> None:
+    with open("kade/ui/static/app.js", encoding="utf-8") as handle:
+        js = handle.read()
+
+    assert "No chart bars are available yet" in js
+    assert "Entry:" in js
+    assert "Invalidation:" in js
+    assert "Target:" in js
