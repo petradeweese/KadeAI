@@ -54,6 +54,8 @@ class InteractionRuntimeState:
     latest_premarket_gameplan: dict[str, object] = field(default_factory=dict)
     latest_visual_explanation: dict[str, object] = field(default_factory=dict)
     visual_explanation_history: list[dict[str, object]] = field(default_factory=list)
+    latest_strategy_analysis: dict[str, object] = field(default_factory=dict)
+    strategy_analysis_history: list[dict[str, object]] = field(default_factory=list)
 
     def retain_history(self) -> None:
         self.recent_commands = self.recent_commands[-self.command_history_limit :]
@@ -82,6 +84,7 @@ class InteractionOrchestrator:
         latest_trade_review_handler: Callable[[dict[str, object]], dict[str, object]] | None = None,
         premarket_gameplan_handler: Callable[[dict[str, object]], dict[str, object]] | None = None,
         visual_explanation_handler: Callable[[dict[str, object]], dict[str, object]] | None = None,
+        strategy_analysis_handler: Callable[[dict[str, object]], dict[str, object]] | None = None,
     ) -> None:
         self.voice_orchestrator = voice_orchestrator
         self.stt_provider = stt_provider
@@ -98,6 +101,7 @@ class InteractionOrchestrator:
         self.latest_trade_review_handler = latest_trade_review_handler
         self.premarket_gameplan_handler = premarket_gameplan_handler
         self.visual_explanation_handler = visual_explanation_handler
+        self.strategy_analysis_handler = strategy_analysis_handler
 
     def _provider_mode(self, tts_provider: str = "disabled") -> dict[str, str]:
         return {
@@ -160,6 +164,8 @@ class InteractionOrchestrator:
             return self.submit_trade_plan_tracking_request(dict(panel_payload["trade_plan_tracking_request"]), now=now)
         if panel_payload.get("premarket_gameplan_request"):
             return self.submit_premarket_gameplan_request(dict(panel_payload["premarket_gameplan_request"]), now=now)
+        if panel_payload.get("strategy_analysis_request"):
+            return self.submit_strategy_analysis_request(dict(panel_payload["strategy_analysis_request"]), now=now)
 
         command = str(panel_payload.get("command", "")).strip()
         include_debug = bool(panel_payload.get("include_debug", True))
@@ -193,6 +199,9 @@ class InteractionOrchestrator:
         if command.lower().startswith("visual_explain"):
             parsed = self._parse_trade_idea_command(command)
             return self.submit_visual_explanation_request(parsed, now=now)
+        if command.lower().startswith("strategy_analysis"):
+            parsed = self._parse_trade_idea_command(command)
+            return self.submit_strategy_analysis_request(parsed, now=now)
         return self.submit_text_command(command=command, now=now, include_debug=include_debug)
 
     def submit_target_move_request(self, request_payload: dict[str, object], now: datetime | None = None) -> dict[str, object]:
@@ -540,6 +549,60 @@ class InteractionOrchestrator:
         return self.submit_trade_review_request(payload, now=now)
 
 
+
+    def submit_strategy_analysis_request(self, request_payload: dict[str, object], now: datetime | None = None) -> dict[str, object]:
+        now = now or utc_now()
+        if self.strategy_analysis_handler is None:
+            return {
+                "intent": "strategy_analysis",
+                "formatted_response": "Strategy intelligence mode is not configured.",
+                "advisor_radar_status_summary": self.state.latest_advisor_or_status,
+                "provider_mode": self._provider_mode("disabled"),
+                "timestamp": now.isoformat(),
+                "raw_result": {"intent": "strategy_analysis", "strategy_analytics": {}},
+            }
+
+        analytics = self.strategy_analysis_handler(request_payload)
+        self.state.latest_strategy_analysis = analytics
+        self.state.strategy_analysis_history.append(analytics)
+        self.state.strategy_analysis_history = self.state.strategy_analysis_history[-self.state.execution_history_limit :]
+        self.timeline.add_event(
+            "strategy_analysis_generated",
+            now.isoformat(),
+            {
+                "trade_count": dict(analytics.get("recent_trades_summary", {})).get("trade_count", 0),
+                "archetype_count": len(list(analytics.get("setup_archetype_stats", []))),
+                "regime_distribution": [item.get("regime") for item in analytics.get("regime_performance", [])],
+            },
+        )
+        self.timeline.add_event(
+            "archetype_classified",
+            now.isoformat(),
+            {"archetype_count": len(list(analytics.get("setup_archetype_stats", [])))}
+        )
+        self.timeline.add_event(
+            "strategy_calibration_updated",
+            now.isoformat(),
+            {"target_realism": dict(analytics.get("plan_calibration_summary", {})).get("target_realism", "unknown")},
+        )
+
+        response = {
+            "intent": "strategy_analysis",
+            "formatted_response": f"Generated strategy analytics across {dict(analytics.get('recent_trades_summary', {})).get('trade_count', 0)} trades.",
+            "advisor_radar_status_summary": self.state.latest_advisor_or_status,
+            "provider_mode": self._provider_mode("disabled"),
+            "timestamp": now.isoformat(),
+            "raw_result": {"intent": "strategy_analysis", "strategy_analytics": analytics},
+        }
+        self._record(
+            command=f"strategy_analysis {request_payload}",
+            result={"intent": "strategy_analysis", "spoken_text": response["formatted_response"], "strategy_analytics": analytics},
+            source="text_panel",
+            now=now,
+        )
+        self._refresh_provider_health()
+        return response
+
     def submit_visual_explanation_request(self, request_payload: dict[str, object], now: datetime | None = None) -> dict[str, object]:
         now = now or utc_now()
         if self.visual_explanation_handler is None:
@@ -667,6 +730,7 @@ class InteractionOrchestrator:
                     "latest": self.state.latest_visual_explanation,
                     "history": self.state.visual_explanation_history,
                 },
+                "strategy_intelligence": self.state.latest_strategy_analysis,
             }
         )
         return payload

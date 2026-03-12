@@ -1,0 +1,12 @@
+strategy:
+  lookback_limits:
+    default: 50
+    min: 10
+    max: 250
+  min_sample_size: 5
+  archetype_rules:
+    label_overrides: {}
+  calibration_thresholds:
+    realistic_ratio_min: 0.75
+    stretched_ratio_min: 0.45
+  history_retention: 40

@@ -8,5 +8,6 @@ from kade.storage.memory_store import MemoryStore
 from kade.storage.plan_store import PlanStore
 from kade.storage.radar_store import RadarStore
 from kade.storage.session_store import SessionStore, rollover_session
+from kade.storage.strategy_store import StrategyStore
 
-__all__ = ["BacktestStore", "ExecutionStore", "HistoryIndexStore", "HistoryStore", "MemoryStore", "PlanStore", "RadarStore", "SessionStore", "rollover_session"]
+__all__ = ["BacktestStore", "ExecutionStore", "HistoryIndexStore", "HistoryStore", "MemoryStore", "PlanStore", "RadarStore", "SessionStore", "StrategyStore", "rollover_session"]

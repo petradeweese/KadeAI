@@ -44,6 +44,7 @@ from kade.tracking import TradePlanMonitor, TradePlanTrackingContext, to_payload
 from kade.utils.time import utc_now_iso
 from kade.review import TradeReviewAnalyzer, TradeReviewContext, ReviewMetricsAggregator, review_to_payload, metrics_to_payload
 from kade.visuals import VisualExplainabilityRequest, VisualExplainabilityService
+from kade.strategy import StrategyIntelligenceService
 
 CONFIG_DIR = Path(__file__).parent / "config"
 LOGGER = get_logger(__name__)
@@ -75,6 +76,7 @@ def bootstrap_config() -> dict[str, dict]:
         "market_intelligence.yaml",
         "gameplan.yaml",
         "visuals.yaml",
+        "strategy.yaml",
     ]
     loaded_configs: dict[str, dict] = {}
     for name in config_names:
@@ -340,9 +342,11 @@ def main() -> None:
     market_intelligence_cfg = dict(configs["market_intelligence.yaml"].get("market_intelligence", {}))
     gameplan_cfg = dict(configs["gameplan.yaml"].get("gameplan", {}))
     visuals_cfg = dict(configs["visuals.yaml"].get("visuals", {}))
+    strategy_cfg = dict(configs["strategy.yaml"].get("strategy", {}))
     market_intelligence_service = MarketIntelligenceService(market_intelligence_cfg)
     gameplan_service = PremarketGameplanService(gameplan_cfg)
     visual_service = VisualExplainabilityService(visuals_cfg)
+    strategy_service = StrategyIntelligenceService(strategy_cfg)
     market_intelligence_snapshot = market_intelligence_service.build_snapshot(
         ticker_states=states,
         latest_breadth=market_loop.latest_breadth,
@@ -370,6 +374,8 @@ def main() -> None:
     review_metrics = ReviewMetricsAggregator(review_cfg)
     trade_review_history: list[dict[str, object]] = list(session_state.get("trade_review_history", []))
     visual_history: list[dict[str, object]] = list(session_state.get("visual_explanation_history", []))
+    strategy_runtime = persistence.load_strategy_runtime()
+    strategy_history: list[dict[str, object]] = list(strategy_runtime.get("strategy_history", []))
 
 
     def build_trade_idea_opinion(payload: dict[str, object]) -> dict[str, object]:
@@ -623,6 +629,39 @@ def main() -> None:
         plan = plan_tracker.update_status(plan_id, new_status, reason=reason)
         return plan_tracker._serialize(plan)
 
+
+    def build_strategy_analysis(payload: dict[str, object]) -> dict[str, object]:
+        lookback_raw = payload.get("lookback", strategy_cfg.get("lookback_limits", {}).get("default", 50))
+        try:
+            lookback = int(lookback_raw)
+        except (TypeError, ValueError):
+            lookback = int(strategy_cfg.get("lookback_limits", {}).get("default", 50))
+        min_lb = int(strategy_cfg.get("lookback_limits", {}).get("min", 10))
+        max_lb = int(strategy_cfg.get("lookback_limits", {}).get("max", 250))
+        lookback = max(min_lb, min(max_lb, lookback))
+
+        all_plans = list(plan_tracker.snapshot().get("all", []))
+        completed = [p for p in all_plans if str(p.get("status")) in {"exited", "cancelled"}]
+        snapshot = strategy_service.build_strategy_snapshot(
+            completed_plans=completed,
+            tracking_snapshots=trade_plan_tracking_history,
+            review_results=trade_review_history,
+            lookback=lookback,
+        ).to_payload()
+
+        strategy_history.append(snapshot)
+        retention = int(strategy_cfg.get("history_retention", 40))
+        del strategy_history[:-retention]
+
+        persistence.persist_strategy_runtime(
+            {"latest_strategy_snapshot": snapshot, "strategy_history": strategy_history},
+            retention=retention,
+        )
+        session_state["latest_strategy_snapshot"] = snapshot
+        session_state["strategy_history"] = list(strategy_history)
+        persistence.persist_session(session_state)
+        return snapshot
+
     def build_visual_explanation(payload: dict[str, object]) -> dict[str, object]:
         symbol = str(payload.get("symbol", "")).upper()
         view_type = str(payload.get("view_type", "opinion")).lower()
@@ -713,6 +752,7 @@ def main() -> None:
             explicit_symbols=list(payload.get("symbols") or []),
         ),
         visual_explanation_handler=build_visual_explanation,
+        strategy_analysis_handler=build_strategy_analysis,
     )
 
     if session_state.get("latest_target_move_board"):
@@ -746,6 +786,7 @@ def main() -> None:
             "tts": voice_orchestrator.tts_provider.health_snapshot(active=interaction_state.tts_enabled),
         }
     )
+    interaction_state.latest_strategy_analysis = dict(strategy_runtime.get("latest_strategy_snapshot", {}))
     interaction.set_provider_diagnostics(provider_diagnostics)
 
     radar_signals = [
@@ -913,6 +954,8 @@ def main() -> None:
     session_state["latest_premarket_gameplan"] = interaction_state.latest_premarket_gameplan or gameplan_payload
     session_state["latest_visual_explanation"] = interaction_state.latest_visual_explanation
     session_state["visual_explanation_history"] = interaction_state.visual_explanation_history
+    session_state["latest_strategy_snapshot"] = interaction_state.latest_strategy_analysis
+    session_state["strategy_history"] = list(strategy_history)
     session_state["latest_market_regime"] = regime_label
     persistence.retain_recent_voice_events(session_state)
     persistence.retain_recent_commands(session_state)
@@ -945,6 +988,7 @@ def main() -> None:
         history_payload=history_payload,
         market_intelligence_payload=market_intelligence_payload,
         premarket_gameplan_payload=session_state.get("latest_premarket_gameplan", {}),
+        strategy_intelligence_payload=session_state.get("latest_strategy_snapshot", {}),
     )
     print_runtime_summary(dashboard_state, session_state, history_payload)
 
