@@ -8,7 +8,7 @@ from typing import Callable
 
 from kade.brain import ConversationMemory, SessionPlanTracker
 from kade.logging_utils import LogCategory, log_event
-from kade.storage import BacktestStore, ExecutionStore, MemoryStore, PlanStore, RadarStore, SessionStore, rollover_session
+from kade.storage import BacktestStore, ExecutionStore, HistoryStore, MemoryStore, PlanStore, RadarStore, SessionStore, rollover_session
 
 
 @dataclass
@@ -22,6 +22,7 @@ class RuntimePersistence:
     execution_store: ExecutionStore
     session_store: SessionStore
     backtest_store: BacktestStore
+    history_store: HistoryStore
     history_cfg: dict[str, object]
     session_cfg: dict[str, object]
 
@@ -38,6 +39,7 @@ class RuntimePersistence:
             execution_store=ExecutionStore(storage_root),
             session_store=SessionStore(storage_root),
             backtest_store=BacktestStore(storage_root),
+            history_store=HistoryStore(storage_root),
             history_cfg=history_cfg,
             session_cfg=session_cfg,
         )
@@ -142,6 +144,17 @@ class RuntimePersistence:
         self.safe_save("backtesting", lambda: self.backtest_store.save_summaries(bounded))
         return bounded
 
+
+    def load_history_runtime(self) -> dict[str, object]:
+        return self.safe_load("history_runtime", self.history_store.load_runtime, {"last_download": {}, "cache_status": {}, "recent_downloads": []})
+
+    def persist_history_runtime(self, payload: dict[str, object]) -> dict[str, object]:
+        history_limit = int(self.history_cfg.get("history_metadata_limit", 30))
+        recents = list(payload.get("recent_downloads", []))
+        payload["recent_downloads"] = recents[-history_limit:] if history_limit > 0 else []
+        self.safe_save("history_runtime", lambda: self.history_store.save_runtime(payload))
+        return payload
+
     def metadata_snapshot(self) -> dict[str, object]:
         return {
             "memory": self.memory_store.metadata_snapshot(),
@@ -150,4 +163,5 @@ class RuntimePersistence:
             "execution": self.execution_store.metadata_snapshot(),
             "session": self.session_store.metadata_snapshot(),
             "backtesting": self.backtest_store.metadata_snapshot(),
+            "history_runtime": self.history_store.metadata_snapshot(),
         }

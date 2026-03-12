@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 from abc import ABC, abstractmethod
+from datetime import datetime
 
 from kade.integrations.health import ProviderHealth
 from kade.market.structure import Bar, Quote, Trade
@@ -21,6 +22,10 @@ class MarketDataProvider(ABC):
 
     @abstractmethod
     def get_bars(self, symbol: str, timeframe: str, limit: int = 200) -> list[Bar]:
+        ...
+
+    @abstractmethod
+    def get_historical_bars(self, symbol: str, timeframe: str, start: datetime, end: datetime) -> list[Bar]:
         ...
 
     @abstractmethod

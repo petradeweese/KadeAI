@@ -45,6 +45,7 @@ class InteractionRuntimeState:
     latest_trade_idea_opinion: dict[str, object] = field(default_factory=dict)
     latest_backtest_run_summary: dict[str, object] = field(default_factory=dict)
     recent_backtest_evaluations: dict[str, list[dict[str, object]]] = field(default_factory=dict)
+    latest_historical_data: dict[str, object] = field(default_factory=dict)
 
     def retain_history(self) -> None:
         self.recent_commands = self.recent_commands[-self.command_history_limit :]
@@ -279,10 +280,15 @@ class InteractionOrchestrator:
                     "latest_run_summary": self.state.latest_backtest_run_summary,
                     "recent_evaluations": self.state.recent_backtest_evaluations,
                 },
+                "historical_data": self.state.latest_historical_data,
             }
         )
         return payload
 
+
+    def ingest_historical_data(self, payload: dict[str, object]) -> None:
+        self.state.latest_historical_data = payload
+        self.timeline.add_event("historical_data_updated", utc_now_iso(), {"keys": sorted(payload.keys())})
 
     def ingest_backtest_summary(self, summary: dict[str, object]) -> None:
         self.state.latest_backtest_run_summary = summary
