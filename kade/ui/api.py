@@ -8,6 +8,7 @@ import yaml
 from kade.chat.service import ChatService
 from kade.dashboard.app import create_app_status
 from kade.integrations.providers import build_llm_provider, build_market_data_provider, build_stt_provider, build_tts_provider, build_wakeword_provider
+from kade.runtime.configuration import apply_runtime_env_overrides
 from kade.visuals.levels import parse_first_level
 from kade.runtime.interaction import InteractionOrchestrator, InteractionRuntimeState
 from kade.ui.workspace import build_workspace_layout, intent_to_workspace_mode, parse_symbol_from_command
@@ -35,11 +36,29 @@ class OperatorBackend:
         }
         runtime_cfg = self._load_provider_runtime_config()
         self._historical_provider = build_market_data_provider(runtime_cfg, route_key="historical_data_provider")
-        llm_provider = build_llm_provider({"provider": "mock", "providers": {"mock": {"enabled": llm_enabled}}})
-        self._chat = ChatService(self._runtime, llm_provider=llm_provider, llm_enabled=llm_enabled)
+        llm_cfg = self._load_llm_config()
+        if not llm_enabled:
+            llm_cfg = {"provider": "mock", "providers": {"mock": {"enabled": False}}}
+        llm_provider = build_llm_provider(llm_cfg)
+        fallback_provider = build_llm_provider({"provider": "mock", "providers": {"mock": {"enabled": True}}})
+        self._chat = ChatService(self._runtime, llm_provider=llm_provider, llm_fallback_provider=fallback_provider, llm_enabled=llm_enabled)
 
     def dashboard(self) -> dict[str, object]:
         voice_payload = self._runtime.dashboard_payload()
+        provider_selection = dict(voice_payload.get("provider_selection", {}))
+        provider_selection["llm"] = getattr(self._chat.llm_provider, "provider_name", "mock")
+        voice_payload["provider_selection"] = provider_selection
+        provider_diagnostics = dict(voice_payload.get("provider_diagnostics", {}))
+        providers = dict(provider_diagnostics.get("providers", {}))
+        providers["llm"] = {
+            "provider_name": getattr(self._chat.llm_provider, "provider_name", "mock"),
+            "state": "ready" if getattr(self._chat.llm_provider, "provider_name", "mock") != "mock" else "mock",
+            "active": bool(self._chat.llm_enabled),
+            "metadata": {"model": getattr(self._chat.llm_provider, "model", "unknown")},
+        }
+        provider_diagnostics["providers"] = providers
+        voice_payload["provider_diagnostics"] = provider_diagnostics
+
         payload = create_app_status(
             voice_payload=voice_payload,
             market_intelligence_payload=self._market_intelligence(),
@@ -237,6 +256,16 @@ class OperatorBackend:
         }
 
     @staticmethod
+    def _load_llm_config() -> dict[str, object]:
+        path = Path(__file__).resolve().parents[1] / "config" / "llm.yaml"
+        if not path.exists():
+            return {"provider": "mock", "providers": {"mock": {"enabled": True}}}
+        payload = yaml.safe_load(path.read_text(encoding="utf-8")) or {}
+        cfg = {"llm.yaml": dict(payload)}
+        merged = apply_runtime_env_overrides(cfg)
+        return dict(merged.get("llm.yaml", {}).get("llm", {}))
+
+    @staticmethod
     def _load_provider_runtime_config() -> dict[str, object]:
         path = Path(__file__).resolve().parents[1] / "config" / "execution.yaml"
         if not path.exists():
@@ -261,13 +290,15 @@ class OperatorBackend:
         def _trade_idea(payload: dict[str, object]) -> dict[str, object]:
             symbol = str(payload.get("symbol", "SPY")).upper()
             direction = str(payload.get("direction", "call")).lower()
+            target = payload.get("target")
+            target_text = f"{float(target):.2f}" if isinstance(target, (int, float)) else "next liquidity pocket"
             return {
                 "symbol": symbol,
                 "stance": "watch_for_trigger",
                 "direction": direction,
                 "entry": "breakout confirmation",
                 "invalidation": "lose prior structure",
-                "target": "next liquidity pocket",
+                "target": target_text,
                 "confidence": 0.66,
                 "risk_posture": "normal",
                 "summary": f"Deterministic setup for {symbol} ({direction}).",

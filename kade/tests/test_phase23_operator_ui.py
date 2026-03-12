@@ -203,3 +203,36 @@ def test_visual_explainability_panel_has_polished_sparse_fallback() -> None:
     assert "Chart data unavailable for" in js
     assert "entry, invalidation, target, and VWAP" in js
     assert "tf-btn" in js
+
+
+def test_parser_handles_trade_idea_exit_phrasing_and_stopwords() -> None:
+    parser = ChatIntentParser()
+    parsed = parser.parse("what do you think about a put on NVDA exit of 182.80")
+
+    assert parsed.intent == "trade_idea"
+    assert parsed.payload["symbol"] == "NVDA"
+    assert parsed.payload["direction"] == "put"
+    assert parsed.payload["target"] == 182.8
+
+
+def test_parser_ignores_greeting_and_filler_words_for_symbol_extraction() -> None:
+    parser = ChatIntentParser()
+    parsed = parser.parse("hello hi hey kade what do you think about a put on NVDA")
+
+    assert parsed.payload["symbol"] == "NVDA"
+
+
+def test_parser_keeps_explicit_command_mode_intact() -> None:
+    parser = ChatIntentParser()
+    parsed = parser.parse("trade_idea symbol=NVDA direction=put target=182.80")
+
+    assert parsed.intent == "explicit_command"
+
+
+def test_deterministic_trade_idea_reply_is_not_mock_placeholder() -> None:
+    backend = OperatorBackend(llm_enabled=False)
+    result = backend.chat("what do you think about a put on NVDA exit of 182.80")
+
+    assert "Mock narrative summary" not in result["reply"]
+    assert "NVDA" in result["reply"]
+    assert "182.80" in result["reply"]

@@ -49,7 +49,7 @@ class ChatIntentParser:
 
 def _trade_payload_from_context(context: dict[str, object]) -> dict[str, object]:
     payload: dict[str, object] = {}
-    for key in ("symbol", "direction", "horizon_minutes", "horizon_label"):
+    for key in ("symbol", "direction", "target", "horizon_minutes", "horizon_label"):
         value = context.get(key)
         if value is not None and value != "":
             payload[key] = value
@@ -57,19 +57,29 @@ def _trade_payload_from_context(context: dict[str, object]) -> dict[str, object]
 
 
 def _extract_trade_context(text: str) -> dict[str, object]:
-    tokens = text.split()
+    tokens = re.findall(r"[A-Za-z]+", text)
     symbol = _extract_symbol(tokens)
     direction = _extract_direction(text)
+    target = _extract_target(text)
     horizon = _extract_horizon(text)
-    return {"symbol": symbol, "direction": direction, **horizon}
+    return {"symbol": symbol, "direction": direction, "target": target, **horizon}
 
 
 def _extract_symbol(tokens: list[str]) -> str | None:
     stopwords = {
+        "DO",
+        "YOU",
+        "YOUR",
+        "HI",
+        "HEY",
+        "HELLO",
+        "KADE",
+        "THINK",
         "WHAT",
         "SHOW",
-        "TRADE",
         "ABOUT",
+        "TRADE",
+        "IDEA",
         "WITHIN",
         "HOUR",
         "HOURS",
@@ -85,6 +95,9 @@ def _extract_symbol(tokens: list[str]) -> str | None:
         "SHORT",
         "BULLISH",
         "BEARISH",
+        "EXIT",
+        "TARGET",
+        "OF",
         "TODAY",
         "CLOSE",
         "NEXT",
@@ -128,3 +141,11 @@ def _extract_horizon(text: str) -> dict[str, object]:
     if "today" in lowered:
         return {"horizon_label": "today"}
     return {}
+
+
+def _extract_target(text: str) -> float | None:
+    lowered = text.lower()
+    match = re.search(r"\b(?:exit|target)\s*(?:of\s*)?(\d{1,5}(?:\.\d{1,4})?)\b", lowered)
+    if not match:
+        return None
+    return float(match.group(1))

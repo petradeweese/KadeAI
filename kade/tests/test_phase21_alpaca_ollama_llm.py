@@ -182,3 +182,73 @@ def test_apply_runtime_env_overrides_handles_ollama_and_llm_provider() -> None:
     assert cfg["llm.yaml"]["llm"]["provider"] == "ollama"
     assert cfg["llm.yaml"]["llm"]["providers"]["ollama"]["enabled"] is True
     assert cfg["llm.yaml"]["llm"]["providers"]["ollama"]["model"] == "llama3.1"
+
+
+
+def test_ollama_provider_generate_calls_api_generate_endpoint(monkeypatch) -> None:
+    provider = OllamaLLMProvider({"enabled": True, "host": "http://localhost:11434", "model": "llama3.1"})
+
+    called: dict[str, object] = {}
+
+    def _fake_request(path: str, payload: dict[str, object] | None = None) -> dict[str, object]:
+        called["path"] = path
+        called["payload"] = payload or {}
+        return {"response": "formatted", "done_reason": "stop", "done": True}
+
+    monkeypatch.setattr(provider, "_request_json", _fake_request)
+    generation = provider.generate("prompt")
+
+    assert generation.success is True
+    assert called["path"] == "/api/generate"
+    assert dict(called["payload"]).get("model") == "llama3.1"
+    assert dict(called["payload"]).get("stream") is False
+
+
+def test_chat_service_passes_deterministic_result_to_llm_context() -> None:
+    from kade.chat.service import ChatService
+    from kade.integrations.llm.base import LLMGeneration
+    from kade.runtime.interaction import InteractionOrchestrator, InteractionRuntimeState
+    from kade.voice.formatter import SpokenResponseFormatter
+    from kade.voice.models import VoiceSessionState
+    from kade.voice.orchestrator import VoiceOrchestrator
+    from kade.voice.router import VoiceCommandRouter
+    from kade.integrations.stt.mock import MockSTTProvider
+    from kade.integrations.tts.kokoro import KokoroTTSProvider
+    from kade.integrations.wakeword.mock import MockWakeWordDetector
+
+    class _CaptureLLM:
+        provider_name = "ollama"
+        model = "llama3.1"
+
+        def __init__(self) -> None:
+            self.prompts: list[str] = []
+
+        def generate(self, prompt: str, *args, **kwargs):
+            self.prompts.append(prompt)
+            return LLMGeneration(provider_name="ollama", model="llama3.1", success=True, content="assistant reply", finish_reason="stop")
+
+    state = InteractionRuntimeState(runtime_mode="text_first", voice_runtime_enabled=False, text_command_input_enabled=True, wakeword_enabled=False, stt_enabled=False, tts_enabled=False)
+    voice = VoiceOrchestrator(
+        wakeword_detector=MockWakeWordDetector(),
+        router=VoiceCommandRouter(handlers={"fallback": lambda mode, transcript: {"summary": transcript}}),
+        formatter=SpokenResponseFormatter(),
+        tts_provider=KokoroTTSProvider({"mock_synthesis": True}),
+        state=VoiceSessionState(wake_word="Kade"),
+        enable_tts=False,
+    )
+    interaction = InteractionOrchestrator(
+        voice_orchestrator=voice,
+        stt_provider=MockSTTProvider(),
+        state=state,
+        trade_idea_handler=lambda payload: {"symbol": payload.get("symbol", "SPY"), "direction": payload.get("direction", "call"), "target": payload.get("target", "n/a"), "summary": "det"},
+    )
+    llm = _CaptureLLM()
+    chat = ChatService(interaction, llm_provider=llm, llm_enabled=True)
+
+    response = chat.handle_message("what do you think about a put on NVDA exit of 182.80")
+
+    assert response.reply == "assistant reply"
+    assert llm.prompts
+    prompt_blob = "\n".join(llm.prompts)
+    assert '"symbol": "NVDA"' in prompt_blob
+    assert '"target": 182.8' in prompt_blob
