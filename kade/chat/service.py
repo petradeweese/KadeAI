@@ -15,10 +15,12 @@ class ChatService:
         self,
         interaction: InteractionOrchestrator,
         llm_provider: LLMProvider | None = None,
+        llm_fallback_provider: LLMProvider | None = None,
         llm_enabled: bool = True,
     ) -> None:
         self.interaction = interaction
         self.llm_provider = llm_provider
+        self.llm_fallback_provider = llm_fallback_provider
         self.llm_enabled = llm_enabled
         self.parser = ChatIntentParser()
         self.router = ChatActionRouter()
@@ -34,22 +36,12 @@ class ChatService:
         used_llm_formatting = False
         fallback_used = False
 
-        if self.llm_enabled and self.llm_provider is not None:
-            generation = self.llm_provider.generate(
-                prompt=(
-                    "Summarize the deterministic Kade output in plain language without changing any decisions. "
-                    f"Intent: {interpreted.intent}\n"
-                    f"Deterministic response: {json.dumps(response.get('raw_result', {}), default=str)}"
-                ),
-                system_prompt="You are a formatting assistant. Never invent or override trading decisions.",
-                temperature=0.0,
-                max_tokens=220,
-            )
-            if generation.success and generation.content.strip():
-                final_reply = generation.content.strip()
-                used_llm_formatting = True
-            else:
-                fallback_used = True
+        generation = self._narrate_with_provider(interpreted.intent, response)
+        if generation and generation.success and generation.content.strip() and not generation.content.startswith("Mock narrative summary"):
+            final_reply = generation.content.strip()
+            used_llm_formatting = True
+        elif generation and not generation.success:
+            fallback_used = True
 
         return ChatResponse(
             reply=final_reply,
@@ -59,6 +51,26 @@ class ChatService:
             used_llm_for_formatting=used_llm_formatting,
             fallback_used=fallback_used,
         )
+
+    def _narrate_with_provider(self, intent: str, response: dict[str, object]):
+        if not self.llm_enabled or self.llm_provider is None:
+            return None
+
+        prompt = (
+            "Rewrite the deterministic Kade output as a concise assistant reply. "
+            "Keep all decisions, prices, and risk framing unchanged. "
+            f"Intent: {intent}\n"
+            f"Deterministic response: {json.dumps(response.get('raw_result', {}), default=str)}"
+        )
+        system = "You are Kade's response formatter. Never invent or override trading decisions."
+        generation = self.llm_provider.generate(prompt=prompt, system_prompt=system, temperature=0.0, max_tokens=220)
+        if generation.success:
+            return generation
+
+        if self.llm_fallback_provider is None:
+            return generation
+
+        return self.llm_fallback_provider.generate(prompt=prompt, system_prompt=system, temperature=0.0, max_tokens=220)
 
     def _interpret(self, text: str) -> InterpretedAction:
         parsed = self.parser.parse(text)

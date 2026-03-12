@@ -6,9 +6,14 @@ class ChatFormatter:
         raw = dict(command_response.get("raw_result", {}))
         if intent == "trade_idea":
             opinion = dict(raw.get("trade_idea_opinion", {}))
+            symbol = opinion.get("symbol", "N/A")
+            direction = opinion.get("direction", "idea")
+            stance = opinion.get("stance", "watch")
+            target = opinion.get("target", "n/a")
             return (
-                f"Trade idea for {opinion.get('symbol', 'N/A')}: stance={opinion.get('stance', 'unknown')}, "
-                f"entry={opinion.get('entry', 'n/a')}, invalidation={opinion.get('invalidation', 'n/a')}, target={opinion.get('target', 'n/a')}."
+                f"{symbol} {direction} idea: this is a {stance} setup, not an automatic entry. "
+                f"Entry trigger is {opinion.get('entry', 'n/a')}, invalidation is {opinion.get('invalidation', 'n/a')}, "
+                f"and the target/exit area is {target}."
             )
         if intent == "trade_plan":
             plan = dict(raw.get("trade_plan", {}))

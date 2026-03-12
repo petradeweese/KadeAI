@@ -7,7 +7,7 @@ llm:
     ollama:
       enabled: true
       host: http://localhost:11434
-      model: llama3.1:latest
+      model: llama3.1
       timeout_seconds: 30
       api_key: ""
   usage:
