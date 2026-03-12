@@ -1,13 +1,14 @@
 from kade.main import bootstrap_config
 
 
-def test_bootstrap_loads_planning_tracking_review_and_market_intelligence_configs() -> None:
+def test_bootstrap_loads_planning_tracking_review_market_intelligence_and_gameplan_configs() -> None:
     cfg = bootstrap_config()
 
     assert "planning.yaml" in cfg
     assert "tracking.yaml" in cfg
     assert "review.yaml" in cfg
     assert "market_intelligence.yaml" in cfg
+    assert "gameplan.yaml" in cfg
 
 
 def test_tracking_transition_defaults_are_wired() -> None:
