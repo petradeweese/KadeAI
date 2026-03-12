@@ -5,6 +5,7 @@ from __future__ import annotations
 from dataclasses import dataclass, field
 from datetime import datetime
 from logging import Logger
+from typing import Callable
 
 from kade.integrations.stt.base import STTProvider
 from kade.logging_utils import LogCategory, get_logger, log_event
@@ -40,6 +41,7 @@ class InteractionRuntimeState:
     latest_staged_orders: list[dict[str, object]] = field(default_factory=list)
     last_execution_results: list[dict[str, object]] = field(default_factory=list)
     provider_diagnostics: dict[str, object] = field(default_factory=dict)
+    latest_target_move_board: dict[str, object] = field(default_factory=dict)
 
     def retain_history(self) -> None:
         self.recent_commands = self.recent_commands[-self.command_history_limit :]
@@ -59,6 +61,7 @@ class InteractionOrchestrator:
         logger: Logger | None = None,
         replay_runtime: ReplayRuntime | None = None,
         timeline: RuntimeTimeline | None = None,
+        target_move_handler: Callable[[dict[str, object]], dict[str, object]] | None = None,
     ) -> None:
         self.voice_orchestrator = voice_orchestrator
         self.stt_provider = stt_provider
@@ -66,6 +69,7 @@ class InteractionOrchestrator:
         self.logger = logger or get_logger(__name__)
         self.replay_runtime = replay_runtime or ReplayRuntime()
         self.timeline = timeline or RuntimeTimeline()
+        self.target_move_handler = target_move_handler
 
     def submit_text_command(self, command: str, now: datetime | None = None, include_debug: bool = True) -> dict[str, object]:
         now = now or utc_now()
@@ -98,6 +102,9 @@ class InteractionOrchestrator:
         return response
 
     def submit_text_panel_command(self, payload: dict[str, object], now: datetime | None = None) -> dict[str, object]:
+        if payload.get("target_move_request"):
+            return self.submit_target_move_request(dict(payload["target_move_request"]), now=now)
+
         command = str(payload.get("command", "")).strip()
         include_debug = bool(payload.get("include_debug", True))
         if not command:
@@ -108,7 +115,40 @@ class InteractionOrchestrator:
                 "provider_mode": {},
                 "timestamp": utc_now_iso(),
             }
+        if command.lower().startswith("target_move"):
+            parsed = self._parse_target_move_command(command)
+            return self.submit_target_move_request(parsed, now=now)
         return self.submit_text_command(command=command, now=now, include_debug=include_debug)
+
+    def submit_target_move_request(self, request_payload: dict[str, object], now: datetime | None = None) -> dict[str, object]:
+        now = now or utc_now()
+        if not self.target_move_handler:
+            return {
+                "intent": "target_move_scenario_unavailable",
+                "formatted_response": "Target-move scenario handler is not configured.",
+                "advisor_radar_status_summary": {"runtime_mode": self.state.runtime_mode},
+                "provider_mode": {},
+                "timestamp": now.isoformat(),
+            }
+
+        board = self.target_move_handler(request_payload)
+        self.state.latest_target_move_board = board
+        self.timeline.add_event("target_move_scenario_generated", now.isoformat(), {"request": board.get("request", {}), "buckets": board.get("buckets", {})})
+        response = {
+            "intent": "target_move_scenario",
+            "formatted_response": f"Generated {len(board.get('candidates', []))} target-move scenario candidates.",
+            "advisor_radar_status_summary": self.state.latest_advisor_or_status,
+            "provider_mode": {
+                "stt": self.stt_provider.provider_name,
+                "tts": "disabled",
+                "wakeword": self.voice_orchestrator.wakeword_detector.provider_name,
+            },
+            "timestamp": now.isoformat(),
+            "raw_result": {"intent": "target_move_scenario", "target_move_board": board},
+        }
+        self._record(command=f"target_move {request_payload}", result={"intent": "target_move_scenario", "spoken_text": response["formatted_response"], "target_move_board": board}, source="text_panel", now=now)
+        self._refresh_provider_health()
+        return response
 
     def command_history_viewer(self) -> dict[str, object]:
         return {"count": len(self.state.recent_commands), "history": list(self.state.recent_commands)}
@@ -171,9 +211,21 @@ class InteractionOrchestrator:
                     "last_execution_results": self.state.last_execution_results,
                     "lifecycle_history": self.state.execution_lifecycle_history,
                 },
+                "target_move_board": self.state.latest_target_move_board,
             }
         )
         return payload
+
+    def _parse_target_move_command(self, command: str) -> dict[str, object]:
+        parsed: dict[str, object] = {}
+        for part in command.split():
+            if "=" not in part:
+                continue
+            key, value = part.split("=", 1)
+            parsed[key.strip().lower()] = value.strip()
+        if "dtes" in parsed:
+            parsed["allowed_dtes"] = [int(token.strip()) for token in str(parsed.pop("dtes")).split(",") if token.strip()]
+        return parsed
 
     def set_provider_diagnostics(self, diagnostics: dict[str, object]) -> None:
         self.state.provider_diagnostics = diagnostics

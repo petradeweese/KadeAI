@@ -20,7 +20,7 @@ from kade.integrations.providers import (
 )
 from kade.logging_utils import LogCategory, get_logger, log_event, setup_logging
 from kade.market.market_loop import MarketStateLoop
-from kade.options import OptionsSelectionPipeline, TradeIntent
+from kade.options import OptionsSelectionPipeline, TargetMoveScenarioBoard, TargetMoveScenarioRequest, TradeIntent
 from kade.runtime import (
     InteractionOrchestrator,
     InteractionRuntimeState,
@@ -292,6 +292,26 @@ def main() -> None:
         command_window_ms=int(voice_config.get("command_window_ms", 8000)),
         self_trigger_prevention=bool(voice_config.get("self_trigger_prevention", True)),
     )
+    scenario_engine = TargetMoveScenarioBoard(configs["execution.yaml"]["execution"]["option_scenarios"])
+
+    def build_target_move_board(payload: dict[str, object]) -> dict[str, object]:
+        symbol = str(payload.get("symbol", "")).upper()
+        state = states.get(symbol)
+        current_price = float(payload.get("current_price") or payload.get("current") or (state.last_price if state else 0.0))
+        allowed_dtes = payload.get("allowed_dtes") or configs["execution.yaml"]["execution"]["option_scenarios"].get("default_allowed_dtes", [0, 1, 2])
+        request = TargetMoveScenarioRequest(
+            symbol=symbol,
+            direction=str(payload.get("direction", "call")),
+            current_price=current_price,
+            target_price=float(payload.get("target_price") or payload.get("target") or current_price),
+            time_horizon_minutes=int(payload.get("time_horizon_minutes") or payload.get("minutes") or 30),
+            budget=float(payload.get("budget") or 0.0),
+            allowed_dtes=tuple(int(d) for d in allowed_dtes),
+            profile=str(payload.get("profile")) if payload.get("profile") else None,
+        )
+        chain = options_data_provider.get_option_chain(symbol, current_price)
+        return scenario_engine.generate(request, chain)
+
     runtime_mode = str(voice_config.get("runtime_mode", "text_first"))
     interaction_state = InteractionRuntimeState(
         runtime_mode=runtime_mode,
@@ -332,6 +352,7 @@ def main() -> None:
         logger=LOGGER,
         replay_runtime=ReplayRuntime(retention_limit=int(dict(voice_config.get("replay_debug", {})).get("retention_limit", 40))),
         timeline=RuntimeTimeline(retention=int(dict(dashboard_cfg.get("timeline", {})).get("retention", 200))),
+        target_move_handler=build_target_move_board,
     )
 
     diagnostics = ProviderDiagnostics(policy=str(provider_runtime.get("diagnostics_policy", "warn_on_degraded")), logger=LOGGER)
