@@ -1,0 +1,8 @@
+review:
+  history_limit: 120
+  lesson_limit: 4
+  discipline:
+    conservative_postures:
+      - watch_only
+      - capital_preservation
+    min_checklist_adherence_for_followed: 0.6

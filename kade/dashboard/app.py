@@ -133,6 +133,7 @@ def create_app_status(
             "trade_idea_opinion": voice_payload.get("trade_idea_opinion", {}),
             "trade_plan": voice_payload.get("trade_plan", {}),
             "trade_plan_tracking": voice_payload.get("trade_plan_tracking", {}),
+            "trade_review": voice_payload.get("trade_review", {"latest_review": {}, "metrics_summary": {}}),
             "backtesting": voice_payload.get("backtesting", {}),
             "historical_data": voice_payload.get("historical_data", {}),
         },
