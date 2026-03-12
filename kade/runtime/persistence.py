@@ -8,7 +8,7 @@ from typing import Callable
 
 from kade.brain import ConversationMemory, SessionPlanTracker
 from kade.logging_utils import LogCategory, log_event
-from kade.storage import BacktestStore, ExecutionStore, HistoryStore, MemoryStore, PlanStore, RadarStore, SessionStore, rollover_session
+from kade.storage import BacktestStore, ExecutionStore, HistoryStore, MemoryStore, PlanStore, RadarStore, SessionStore, StrategyStore, rollover_session
 
 
 @dataclass
@@ -23,6 +23,7 @@ class RuntimePersistence:
     session_store: SessionStore
     backtest_store: BacktestStore
     history_store: HistoryStore
+    strategy_store: StrategyStore
     history_cfg: dict[str, object]
     session_cfg: dict[str, object]
 
@@ -40,6 +41,7 @@ class RuntimePersistence:
             session_store=SessionStore(storage_root),
             backtest_store=BacktestStore(storage_root),
             history_store=HistoryStore(storage_root),
+            strategy_store=StrategyStore(storage_root),
             history_cfg=history_cfg,
             session_cfg=session_cfg,
         )
@@ -155,6 +157,16 @@ class RuntimePersistence:
         self.safe_save("history_runtime", lambda: self.history_store.save_runtime(payload))
         return payload
 
+
+    def load_strategy_runtime(self) -> dict[str, object]:
+        return self.safe_load("strategy_runtime", self.strategy_store.load_runtime, {"latest_strategy_snapshot": {}, "strategy_history": []})
+
+    def persist_strategy_runtime(self, payload: dict[str, object], retention: int) -> dict[str, object]:
+        history = list(payload.get("strategy_history", []))
+        payload["strategy_history"] = history[-retention:] if retention > 0 else []
+        self.safe_save("strategy_runtime", lambda: self.strategy_store.save_runtime(payload))
+        return payload
+
     def metadata_snapshot(self) -> dict[str, object]:
         return {
             "memory": self.memory_store.metadata_snapshot(),
@@ -164,4 +176,5 @@ class RuntimePersistence:
             "session": self.session_store.metadata_snapshot(),
             "backtesting": self.backtest_store.metadata_snapshot(),
             "history_runtime": self.history_store.metadata_snapshot(),
+            "strategy_runtime": self.strategy_store.metadata_snapshot(),
         }

@@ -22,6 +22,7 @@ def create_app_status(
     history_payload: dict[str, object] | None = None,
     market_intelligence_payload: dict[str, object] | None = None,
     premarket_gameplan_payload: dict[str, object] | None = None,
+    strategy_intelligence_payload: dict[str, object] | None = None,
 ) -> dict:
     ticker_states = ticker_states or {}
     debug_values = debug_values or {}
@@ -39,6 +40,7 @@ def create_app_status(
     history_payload = history_payload or {"radar": [], "advisor": [], "execution": []}
     market_intelligence_payload = market_intelligence_payload or {}
     premarket_gameplan_payload = premarket_gameplan_payload or {}
+    strategy_intelligence_payload = strategy_intelligence_payload or {}
 
     cards: list[dict] = []
     by_symbol = radar_payload.get("by_symbol", {})
@@ -174,6 +176,14 @@ def create_app_status(
                 "most_active": list(market_intelligence_payload.get("most_active", []))[:5],
                 "cross_symbol_context": dict(market_intelligence_payload.get("cross_symbol_context", {})),
                 "generated_at": market_intelligence_payload.get("generated_at"),
+            },
+            "strategy_intelligence": {
+                "regime_performance": list(strategy_intelligence_payload.get("regime_performance", [])),
+                "setup_archetypes": list(strategy_intelligence_payload.get("setup_archetype_stats", [])),
+                "symbol_performance": list(strategy_intelligence_payload.get("symbol_performance", [])),
+                "discipline_impact": dict(strategy_intelligence_payload.get("discipline_impact", {})),
+                "calibration": dict(strategy_intelligence_payload.get("plan_calibration_summary", {})),
+                "generated_at": strategy_intelligence_payload.get("generated_at"),
             },
         },
         "session": session_payload,
