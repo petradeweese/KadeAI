@@ -27,7 +27,7 @@ class ProviderDiagnostics:
                 unavailable.append(key)
             log_event(
                 self.logger,
-                LogCategory.APP_START,
+                LogCategory.PROVIDER_EVENT,
                 "Provider diagnostic",
                 provider_type=key,
                 provider_name=payload.get("provider_name"),

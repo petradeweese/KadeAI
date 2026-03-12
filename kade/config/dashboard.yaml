@@ -1,0 +1,9 @@
+dashboard:
+  timeline:
+    retention: 200
+  command_panel:
+    history_limit: 50
+  execution_monitor:
+    retention: 50
+  radar_panel:
+    top_signals: 5

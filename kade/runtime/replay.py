@@ -4,6 +4,9 @@ from __future__ import annotations
 
 from dataclasses import dataclass, field
 from datetime import datetime
+import json
+from pathlib import Path
+
 from kade.utils.time import utc_now_iso
 
 
@@ -46,6 +49,32 @@ class ReplayRuntime:
             "generated_at": utc_now_iso(),
         }
         return replay_items
+
+    def replay_command(self, index: int) -> dict[str, object] | None:
+        if index < 0 or index >= len(self.records):
+            return None
+        record = self.records[index].__dict__
+        self.last_replay = {
+            "requested_index": index,
+            "returned": 1,
+            "item": record,
+            "generated_at": utc_now_iso(),
+        }
+        return record
+
+    def replay_session(self) -> list[dict[str, object]]:
+        return self.replay_recent(len(self.records))
+
+    def export_replay_log(self, path: str = ".kade_storage/replay_log.json") -> str:
+        payload = {
+            "generated_at": utc_now_iso(),
+            "retention_limit": self.retention_limit,
+            "records": [r.__dict__ for r in self.records],
+        }
+        output = Path(path)
+        output.parent.mkdir(parents=True, exist_ok=True)
+        output.write_text(json.dumps(payload, indent=2), encoding="utf-8")
+        return str(output)
 
     def snapshot(self) -> dict[str, object]:
         return {
