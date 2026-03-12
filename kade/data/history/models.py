@@ -47,6 +47,11 @@ class DownloadSummary:
     cached_files_written: int
     skipped_cached_dates: int
     missing_dates_requested: int
+    sessions_checked: int = 0
+    sessions_complete: int = 0
+    sessions_partial: int = 0
+    sessions_missing: int = 0
+    missing_windows_requested: int = 0
     request_windows: list[dict[str, str]] = field(default_factory=list)
 
 
@@ -54,6 +59,7 @@ class DownloadSummary:
 class HistoryCacheStatus:
     symbols: list[str]
     date_ranges: dict[str, list[dict[str, str]]]
+    session_status: dict[str, list[dict[str, object]]]
     missing_ranges: dict[str, list[dict[str, str]]]
 
 

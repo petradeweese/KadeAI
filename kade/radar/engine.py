@@ -172,52 +172,53 @@ class OpportunityRadar:
         reasons: list[str] = []
         contributions: dict[str, float] = {}
 
-        confidence_contrib = confidence_map.get(state.confidence_label or "unknown", 0.0) * weights["confidence"]
+        confidence_contrib = confidence_map.get(state.confidence_label or "unknown", 0.0) * weights.get("confidence", 0.0)
         score += confidence_contrib
         contributions["confidence"] = confidence_contrib
 
         trend_alignment = self._trend_alignment(state)
-        trend_contrib = trend_alignment * weights["trend_alignment"]
+        trend_contrib = trend_alignment * weights.get("trend_alignment", 0.0)
         score += trend_contrib
         contributions["trend_alignment"] = trend_contrib
 
-        volume_contrib = (1.0 if state.volume_state == "expanding" else 0.0) * weights["volume_expansion"]
+        volume_contrib = (1.0 if state.volume_state == "expanding" else 0.0) * weights.get("volume_expansion", 0.0)
         score += volume_contrib
         contributions["volume_expansion"] = volume_contrib
 
-        qqq_contrib = self.config["qqq_confirmation_scores"].get(state.qqq_confirmation or "unknown", 0.0) * weights["qqq_confirmation"]
+        qqq_contrib = self.config["qqq_confirmation_scores"].get(state.qqq_confirmation or "unknown", 0.0) * weights.get("qqq_confirmation", 0.0)
         score += qqq_contrib
         contributions["qqq_confirmation"] = qqq_contrib
 
-        breadth_contrib = self._breadth_alignment(state, breadth_context.get("bias")) * weights["breadth_alignment"]
+        breadth_contrib = self._breadth_alignment(state, breadth_context.get("bias")) * weights.get("breadth_alignment", 0.0)
         score += breadth_contrib
         contributions["breadth_alignment"] = breadth_contrib
 
-        trap_contrib = trap_penalty.get(state.trap_risk or "unknown", 0.0) * weights["trap_risk"]
+        trap_contrib = trap_penalty.get(state.trap_risk or "unknown", 0.0) * weights.get("trap_risk", 0.0)
         score += trap_contrib
         contributions["trap_risk"] = trap_contrib
 
-        alignment_contrib = self.config.get("alignment", {}).get("scores", {}).get(alignment_label, 0.0) * weights["timeframe_alignment"]
+        alignment_weight = weights.get("timeframe_alignment", 0.0)
+        alignment_contrib = self.config.get("alignment", {}).get("scores", {}).get(alignment_label, 0.0) * alignment_weight
         score += alignment_contrib
         contributions["timeframe_alignment"] = alignment_contrib
 
         tag_effects = self.config.get("setup_tag_effects", {})
-        tag_contrib = sum(float(tag_effects.get(tag, 0.0)) for tag in setup_tags) * weights["setup_tags"]
+        tag_contrib = sum(float(tag_effects.get(tag, 0.0)) for tag in setup_tags) * weights.get("setup_tags", 0.0)
         score += tag_contrib
         contributions["setup_tags"] = tag_contrib
 
         momentum_quality = self.config.get("momentum_quality_scores", {}).get(state.momentum or "unknown", 0.0)
-        momentum_contrib = momentum_quality * weights["momentum_quality"]
+        momentum_contrib = momentum_quality * weights.get("momentum_quality", 0.0)
         score += momentum_contrib
         contributions["momentum_quality"] = momentum_contrib
 
         structure_quality = self.config.get("structure_quality_scores", {}).get(state.structure or "unknown", 0.0)
-        structure_contrib = structure_quality * weights["structure_quality"]
+        structure_contrib = structure_quality * weights.get("structure_quality", 0.0)
         score += structure_contrib
         contributions["structure_quality"] = structure_contrib
 
         regime_fit, regime_fit_label = self._regime_fit_score(setup_tags=setup_tags, regime=state.regime or "unknown")
-        regime_contrib = regime_fit * weights["regime_suitability"]
+        regime_contrib = regime_fit * weights.get("regime_suitability", 0.0)
         score += regime_contrib
         contributions["regime_fit"] = regime_contrib
 

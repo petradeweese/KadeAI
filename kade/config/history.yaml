@@ -7,6 +7,13 @@ history:
     chunk_days: 5
     requests_per_minute: 180
     pacing_sleep_seconds: 0.35
+    request_window_minutes: 390
+    session_timezone: America/New_York
+    session_open: "09:30"
+    session_close: "16:00"
+    expected_bars_per_session: 390
+    partial_session_tolerance: 1
+    ignore_extended_hours: true
   replay:
     future_window: 12
     trigger_lookback_bars: 20

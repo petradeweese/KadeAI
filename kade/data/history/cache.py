@@ -6,6 +6,7 @@ import json
 from datetime import date, datetime, time, timedelta, timezone
 from pathlib import Path
 
+from kade.data.history.session import SessionCoverage, SessionPolicy, classify_session_coverage
 from kade.market.structure import Bar
 
 
@@ -39,11 +40,16 @@ class HistoryCache:
         for day, day_bars in by_day.items():
             path = self._day_path(symbol, day, timeframe)
             path.parent.mkdir(parents=True, exist_ok=True)
+            existing = self.load_day(symbol, day, timeframe=timeframe) if path.exists() else []
+            merged_by_ts = {self._utc(bar.timestamp): bar for bar in existing}
+            for bar in day_bars:
+                merged_by_ts[self._utc(bar.timestamp)] = bar
+            merged = [merged_by_ts[key] for key in sorted(merged_by_ts.keys())]
             payload = {
                 "symbol": symbol.upper(),
                 "timeframe": timeframe,
                 "date": day.isoformat(),
-                "bars": [self._bar_payload(bar) for bar in day_bars],
+                "bars": [self._bar_payload(bar) for bar in merged],
             }
             path.write_text(json.dumps(payload, indent=2, sort_keys=True) + "\n", encoding="utf-8")
             files_written += 1
@@ -75,6 +81,19 @@ class HistoryCache:
             except ValueError:
                 continue
         return dates
+
+    def load_day(self, symbol: str, day: date, timeframe: str = "1m") -> list[Bar]:
+        path = self._day_path(symbol, day, timeframe)
+        if not path.exists():
+            return []
+        payload = json.loads(path.read_text(encoding="utf-8"))
+        symbol_name = str(payload.get("symbol", symbol.upper()))
+        bars = [self._bar_from_payload(item, symbol=symbol_name) for item in payload.get("bars", [])]
+        return sorted(bars, key=lambda item: item.timestamp)
+
+    def session_coverage(self, symbol: str, day: date, policy: SessionPolicy, timeframe: str = "1m") -> SessionCoverage:
+        bars = self.load_day(symbol, day, timeframe)
+        return classify_session_coverage(day, [self._utc(bar.timestamp) for bar in bars], policy)
 
     def missing_dates(self, symbol: str, start: datetime, end: datetime, timeframe: str = "1m") -> list[date]:
         start_utc, end_utc = self._utc(start), self._utc(end)
@@ -124,6 +143,10 @@ class HistoryCache:
     @staticmethod
     def _utc(ts: datetime) -> datetime:
         return ts if ts.tzinfo else ts.replace(tzinfo=timezone.utc)
+
+    @staticmethod
+    def iter_dates(start_day: date, end_day: date) -> list[date]:
+        return HistoryCache._iter_dates(start_day, end_day)
 
     @staticmethod
     def _iter_dates(start_day: date, end_day: date) -> list[date]:

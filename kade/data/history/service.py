@@ -11,6 +11,7 @@ from kade.data.history.dataset_builder import ReplayDatasetBuilder
 from kade.data.history.downloader import HistoryDownloadConfig, HistoryDownloader
 from kade.data.history.loader import HistoricalDataLoader
 from kade.data.history.models import DownloadSummary, HistoryCacheStatus
+from kade.data.history.session import SessionPolicy
 from kade.integrations.marketdata.base import MarketDataProvider
 
 
@@ -42,6 +43,13 @@ class HistoryService:
                 chunk_days=int(download_cfg.get("chunk_days", 5)),
                 requests_per_minute=int(download_cfg.get("requests_per_minute", 180)),
                 pacing_sleep_seconds=float(download_cfg.get("pacing_sleep_seconds", 0.35)),
+                request_window_minutes=int(download_cfg.get("request_window_minutes", 390)),
+                session_timezone=str(download_cfg.get("session_timezone", "America/New_York")),
+                session_open=str(download_cfg.get("session_open", "09:30")),
+                session_close=str(download_cfg.get("session_close", "16:00")),
+                expected_bars_per_session=int(download_cfg.get("expected_bars_per_session", 390)),
+                partial_session_tolerance=int(download_cfg.get("partial_session_tolerance", 1)),
+                ignore_extended_hours=bool(download_cfg.get("ignore_extended_hours", True)),
             ),
         )
         loader = HistoricalDataLoader(cache)
@@ -54,7 +62,20 @@ class HistoryService:
     def cache_status(self, symbols: list[str], start: datetime, end: datetime) -> HistoryCacheStatus:
         ranges = {symbol: self.cache.cached_ranges(symbol, timeframe="1m") for symbol in symbols}
         missing = {}
+        policy = SessionPolicy(
+            timezone_name=self.downloader.config.session_timezone,
+            session_open=self.downloader.config.session_open,
+            session_close=self.downloader.config.session_close,
+            expected_bars_per_session=self.downloader.config.expected_bars_per_session,
+            partial_session_tolerance=self.downloader.config.partial_session_tolerance,
+            ignore_extended_hours=self.downloader.config.ignore_extended_hours,
+        )
+        session_status: dict[str, list[dict[str, object]]] = {}
         for symbol in symbols:
             missing_days = self.cache.missing_dates(symbol, start, end, timeframe="1m")
             missing[symbol] = [{"start": day.isoformat(), "end": day.isoformat()} for day in missing_days]
-        return HistoryCacheStatus(symbols=symbols, date_ranges=ranges, missing_ranges=missing)
+            statuses: list[dict[str, object]] = []
+            for day in self.cache.iter_dates(start.date(), end.date()):
+                statuses.append(self.cache.session_coverage(symbol, day, policy, timeframe="1m").to_payload())
+            session_status[symbol] = statuses
+        return HistoryCacheStatus(symbols=symbols, date_ranges=ranges, session_status=session_status, missing_ranges=missing)

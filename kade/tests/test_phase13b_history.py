@@ -105,7 +105,7 @@ def test_operator_console_historical_payload_shape() -> None:
     payload = create_app_status(
         voice_payload={
             "historical_data": {
-                "cache_status": {"symbols": ["NVDA"], "date_ranges": {"NVDA": []}, "missing_ranges": {"NVDA": []}},
+                "cache_status": {"symbols": ["NVDA"], "date_ranges": {"NVDA": []}, "session_status": {"NVDA": []}, "missing_ranges": {"NVDA": []}},
                 "last_download": {"symbols": ["NVDA"], "requests_made": 2},
             }
         }
