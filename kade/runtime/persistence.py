@@ -146,7 +146,7 @@ class RuntimePersistence:
 
 
     def load_history_runtime(self) -> dict[str, object]:
-        return self.safe_load("history_runtime", self.history_store.load_runtime, {"last_download": {}, "cache_status": {}, "recent_downloads": []})
+        return self.safe_load("history_runtime", self.history_store.load_runtime, {"last_download": {}, "cache_status": {}, "recent_downloads": [], "index_status": {}})
 
     def persist_history_runtime(self, payload: dict[str, object]) -> dict[str, object]:
         history_limit = int(self.history_cfg.get("history_metadata_limit", 30))

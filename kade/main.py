@@ -114,6 +114,7 @@ def main() -> None:
                 "last_download": download_summary.__dict__,
                 "cache_status": cache_status.__dict__,
                 "recent_downloads": list(history_runtime.get("recent_downloads", [])) + [download_summary.__dict__],
+                "index_status": dict(cache_status.index_status),
             }
         )
 

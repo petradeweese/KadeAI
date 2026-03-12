@@ -17,6 +17,7 @@ class HistoryStore(JsonFileStore):
             "last_download": dict(payload.get("last_download", {})),
             "cache_status": dict(payload.get("cache_status", {})),
             "recent_downloads": list(payload.get("recent_downloads", [])),
+            "index_status": dict(payload.get("index_status", {})),
         }
 
     def save_runtime(self, payload: dict[str, object]) -> None:

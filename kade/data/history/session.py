@@ -15,6 +15,21 @@ class SessionPolicy:
     expected_bars_per_session: int = 390
     partial_session_tolerance: int = 1
     ignore_extended_hours: bool = True
+    skip_weekends: bool = True
+    holidays: tuple[str, ...] = ()
+    early_close_dates: tuple[str, ...] = ()
+
+    def is_trading_day(self, day: date) -> bool:
+        if self.skip_weekends and day.weekday() >= 5:
+            return False
+        return day.isoformat() not in set(self.holidays)
+
+    def skip_reason(self, day: date) -> str | None:
+        if self.skip_weekends and day.weekday() >= 5:
+            return "weekend"
+        if day.isoformat() in set(self.holidays):
+            return "holiday"
+        return None
 
     def session_bounds_utc(self, day: date) -> tuple[datetime, datetime]:
         tz = ZoneInfo(self.timezone_name)
@@ -47,6 +62,7 @@ class SessionCoverage:
     actual_bars: int
     missing_bars: int
     missing_windows: list[tuple[datetime, datetime]]
+    skipped_reason: str | None = None
 
     def to_payload(self) -> dict[str, object]:
         return {
@@ -56,10 +72,21 @@ class SessionCoverage:
             "actual_bars": self.actual_bars,
             "missing_bars": self.missing_bars,
             "missing_windows": [{"start": s.isoformat(), "end": e.isoformat()} for s, e in self.missing_windows],
+            "skipped_reason": self.skipped_reason,
         }
 
 
 def classify_session_coverage(day: date, timestamps: list[datetime], policy: SessionPolicy) -> SessionCoverage:
+    if not policy.is_trading_day(day):
+        return SessionCoverage(
+            trading_date=day,
+            state="skipped_non_session",
+            expected_bars=0,
+            actual_bars=0,
+            missing_bars=0,
+            missing_windows=[],
+            skipped_reason=policy.skip_reason(day),
+        )
     expected = policy.expected_timestamps_utc(day)
     expected_set = set(expected)
     seen = {ts.replace(second=0, microsecond=0) for ts in timestamps if ts.replace(second=0, microsecond=0) in expected_set}
