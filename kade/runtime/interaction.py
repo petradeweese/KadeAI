@@ -44,6 +44,7 @@ class InteractionRuntimeState:
     latest_target_move_board: dict[str, object] = field(default_factory=dict)
     latest_trade_idea_opinion: dict[str, object] = field(default_factory=dict)
     latest_trade_plan: dict[str, object] = field(default_factory=dict)
+    latest_trade_plan_tracking: dict[str, object] = field(default_factory=dict)
     latest_backtest_run_summary: dict[str, object] = field(default_factory=dict)
     recent_backtest_evaluations: dict[str, list[dict[str, object]]] = field(default_factory=dict)
     latest_historical_data: dict[str, object] = field(default_factory=dict)
@@ -70,6 +71,7 @@ class InteractionOrchestrator:
         trade_idea_handler: Callable[[dict[str, object]], dict[str, object]] | None = None,
         trade_plan_handler: Callable[[dict[str, object]], dict[str, object]] | None = None,
         trade_plan_status_handler: Callable[[dict[str, object]], dict[str, object]] | None = None,
+        trade_plan_tracking_handler: Callable[[dict[str, object]], dict[str, object]] | None = None,
     ) -> None:
         self.voice_orchestrator = voice_orchestrator
         self.stt_provider = stt_provider
@@ -81,6 +83,7 @@ class InteractionOrchestrator:
         self.trade_idea_handler = trade_idea_handler
         self.trade_plan_handler = trade_plan_handler
         self.trade_plan_status_handler = trade_plan_status_handler
+        self.trade_plan_tracking_handler = trade_plan_tracking_handler
 
     def submit_text_command(self, command: str, now: datetime | None = None, include_debug: bool = True) -> dict[str, object]:
         now = now or utc_now()
@@ -121,6 +124,8 @@ class InteractionOrchestrator:
             return self.submit_trade_plan_request(dict(payload["trade_plan_request"]), now=now)
         if payload.get("trade_plan_status_request"):
             return self.submit_trade_plan_status_request(dict(payload["trade_plan_status_request"]), now=now)
+        if payload.get("trade_plan_tracking_request"):
+            return self.submit_trade_plan_tracking_request(dict(payload["trade_plan_tracking_request"]), now=now)
 
         command = str(payload.get("command", "")).strip()
         include_debug = bool(payload.get("include_debug", True))
@@ -141,6 +146,9 @@ class InteractionOrchestrator:
         if command.lower().startswith("trade_plan_status"):
             parsed = self._parse_trade_idea_command(command)
             return self.submit_trade_plan_status_request(parsed, now=now)
+        if command.lower().startswith("trade_plan_check"):
+            parsed = self._parse_trade_idea_command(command)
+            return self.submit_trade_plan_tracking_request(parsed, now=now)
         if command.lower().startswith("trade_plan"):
             parsed = self._parse_trade_idea_command(command)
             return self.submit_trade_plan_request(parsed, now=now)
@@ -312,6 +320,78 @@ class InteractionOrchestrator:
         self._refresh_provider_health()
         return response
 
+    def submit_trade_plan_tracking_request(self, request_payload: dict[str, object], now: datetime | None = None) -> dict[str, object]:
+        now = now or utc_now()
+        if self.trade_plan_tracking_handler is None:
+            return {
+                "intent": "trade_plan_tracking",
+                "formatted_response": "Trade-plan tracking handler is not configured.",
+                "advisor_radar_status_summary": self.state.latest_advisor_or_status,
+                "provider_mode": {},
+                "timestamp": now.isoformat(),
+                "raw_result": {"intent": "trade_plan_tracking", "trade_plan_tracking": {}},
+            }
+
+        snapshot = self.trade_plan_tracking_handler(request_payload)
+        self.state.latest_trade_plan_tracking = snapshot
+        self.timeline.add_event(
+            "trade_plan_evaluated",
+            now.isoformat(),
+            {
+                "plan_id": snapshot.get("plan_id"),
+                "symbol": snapshot.get("symbol"),
+                "status_before": snapshot.get("status_before"),
+                "status_after": snapshot.get("status_after"),
+                "trigger_state": snapshot.get("trigger_state"),
+                "invalidation_state": snapshot.get("invalidation_state"),
+                "staleness_state": snapshot.get("staleness_state"),
+                "summary": snapshot.get("summary"),
+            },
+        )
+        if snapshot.get("status_before") != snapshot.get("status_after"):
+            self.timeline.add_event(
+                "trade_plan_status_changed",
+                now.isoformat(),
+                {
+                    "plan_id": snapshot.get("plan_id"),
+                    "symbol": snapshot.get("symbol"),
+                    "old_status": snapshot.get("status_before"),
+                    "new_status": snapshot.get("status_after"),
+                    "summary": snapshot.get("summary"),
+                },
+            )
+        if snapshot.get("trigger_state") == "ready":
+            self.timeline.add_event("trade_plan_ready", now.isoformat(), {"plan_id": snapshot.get("plan_id"), "symbol": snapshot.get("symbol")})
+        if snapshot.get("trigger_state") == "triggered":
+            self.timeline.add_event("trade_plan_triggered", now.isoformat(), {"plan_id": snapshot.get("plan_id"), "symbol": snapshot.get("symbol")})
+        if snapshot.get("invalidation_state") == "hard_invalidated":
+            self.timeline.add_event("trade_plan_invalidated", now.isoformat(), {"plan_id": snapshot.get("plan_id"), "symbol": snapshot.get("symbol")})
+        if snapshot.get("staleness_state") == "stale":
+            self.timeline.add_event("trade_plan_stale", now.isoformat(), {"plan_id": snapshot.get("plan_id"), "symbol": snapshot.get("symbol")})
+
+        response = {
+            "intent": "trade_plan_tracking",
+            "formatted_response": str(snapshot.get("summary", "Trade plan evaluated.")),
+            "advisor_radar_status_summary": self.state.latest_advisor_or_status,
+            "provider_mode": {"stt": self.stt_provider.provider_name, "tts": "disabled", "wakeword": self.voice_orchestrator.wakeword_detector.provider_name},
+            "timestamp": now.isoformat(),
+            "raw_result": {"intent": "trade_plan_tracking", "trade_plan_tracking": snapshot},
+        }
+        self._record(
+            command=f"trade_plan_check {request_payload}",
+            result={"intent": "trade_plan_tracking", "spoken_text": response["formatted_response"], "trade_plan_tracking": snapshot},
+            source="text_panel",
+            now=now,
+        )
+        self._refresh_provider_health()
+        return response
+
+    def evaluate_current_trade_plan(self, request_payload: dict[str, object], now: datetime | None = None) -> dict[str, object]:
+        return self.submit_trade_plan_tracking_request(request_payload, now=now)
+
+    def update_trade_plan_status_from_context(self, request_payload: dict[str, object], now: datetime | None = None) -> dict[str, object]:
+        return self.submit_trade_plan_tracking_request(request_payload, now=now)
+
     def command_history_viewer(self) -> dict[str, object]:
         return {"count": len(self.state.recent_commands), "history": list(self.state.recent_commands)}
 
@@ -364,7 +444,7 @@ class InteractionOrchestrator:
                 "provider_health": self.state.provider_health,
                 "provider_health_history": self.state.provider_health_history,
                 "replay_debug": self.replay_runtime.snapshot(),
-                "text_panel_commands": ["status", "radar", "what do you think about NVDA", "what is NVDA doing", "what was I watching", "trade_plan symbol=NVDA direction=put target=184.3 minutes=60"],
+                "text_panel_commands": ["status", "radar", "what do you think about NVDA", "what is NVDA doing", "what was I watching", "trade_plan symbol=NVDA direction=put target=184.3 minutes=60", "trade_plan_check plan_id=plan-NVDA-1 symbol=NVDA"],
                 "timeline": self.timeline.snapshot(),
                 "provider_diagnostics": self.state.provider_diagnostics,
                 "latest_radar_signals": self.state.latest_radar_signals,
@@ -376,6 +456,7 @@ class InteractionOrchestrator:
                 "target_move_board": self.state.latest_target_move_board,
                 "trade_idea_opinion": self.state.latest_trade_idea_opinion,
                 "trade_plan": self.state.latest_trade_plan,
+                "trade_plan_tracking": self.state.latest_trade_plan_tracking,
                 "backtesting": {
                     "latest_run_summary": self.state.latest_backtest_run_summary,
                     "recent_evaluations": self.state.recent_backtest_evaluations,

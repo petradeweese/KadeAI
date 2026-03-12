@@ -38,6 +38,7 @@ from kade.voice.formatter import SpokenResponseFormatter
 from kade.voice.models import VoiceSessionState
 from kade.voice.orchestrator import VoiceOrchestrator
 from kade.voice.router import VoiceCommandRouter
+from kade.tracking import TradePlanMonitor, TradePlanTrackingContext, to_payload as tracking_payload
 from kade.utils.time import utc_now_iso
 
 CONFIG_DIR = Path(__file__).parent / "config"
@@ -65,6 +66,7 @@ def bootstrap_config() -> dict[str, dict]:
         "backtesting.yaml",
         "history.yaml",
         "planning.yaml",
+        "tracking.yaml",
     ]
     loaded_configs: dict[str, dict] = {}
     for name in config_names:
@@ -325,6 +327,8 @@ def main() -> None:
     scenario_engine = TargetMoveScenarioBoard(configs["execution.yaml"]["execution"]["option_scenarios"])
     opinion_engine = TradeIdeaOpinionEngine(brain_config.get("trade_idea_opinion", {}), logger=LOGGER)
     trade_plan_builder = TradePlanBuilder(configs["planning.yaml"].get("planning", {}))
+    trade_plan_monitor = TradePlanMonitor(plan_tracker, configs["tracking.yaml"].get("tracking", {}))
+    trade_plan_tracking_history: list[dict[str, object]] = list(session_state.get("trade_plan_tracking_history", []))
 
     def build_trade_idea_opinion(payload: dict[str, object]) -> dict[str, object]:
         symbol = str(payload.get("symbol", "")).upper()
@@ -474,6 +478,40 @@ def main() -> None:
         return plan_tracker._serialize(plan)
 
 
+
+
+    def evaluate_trade_plan_tracking(payload: dict[str, object]) -> dict[str, object]:
+        plan_id = str(payload.get("plan_id", "")).strip()
+        symbol = str(payload.get("symbol", "")).upper()
+        plan = plan_tracker.plans.get(plan_id)
+        if plan is None and symbol:
+            plans = plan_tracker.plans_for_symbol(symbol)
+            plan = plans[0] if plans else None
+        if plan is None:
+            return {"plan_id": plan_id, "symbol": symbol, "summary": "No matching plan found.", "debug": {"reason": "missing_plan"}}
+
+        state = states.get(plan.symbol)
+        if state is None:
+            return {"plan_id": plan.plan_id, "symbol": plan.symbol, "summary": "No current symbol state loaded.", "debug": {"reason": "missing_symbol_state"}}
+
+        context = TradePlanTrackingContext(
+            plan=plan,
+            ticker_state=state,
+            radar_context=dict(payload.get("radar_context", market_loop.latest_radar.get("by_symbol", {}).get(plan.symbol, {}))),
+            breadth_context=dict(payload.get("breadth_context", market_loop.latest_breadth)),
+            elapsed_minutes=int(payload["elapsed_minutes"]) if payload.get("elapsed_minutes") is not None else None,
+            execution_state=str(payload.get("execution_state")) if payload.get("execution_state") is not None else None,
+        )
+        snapshot = trade_plan_monitor.evaluate(context, apply_transition=bool(payload.get("apply_transition", True)))
+        tracking = tracking_payload(snapshot)
+        trade_plan_tracking_history.append(tracking)
+        limit = int(configs["tracking.yaml"].get("tracking", {}).get("history_limit", 40))
+        del trade_plan_tracking_history[:-limit]
+        session_state["trade_plan_tracking_history"] = trade_plan_tracking_history
+        session_state["latest_trade_plan_tracking"] = tracking
+        persistence.persist_session(session_state)
+        return tracking
+
     def update_trade_plan_status(payload: dict[str, object]) -> dict[str, object]:
         plan_id = str(payload.get("plan_id", ""))
         new_status = str(payload.get("status", ""))
@@ -527,7 +565,11 @@ def main() -> None:
         trade_idea_handler=build_trade_idea_opinion,
         trade_plan_handler=build_trade_plan,
         trade_plan_status_handler=update_trade_plan_status,
+        trade_plan_tracking_handler=evaluate_trade_plan_tracking,
     )
+
+    if session_state.get("latest_trade_plan_tracking"):
+        interaction.state.latest_trade_plan_tracking = dict(session_state.get("latest_trade_plan_tracking", {}))
 
     diagnostics = ProviderDiagnostics(policy=str(provider_runtime.get("diagnostics_policy", "warn_on_degraded")), logger=LOGGER)
     provider_diagnostics = diagnostics.evaluate(
