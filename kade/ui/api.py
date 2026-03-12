@@ -6,6 +6,7 @@ from kade.chat.service import ChatService
 from kade.dashboard.app import create_app_status
 from kade.integrations.providers import build_llm_provider, build_stt_provider, build_tts_provider, build_wakeword_provider
 from kade.runtime.interaction import InteractionOrchestrator, InteractionRuntimeState
+from kade.ui.workspace import build_workspace_layout, intent_to_workspace_mode, parse_symbol_from_command
 from kade.voice.formatter import SpokenResponseFormatter
 from kade.voice.models import VoiceSessionState
 from kade.voice.orchestrator import VoiceOrchestrator
@@ -16,7 +17,15 @@ class OperatorBackend:
     def __init__(self, llm_enabled: bool = True) -> None:
         self._runtime = self._build_interaction()
         self._history: list[dict[str, object]] = []
-        self._last_symbol: str | None = None
+        self._layout_state: dict[str, object] = {
+            "active_workspace_mode": "overview",
+            "active_symbol": None,
+            "active_view": "overview",
+            "last_interpreted_intent": "",
+            "highlighted_panels": [],
+            "collapsed_panels": [],
+            "panel_priority_map": {},
+        }
         llm_provider = build_llm_provider({"provider": "mock", "providers": {"mock": {"enabled": llm_enabled}}})
         self._chat = ChatService(self._runtime, llm_provider=llm_provider, llm_enabled=llm_enabled)
 
@@ -28,20 +37,26 @@ class OperatorBackend:
             premarket_gameplan_payload=self._premarket_gameplan(),
             strategy_intelligence_payload=self._strategy_intelligence(),
         )
-        payload["ui_state"] = {"last_active_symbol": self._last_symbol, "chat_history_size": len(self._history)}
+        payload["ui_state"] = {
+            "chat_history_size": len(self._history),
+            **self._layout_state,
+        }
         return payload
 
     def command(self, command: str) -> dict[str, object]:
         result = self._runtime.submit_text_panel_command({"command": command})
+        intent = str(result.get("intent", ""))
+        self._update_workspace(intent=intent, symbol=parse_symbol_from_command(command), active_view="command")
         self._remember("user", command)
-        self._remember("kade", str(result.get("formatted_response", "Done.")), metadata={"intent": result.get("intent")})
-        return {"ok": True, "result": result, "dashboard": self.dashboard()}
+        self._remember("kade", str(result.get("formatted_response", "Done.")), metadata={"intent": intent, "layout_state": dict(self._layout_state)})
+        return {"ok": True, "result": result, "dashboard": self.dashboard(), "layout_state": dict(self._layout_state)}
 
     def chat(self, message: str) -> dict[str, object]:
         response = self._chat.handle_message(message)
-        symbol = str(response.interpreted_action.payload.get("symbol", "")).upper()
-        if symbol:
-            self._last_symbol = symbol
+        symbol = str(response.interpreted_action.payload.get("symbol", "")).upper() or None
+        active_view = "visual" if response.interpreted_action.intent == "visual_explain" else "chat"
+        self._update_workspace(intent=response.interpreted_action.intent, symbol=symbol, active_view=active_view)
+
         self._remember("user", message)
         self._remember(
             "kade",
@@ -59,6 +74,7 @@ class OperatorBackend:
                     "used_llm_for_formatting": response.used_llm_for_formatting,
                     "fallback_used": response.fallback_used,
                 },
+                "layout_state": dict(self._layout_state),
                 "raw_result": response.command_response,
             },
         )
@@ -73,6 +89,7 @@ class OperatorBackend:
             },
             "command_response": response.command_response,
             "dashboard": self.dashboard(),
+            "layout_state": dict(self._layout_state),
             "diagnostics": {
                 "used_llm_for_parsing": response.used_llm_for_parsing,
                 "used_llm_for_formatting": response.used_llm_for_formatting,
@@ -82,6 +99,17 @@ class OperatorBackend:
 
     def history(self) -> dict[str, object]:
         return {"items": self._history[-80:]}
+
+    def _update_workspace(self, intent: str, symbol: str | None, active_view: str) -> None:
+        mode = intent_to_workspace_mode(intent)
+        current_symbol = symbol or self._layout_state.get("active_symbol")
+        layout = build_workspace_layout(mode, active_symbol=str(current_symbol) if current_symbol else None)
+        self._layout_state = {
+            **layout.as_dict(),
+            "active_symbol": current_symbol,
+            "active_view": active_view,
+            "last_interpreted_intent": intent,
+        }
 
     def _remember(self, role: str, text: str, metadata: dict[str, object] | None = None) -> None:
         self._history.append({"role": role, "text": text, "timestamp": datetime.utcnow().isoformat(), "metadata": metadata or {}})

@@ -31,28 +31,35 @@
     </section>
 
     <section class="workspace">
-      <div class="section-title">Market Overview</div>
-      <div class="grid two">
-        <article class="card" id="market-card"></article>
-        <article class="card" id="premarket-card"></article>
+      <div class="status-strip card">
+        <div><strong>Workspace</strong>: <span id="workspace-mode">overview</span></div>
+        <div><strong>Symbol</strong>: <span id="active-symbol">-</span></div>
+        <div><strong>Intent</strong>: <span id="last-intent">-</span></div>
       </div>
 
-      <div class="section-title">Trade Workflow</div>
-      <div class="grid two">
-        <article class="card highlightable" id="trade-idea-card"></article>
-        <article class="card highlightable" id="target-move-card"></article>
-        <article class="card highlightable" id="trade-plan-card"></article>
-        <article class="card" id="tracking-card"></article>
+      <div class="section-title" id="workspace-title">Overview Workspace</div>
+      <div class="grid two" id="panel-grid">
+        <article class="card panel" data-panel="market_intelligence" id="market-card"></article>
+        <article class="card panel" data-panel="premarket_gameplan" id="premarket-card"></article>
+        <article class="card panel" data-panel="radar" id="radar-card"></article>
+        <article class="card panel" data-panel="movers" id="movers-card"></article>
+
+        <article class="card panel" data-panel="trade_idea" id="trade-idea-card"></article>
+        <article class="card panel" data-panel="target_move" id="target-move-card"></article>
+        <article class="card panel" data-panel="trade_plan" id="trade-plan-card"></article>
+        <article class="card panel" data-panel="trade_plan_tracking" id="tracking-card"></article>
+
+        <article class="card panel" data-panel="visual_explainability" id="visual-card"></article>
+        <article class="card panel" data-panel="strategy_intelligence" id="strategy-card"></article>
+        <article class="card panel" data-panel="execution_monitor" id="execution-card"></article>
+        <article class="card panel" data-panel="trade_review" id="review-card"></article>
+
+        <article class="card panel" data-panel="timeline" id="timeline-card"></article>
+        <article class="card panel" data-panel="provider_diagnostics" id="diagnostics-card"></article>
       </div>
 
-      <div class="section-title">Explainability & Strategy</div>
-      <div class="grid two">
-        <article class="card highlightable" id="visual-card"></article>
-        <article class="card" id="strategy-card"></article>
-      </div>
-
-      <details class="card secondary">
-        <summary>Secondary Diagnostics</summary>
+      <details class="card secondary panel" data-panel="raw_debug" id="raw-debug-card">
+        <summary>Raw Debug Payloads</summary>
         <pre id="secondary-debug"></pre>
       </details>
     </section>

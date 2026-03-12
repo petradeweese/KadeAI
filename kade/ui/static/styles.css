@@ -14,6 +14,10 @@ button{border:1px solid var(--border);background:#fff;padding:8px 12px;border-ra
 .chat-input-row{display:flex;gap:8px}.chat-input-row input{flex:1;border:1px solid var(--border);padding:10px;border-radius:8px}
 .workspace{display:flex;flex-direction:column;gap:10px}.section-title{font-size:12px;text-transform:uppercase;letter-spacing:.08em;color:var(--muted);padding:2px 2px}
 .grid{display:grid;gap:10px}.grid.two{grid-template-columns:repeat(2,minmax(0,1fr))}
+.status-strip{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:8px;font-size:12px;color:#334155;background:#f9fafb}
 .card h3{margin:0 0 6px;font-size:14px}.metric{font-size:13px;color:var(--text);margin:2px 0}.secondary pre{white-space:pre-wrap;font-size:11px;color:#334155}
-.highlight{outline:2px solid #c7e1ff}
-@media (max-width:1100px){.layout{grid-template-columns:1fr}.grid.two{grid-template-columns:1fr}}
+.panel.highlight{outline:2px solid #c7e1ff}
+.panel.collapsed{opacity:.65}
+.panel.collapsed details{display:none}
+.panel.deemphasized{opacity:.78}
+@media (max-width:1100px){.layout{grid-template-columns:1fr}.grid.two{grid-template-columns:1fr}.status-strip{grid-template-columns:1fr}}

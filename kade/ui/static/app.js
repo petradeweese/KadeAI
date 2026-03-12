@@ -3,6 +3,15 @@ const chatForm = document.getElementById('chat-form');
 const chatInput = document.getElementById('chat-input');
 const interpretedEl = document.getElementById('interpreted');
 
+const MODE_TITLES = {
+  overview: 'Overview Workspace',
+  market: 'Market Workspace',
+  trade: 'Trade Workspace',
+  tracking: 'Tracking Workspace',
+  review: 'Review Workspace',
+  analysis: 'Analysis Workspace',
+};
+
 async function loadDashboard() {
   const res = await fetch('/api/dashboard');
   const data = await res.json();
@@ -25,9 +34,15 @@ function renderDashboard(payload) {
   const tracking = oc.trade_plan_tracking || {};
   const visual = oc.visual_explainability || {};
   const strategy = oc.strategy_intelligence || {};
+  const layoutState = payload.ui_state || {};
 
   document.getElementById('runtime-pill').textContent = `Runtime: ${oc.runtime?.runtime_mode || 'text_first'}`;
   document.getElementById('provider-pill').textContent = `LLM: ${oc.llm?.provider || 'mock'}`;
+
+  document.getElementById('workspace-mode').textContent = layoutState.active_workspace_mode || 'overview';
+  document.getElementById('active-symbol').textContent = layoutState.active_symbol || '-';
+  document.getElementById('last-intent').textContent = layoutState.last_interpreted_intent || '-';
+  document.getElementById('workspace-title').textContent = MODE_TITLES[layoutState.active_workspace_mode] || MODE_TITLES.overview;
 
   renderCard('market-card', 'Market Intelligence', [
     `Regime: ${market.regime?.label || 'unknown'}`,
@@ -41,8 +56,19 @@ function renderDashboard(payload) {
     `Risks: ${(premarket.risks || []).slice(0,2).join(', ') || 'n/a'}`,
   ], premarket);
 
+  renderCard('radar-card', 'Radar Watchlist', [
+    `Top signals: ${(oc.radar?.top_signals || []).length}`,
+    `High-quality: ${(oc.radar?.quality_buckets?.top_quality || []).length}`,
+  ], oc.radar || {});
+
+  renderCard('movers-card', 'Movers & Watchlist', [
+    `Top movers: ${(market.top_movers || []).length}`,
+    `Most active: ${(market.most_active || []).length}`,
+    `Watchlist: ${(premarket.watchlist_priorities || []).slice(0,3).join(', ') || 'n/a'}`,
+  ], { movers: market.top_movers, active: market.most_active, watchlist: premarket.watchlist_priorities });
+
   renderCard('trade-idea-card', 'Trade Idea', [
-    `Symbol: ${trade.symbol || 'n/a'}`,
+    `Symbol: ${trade.symbol || layoutState.active_symbol || 'n/a'}`,
     `Stance: ${trade.stance || 'n/a'}`,
     `Entry: ${trade.entry || 'n/a'}`,
     `Target: ${trade.target || 'n/a'}`,
@@ -50,43 +76,81 @@ function renderDashboard(payload) {
 
   renderCard('target-move-card', 'Target Move Board', [
     `Candidates: ${(target.candidates || []).length}`,
-    `Active symbol: ${(target.request || {}).symbol || 'n/a'}`,
+    `Active symbol: ${(target.request || {}).symbol || layoutState.active_symbol || 'n/a'}`,
   ], target);
 
   renderCard('trade-plan-card', 'Trade Plan', [
     `Plan: ${plan.plan_id || 'n/a'}`,
     `Status: ${plan.status || 'n/a'}`,
-    `Symbol: ${plan.symbol || 'n/a'}`,
+    `Symbol: ${plan.symbol || layoutState.active_symbol || 'n/a'}`,
   ], plan);
 
-  renderCard('tracking-card', 'Tracking & Review', [
+  renderCard('tracking-card', 'Trade Plan Tracking', [
     `Tracking status: ${tracking.status_after || 'n/a'}`,
-    `Review history: ${(oc.trade_review?.history || []).length}`,
-  ], {tracking, review: oc.trade_review});
+    `Plan: ${tracking.plan_id || plan.plan_id || 'n/a'}`,
+  ], tracking);
 
   renderCard('visual-card', 'Visual Explainability', [
-    `Active symbol: ${visual.active_symbol || 'n/a'}`,
-    `Active view: ${visual.active_view || 'n/a'}`,
+    `Active symbol: ${visual.active_symbol || layoutState.active_symbol || 'n/a'}`,
+    `Active view: ${visual.active_view || layoutState.active_view || 'n/a'}`,
     `Charts: ${(visual.charts || []).length}`,
   ], visual);
 
   renderCard('strategy-card', 'Strategy Intelligence', [
     `Setups: ${(strategy.setup_archetypes || []).length}`,
     `Regime rows: ${(strategy.regime_performance || []).length}`,
+    `Symbol rows: ${(strategy.symbol_performance || []).length}`,
   ], strategy);
+
+  renderCard('execution-card', 'Execution Monitor', [
+    `Lifecycle events: ${(oc.execution?.latest_lifecycle || []).length}`,
+    `Trades today: ${oc.session?.trades_today ?? 0}`,
+  ], oc.execution || {});
+
+  renderCard('review-card', 'Trade Review', [
+    `Latest review present: ${oc.trade_review?.latest_review ? 'yes' : 'no'}`,
+    `Review history: ${(oc.trade_review?.history || []).length}`,
+  ], oc.trade_review || {});
+
+  renderCard('timeline-card', 'Timeline', [
+    `Events: ${(oc.timeline?.events || []).length}`,
+    `Retention: ${oc.timeline?.retention ?? 'n/a'}`,
+  ], oc.timeline || {});
+
+  renderCard('diagnostics-card', 'Provider Diagnostics', [
+    `Providers: ${Object.keys(oc.providers || {}).length}`,
+    `LLM summaries enabled: ${oc.llm?.narrative_summaries_enabled ? 'yes' : 'no'}`,
+  ], { providers: oc.providers, llm: oc.llm });
 
   document.getElementById('secondary-debug').textContent = JSON.stringify({
     execution: oc.execution,
     timeline: oc.timeline,
     providers: oc.providers,
     llm: oc.llm,
+    ui_state: layoutState,
   }, null, 2);
 
-  const symbol = payload.ui_state?.last_active_symbol;
-  document.querySelectorAll('.highlightable').forEach(el => el.classList.remove('highlight'));
-  if (symbol) {
-    ['trade-idea-card','target-move-card','trade-plan-card','visual-card'].forEach(id => document.getElementById(id)?.classList.add('highlight'));
-  }
+  applyLayoutState(layoutState);
+}
+
+function applyLayoutState(layoutState) {
+  const priorityMap = layoutState.panel_priority_map || {};
+  const collapsed = new Set(layoutState.collapsed_panels || []);
+  const highlighted = new Set(layoutState.highlighted_panels || []);
+
+  document.querySelectorAll('.panel').forEach((el) => {
+    const key = el.dataset.panel;
+    const order = priorityMap[key] ?? 999;
+    el.style.order = String(order);
+    el.classList.toggle('collapsed', collapsed.has(key));
+    el.classList.toggle('highlight', highlighted.has(key));
+    const deEmphasized = !highlighted.has(key) && order > 50;
+    el.classList.toggle('deemphasized', deEmphasized);
+
+    if (el.tagName.toLowerCase() === 'details') {
+      el.open = !collapsed.has(key);
+    }
+  });
 }
 
 async function postJson(path, payload) {
