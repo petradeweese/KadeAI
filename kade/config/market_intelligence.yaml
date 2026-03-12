@@ -8,9 +8,9 @@ market_intelligence:
     movers: true
     earnings: true
   alpaca:
-    enabled: false
-    api_key: ""
-    secret_key: ""
+    enabled: true
+    api_key: ${APCA_API_KEY_ID}
+    secret_key: ${APCA_API_SECRET_KEY}
     base_url: https://paper-api.alpaca.markets
     data_url: https://data.alpaca.markets
   regime:

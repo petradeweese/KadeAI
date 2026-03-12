@@ -50,6 +50,210 @@
       "summary": "Confidence is moderate. Trend is bullish on trigger timeframe. Trap risk is high.",
       "symbol": "MSFT",
       "timestamp": "2026-03-12T06:24:34.829385+00:00"
+    },
+    {
+      "debug": {
+        "breadth_bias": "risk_on",
+        "memory_hits": 3,
+        "momentum": "up_bias",
+        "qqq_confirmation": "confirmed_breadth_aligned",
+        "radar_score": 65.5,
+        "regime": "trend",
+        "score": 3,
+        "trap_risk": "high"
+      },
+      "linked_plan_id": "plan-AMD-1773296674827",
+      "stance": "agree",
+      "summary": "Confidence is moderate. Trend is bullish on trigger timeframe. Trap risk is high.",
+      "symbol": "AMD",
+      "timestamp": "2026-03-12T07:50:57.997641+00:00"
+    },
+    {
+      "debug": {
+        "breadth_bias": "risk_on",
+        "memory_hits": 1,
+        "momentum": "up_bias",
+        "qqq_confirmation": "confirmed_breadth_aligned",
+        "radar_score": 65.5,
+        "regime": "trend",
+        "score": 2,
+        "trap_risk": "high"
+      },
+      "linked_plan_id": null,
+      "stance": "agree",
+      "summary": "Confidence is moderate. Trend is bullish on trigger timeframe. Trap risk is high.",
+      "symbol": "META",
+      "timestamp": "2026-03-12T07:50:57.998039+00:00"
+    },
+    {
+      "debug": {
+        "breadth_bias": "risk_on",
+        "memory_hits": 1,
+        "momentum": "up_bias",
+        "qqq_confirmation": "confirmed_breadth_aligned",
+        "radar_score": 65.5,
+        "regime": "trend",
+        "score": 2,
+        "trap_risk": "high"
+      },
+      "linked_plan_id": null,
+      "stance": "agree",
+      "summary": "Confidence is moderate. Trend is bullish on trigger timeframe. Trap risk is high.",
+      "symbol": "MSFT",
+      "timestamp": "2026-03-12T07:50:57.998306+00:00"
+    },
+    {
+      "debug": {
+        "breadth_bias": "risk_on",
+        "memory_hits": 3,
+        "momentum": "up_bias",
+        "qqq_confirmation": "confirmed_breadth_aligned",
+        "radar_score": 65.5,
+        "regime": "trend",
+        "score": 3,
+        "trap_risk": "high"
+      },
+      "linked_plan_id": "plan-AMD-1773296674827",
+      "stance": "agree",
+      "summary": "Confidence is moderate. Trend is bullish on trigger timeframe. Trap risk is high.",
+      "symbol": "AMD",
+      "timestamp": "2026-03-12T08:05:50.242459+00:00"
+    },
+    {
+      "debug": {
+        "breadth_bias": "risk_on",
+        "memory_hits": 2,
+        "momentum": "up_bias",
+        "qqq_confirmation": "confirmed_breadth_aligned",
+        "radar_score": 65.5,
+        "regime": "trend",
+        "score": 2,
+        "trap_risk": "high"
+      },
+      "linked_plan_id": null,
+      "stance": "agree",
+      "summary": "Confidence is moderate. Trend is bullish on trigger timeframe. Trap risk is high.",
+      "symbol": "META",
+      "timestamp": "2026-03-12T08:05:50.242812+00:00"
+    },
+    {
+      "debug": {
+        "breadth_bias": "risk_on",
+        "memory_hits": 2,
+        "momentum": "up_bias",
+        "qqq_confirmation": "confirmed_breadth_aligned",
+        "radar_score": 65.5,
+        "regime": "trend",
+        "score": 2,
+        "trap_risk": "high"
+      },
+      "linked_plan_id": null,
+      "stance": "agree",
+      "summary": "Confidence is moderate. Trend is bullish on trigger timeframe. Trap risk is high.",
+      "symbol": "MSFT",
+      "timestamp": "2026-03-12T08:05:50.243274+00:00"
+    },
+    {
+      "debug": {
+        "breadth_bias": "risk_on",
+        "memory_hits": 3,
+        "momentum": "up_bias",
+        "qqq_confirmation": "confirmed_breadth_aligned",
+        "radar_score": 65.5,
+        "regime": "trend",
+        "score": 3,
+        "trap_risk": "high"
+      },
+      "linked_plan_id": "plan-AMD-1773296674827",
+      "stance": "agree",
+      "summary": "Confidence is moderate. Trend is bullish on trigger timeframe. Trap risk is high.",
+      "symbol": "AMD",
+      "timestamp": "2026-03-12T08:08:29.529835+00:00"
+    },
+    {
+      "debug": {
+        "breadth_bias": "risk_on",
+        "memory_hits": 3,
+        "momentum": "up_bias",
+        "qqq_confirmation": "confirmed_breadth_aligned",
+        "radar_score": 65.5,
+        "regime": "trend",
+        "score": 2,
+        "trap_risk": "high"
+      },
+      "linked_plan_id": null,
+      "stance": "agree",
+      "summary": "Confidence is moderate. Trend is bullish on trigger timeframe. Trap risk is high.",
+      "symbol": "META",
+      "timestamp": "2026-03-12T08:08:29.530179+00:00"
+    },
+    {
+      "debug": {
+        "breadth_bias": "risk_on",
+        "memory_hits": 3,
+        "momentum": "up_bias",
+        "qqq_confirmation": "confirmed_breadth_aligned",
+        "radar_score": 65.5,
+        "regime": "trend",
+        "score": 2,
+        "trap_risk": "high"
+      },
+      "linked_plan_id": null,
+      "stance": "agree",
+      "summary": "Confidence is moderate. Trend is bullish on trigger timeframe. Trap risk is high.",
+      "symbol": "MSFT",
+      "timestamp": "2026-03-12T08:08:29.530664+00:00"
+    },
+    {
+      "debug": {
+        "breadth_bias": "risk_on",
+        "memory_hits": 3,
+        "momentum": "up_bias",
+        "qqq_confirmation": "confirmed_breadth_aligned",
+        "radar_score": 65.5,
+        "regime": "trend",
+        "score": 3,
+        "trap_risk": "high"
+      },
+      "linked_plan_id": "plan-AMD-1773296674827",
+      "stance": "agree",
+      "summary": "Confidence is moderate. Trend is bullish on trigger timeframe. Trap risk is high.",
+      "symbol": "AMD",
+      "timestamp": "2026-03-12T08:12:42.620029+00:00"
+    },
+    {
+      "debug": {
+        "breadth_bias": "risk_on",
+        "memory_hits": 3,
+        "momentum": "up_bias",
+        "qqq_confirmation": "confirmed_breadth_aligned",
+        "radar_score": 65.5,
+        "regime": "trend",
+        "score": 2,
+        "trap_risk": "high"
+      },
+      "linked_plan_id": null,
+      "stance": "agree",
+      "summary": "Confidence is moderate. Trend is bullish on trigger timeframe. Trap risk is high.",
+      "symbol": "META",
+      "timestamp": "2026-03-12T08:12:42.620456+00:00"
+    },
+    {
+      "debug": {
+        "breadth_bias": "risk_on",
+        "memory_hits": 3,
+        "momentum": "up_bias",
+        "qqq_confirmation": "confirmed_breadth_aligned",
+        "radar_score": 65.5,
+        "regime": "trend",
+        "score": 2,
+        "trap_risk": "high"
+      },
+      "linked_plan_id": null,
+      "stance": "agree",
+      "summary": "Confidence is moderate. Trend is bullish on trigger timeframe. Trap risk is high.",
+      "symbol": "MSFT",
+      "timestamp": "2026-03-12T08:12:42.620890+00:00"
     }
   ],
   "command_interface_mode": "text_first",
@@ -63,8 +267,52 @@
     "voice_runtime_enabled": false
   },
   "last_rollover_at": "2026-03-12T06:24:34.819017+00:00",
+  "latest_alpaca_smoke_test": {},
   "latest_backtest_run_summary": {},
   "latest_historical_data": {},
+  "latest_llm_summary": {
+    "allow_trade_logic_override": false,
+    "core_payload_preserved": true,
+    "deterministic_text": "Market posture is mixed. Regime is news_event (0.83). Posture mixed. Top watchlist: NVDA, MSFT, META.",
+    "generated_at": "2026-03-12T08:13:06.616267+00:00",
+    "generation": {
+      "content": "Market posture is mixed, driven by a news_event regime with 83% confidence. The top watchlist symbols are NVDA, MSFT, and META.",
+      "error": null,
+      "finish_reason": "stop",
+      "model": "llama3.1:latest",
+      "provider_name": "ollama",
+      "raw_response": {
+        "done": true,
+        "eval_count": 33,
+        "prompt_eval_count": 2819
+      },
+      "success": true
+    },
+    "llm_used": true,
+    "model": "llama3.1:latest",
+    "narrative_text": "Market posture is mixed, driven by a news_event regime with 83% confidence. The top watchlist symbols are NVDA, MSFT, and META.",
+    "payload_keys": [
+      "agenda_notes",
+      "debug",
+      "earnings_today",
+      "futures_or_index_context",
+      "generated_at",
+      "key_catalysts",
+      "market_posture",
+      "most_active_context",
+      "movers_to_watch",
+      "opportunities",
+      "regime_confidence",
+      "regime_label",
+      "risks",
+      "summary",
+      "watchlist_priorities"
+    ],
+    "provider_name": "ollama",
+    "source": "ollama",
+    "summary_id": "premarket_gameplan-117200ae23",
+    "summary_type": "premarket_gameplan"
+  },
   "latest_market_intelligence": {
     "cross_symbol_context": {
       "AMD": {
@@ -91,7 +339,7 @@
         "sector_proxy": "SMH",
         "source": "cross_symbol_context_engine",
         "symbol": "AMD",
-        "timestamp": "2026-03-12T06:24:34.829412+00:00"
+        "timestamp": "2026-03-12T08:12:42.620931+00:00"
       },
       "META": {
         "alignment_label": "aligned",
@@ -117,7 +365,7 @@
         "sector_proxy": "XLC",
         "source": "cross_symbol_context_engine",
         "symbol": "META",
-        "timestamp": "2026-03-12T06:24:34.829412+00:00"
+        "timestamp": "2026-03-12T08:12:42.620931+00:00"
       },
       "MSFT": {
         "alignment_label": "aligned",
@@ -143,7 +391,7 @@
         "sector_proxy": "XLK",
         "source": "cross_symbol_context_engine",
         "symbol": "MSFT",
-        "timestamp": "2026-03-12T06:24:34.829412+00:00"
+        "timestamp": "2026-03-12T08:12:42.620931+00:00"
       },
       "NVDA": {
         "alignment_label": "aligned",
@@ -169,226 +417,540 @@
         "sector_proxy": "SMH",
         "source": "cross_symbol_context_engine",
         "symbol": "NVDA",
-        "timestamp": "2026-03-12T06:24:34.829412+00:00"
+        "timestamp": "2026-03-12T08:12:42.620931+00:00"
       }
     },
     "debug": {
       "news_summary": {
-        "catalyst_breakdown": {},
-        "headline_count": 0,
-        "key_items": [],
+        "catalyst_breakdown": {
+          "analyst": 1,
+          "regulatory": 1,
+          "unknown": 10
+        },
+        "headline_count": 12,
+        "key_items": [
+          {
+            "catalyst_type": "unknown",
+            "debug": {
+              "raw_id": 51204454
+            },
+            "headline": "Jensen Huang Takes Nvidia's Alpamayo Self-Driving Tech For A Spin, Says It 'Drives Like A Human'",
+            "relevance_label": "symbol_linked",
+            "source": "alpaca_or_fallback",
+            "summary": "Nvidia&#39;s CEO showcases Alpamayo self-driving tech in a video, touting its human-like driving and upcoming Robotaxi network.",
+            "symbols": [
+              "HSAI",
+              "NVDA"
+            ],
+            "timestamp": "2026-03-12T08:12:42.620931+00:00",
+            "url": "https://www.benzinga.com/markets/tech/26/03/51204454/jensen-huang-takes-nvidias-alpamayo-self-driving-tech-for-a-spin-says-it-drives-like-a-human"
+          },
+          {
+            "catalyst_type": "regulatory",
+            "debug": {
+              "raw_id": 51203250
+            },
+            "headline": "Stryker Confirms Cybersecurity Incident Disrupting Microsoft Environment; Systems Access Limited As Investigation And Restoration Efforts Continue",
+            "relevance_label": "symbol_linked",
+            "source": "alpaca_or_fallback",
+            "summary": "Stryker Confirms Cybersecurity Incident Disrupting Microsoft Environment; Systems Access Limited As Investigation And Restoration Efforts Continue",
+            "symbols": [
+              "MSFT",
+              "SYK"
+            ],
+            "timestamp": "2026-03-12T08:12:42.620931+00:00",
+            "url": "https://www.benzinga.com/news/26/03/51203250/stryker-confirms-cybersecurity-incident-disrupting-microsoft-environment-systems-access-limited-as-i"
+          },
+          {
+            "catalyst_type": "unknown",
+            "debug": {
+              "raw_id": 51200630
+            },
+            "headline": "President Trump On Iran Says Knocked Out 58 Iranian Naval Ships; We Don't Want To Go Back Every Two Years",
+            "relevance_label": "symbol_linked",
+            "source": "alpaca_or_fallback",
+            "summary": "President Trump On Iran Says Knocked Out 58 Iranian Naval Ships; We Don't Want To Go Back Every Two Years",
+            "symbols": [
+              "SPY",
+              "USO"
+            ],
+            "timestamp": "2026-03-12T08:12:42.620931+00:00",
+            "url": "https://www.benzinga.com/news/26/03/51200630/president-trump-on-iran-says-knocked-out-58-iranian-naval-ships-we-dont-want-to-go-back-every-two-ye"
+          },
+          {
+            "catalyst_type": "unknown",
+            "debug": {
+              "raw_id": 51199780
+            },
+            "headline": "Trump Says U.S. Will Reduce Strategic Petroleum Reserve 'A Little Bit'",
+            "relevance_label": "symbol_linked",
+            "source": "alpaca_or_fallback",
+            "summary": "Trump Says U.S. Will Reduce Strategic Petroleum Reserve 'A Little Bit'",
+            "symbols": [
+              "SPY",
+              "USO"
+            ],
+            "timestamp": "2026-03-12T08:12:42.620931+00:00",
+            "url": "https://www.benzinga.com/economics/macro-economic-events/26/03/51199780/trump-says-u-s-will-reduce-strategic-petroleum-reserve-a-little-bit"
+          },
+          {
+            "catalyst_type": "unknown",
+            "debug": {
+              "raw_id": 51199703
+            },
+            "headline": "'Pentagon Going After Goldman Sachs, Morgan Stanley, JPMorgan, BofA As Prime Recruiting Targets For 30-Person Defense Deals Team' - Semafor",
+            "relevance_label": "symbol_linked",
+            "source": "alpaca_or_fallback",
+            "summary": "'Pentagon Going After Goldman Sachs, Morgan Stanley, JPMorgan, BofA As Prime Recruiting Targets For 30-Person Defense Deals Team' - Semafor",
+            "symbols": [
+              "BAC",
+              "GS",
+              "JPM",
+              "MS",
+              "SPY"
+            ],
+            "timestamp": "2026-03-12T08:12:42.620931+00:00",
+            "url": "https://www.benzinga.com/news/26/03/51199703/pentagon-going-after-goldman-sachs-morgan-stanley-jpmorgan-bofa-as-prime-recruiting-targets-for-30-p"
+          }
+        ],
         "source": "alpaca_or_fallback",
-        "timestamp": "2026-03-12T06:24:34.829412+00:00"
+        "timestamp": "2026-03-12T08:12:42.620931+00:00"
       },
-      "source_available": false
+      "source_available": true
     },
     "earnings": [],
-    "generated_at": "2026-03-12T06:24:34.829412+00:00",
-    "key_news": [],
+    "generated_at": "2026-03-12T08:12:42.620931+00:00",
+    "key_news": [
+      {
+        "catalyst_type": "unknown",
+        "debug": {
+          "raw_id": 51204454
+        },
+        "headline": "Jensen Huang Takes Nvidia's Alpamayo Self-Driving Tech For A Spin, Says It 'Drives Like A Human'",
+        "relevance_label": "symbol_linked",
+        "source": "alpaca_or_fallback",
+        "summary": "Nvidia&#39;s CEO showcases Alpamayo self-driving tech in a video, touting its human-like driving and upcoming Robotaxi network.",
+        "symbols": [
+          "HSAI",
+          "NVDA"
+        ],
+        "timestamp": "2026-03-12T08:12:42.620931+00:00",
+        "url": "https://www.benzinga.com/markets/tech/26/03/51204454/jensen-huang-takes-nvidias-alpamayo-self-driving-tech-for-a-spin-says-it-drives-like-a-human"
+      },
+      {
+        "catalyst_type": "regulatory",
+        "debug": {
+          "raw_id": 51203250
+        },
+        "headline": "Stryker Confirms Cybersecurity Incident Disrupting Microsoft Environment; Systems Access Limited As Investigation And Restoration Efforts Continue",
+        "relevance_label": "symbol_linked",
+        "source": "alpaca_or_fallback",
+        "summary": "Stryker Confirms Cybersecurity Incident Disrupting Microsoft Environment; Systems Access Limited As Investigation And Restoration Efforts Continue",
+        "symbols": [
+          "MSFT",
+          "SYK"
+        ],
+        "timestamp": "2026-03-12T08:12:42.620931+00:00",
+        "url": "https://www.benzinga.com/news/26/03/51203250/stryker-confirms-cybersecurity-incident-disrupting-microsoft-environment-systems-access-limited-as-i"
+      },
+      {
+        "catalyst_type": "unknown",
+        "debug": {
+          "raw_id": 51200630
+        },
+        "headline": "President Trump On Iran Says Knocked Out 58 Iranian Naval Ships; We Don't Want To Go Back Every Two Years",
+        "relevance_label": "symbol_linked",
+        "source": "alpaca_or_fallback",
+        "summary": "President Trump On Iran Says Knocked Out 58 Iranian Naval Ships; We Don't Want To Go Back Every Two Years",
+        "symbols": [
+          "SPY",
+          "USO"
+        ],
+        "timestamp": "2026-03-12T08:12:42.620931+00:00",
+        "url": "https://www.benzinga.com/news/26/03/51200630/president-trump-on-iran-says-knocked-out-58-iranian-naval-ships-we-dont-want-to-go-back-every-two-ye"
+      },
+      {
+        "catalyst_type": "unknown",
+        "debug": {
+          "raw_id": 51199780
+        },
+        "headline": "Trump Says U.S. Will Reduce Strategic Petroleum Reserve 'A Little Bit'",
+        "relevance_label": "symbol_linked",
+        "source": "alpaca_or_fallback",
+        "summary": "Trump Says U.S. Will Reduce Strategic Petroleum Reserve 'A Little Bit'",
+        "symbols": [
+          "SPY",
+          "USO"
+        ],
+        "timestamp": "2026-03-12T08:12:42.620931+00:00",
+        "url": "https://www.benzinga.com/economics/macro-economic-events/26/03/51199780/trump-says-u-s-will-reduce-strategic-petroleum-reserve-a-little-bit"
+      },
+      {
+        "catalyst_type": "unknown",
+        "debug": {
+          "raw_id": 51199703
+        },
+        "headline": "'Pentagon Going After Goldman Sachs, Morgan Stanley, JPMorgan, BofA As Prime Recruiting Targets For 30-Person Defense Deals Team' - Semafor",
+        "relevance_label": "symbol_linked",
+        "source": "alpaca_or_fallback",
+        "summary": "'Pentagon Going After Goldman Sachs, Morgan Stanley, JPMorgan, BofA As Prime Recruiting Targets For 30-Person Defense Deals Team' - Semafor",
+        "symbols": [
+          "BAC",
+          "GS",
+          "JPM",
+          "MS",
+          "SPY"
+        ],
+        "timestamp": "2026-03-12T08:12:42.620931+00:00",
+        "url": "https://www.benzinga.com/news/26/03/51199703/pentagon-going-after-goldman-sachs-morgan-stanley-jpmorgan-bofa-as-prime-recruiting-targets-for-30-p"
+      },
+      {
+        "catalyst_type": "unknown",
+        "debug": {
+          "raw_id": 51197485
+        },
+        "headline": "Xbox To Start Introducing New Console To Developers In Early 2027",
+        "relevance_label": "symbol_linked",
+        "source": "alpaca_or_fallback",
+        "summary": "Xbox To Start Introducing New Console To Developers In Early 2027",
+        "symbols": [
+          "MSFT"
+        ],
+        "timestamp": "2026-03-12T08:12:42.620931+00:00",
+        "url": "https://www.benzinga.com/news/26/03/51197485/xbox-to-start-introducing-new-console-to-developers-in-early-2027"
+      },
+      {
+        "catalyst_type": "analyst",
+        "debug": {
+          "raw_id": 51197239
+        },
+        "headline": "Why Astera Labs Shares Are Surging On Wednesday",
+        "relevance_label": "symbol_linked",
+        "source": "alpaca_or_fallback",
+        "summary": "ALAB stock is surging. Learn why analysts are bullish on Astera Labs Inc (NASDAQ: ALAB) and its role in the AI infrastructure super-cycle.",
+        "symbols": [
+          "ALAB",
+          "AMZN",
+          "NVDA"
+        ],
+        "timestamp": "2026-03-12T08:12:42.620931+00:00",
+        "url": "https://www.benzinga.com/trading-ideas/movers/26/03/51197239/why-astera-labs-shares-are-surging-on-wednesday"
+      },
+      {
+        "catalyst_type": "unknown",
+        "debug": {
+          "raw_id": 51197014
+        },
+        "headline": "Iran's Foreign Minister Araghchi Says National Infrastructure Is Under Attack. This Time, A Branch Of My Country's Oldest Bank Was Bombed While Full Of Employees. They Were Laboring To Ensure Iranians Have Food On The Table Ahead Of Our New Year.",
+        "relevance_label": "symbol_linked",
+        "source": "alpaca_or_fallback",
+        "summary": "Iran's Foreign Minister Araghchi Says National Infrastructure Is Under Attack. This Time, A Branch Of My Country's Oldest Bank Was Bombed While Full Of Employees. They Were Labo...",
+        "symbols": [
+          "SPY",
+          "USO"
+        ],
+        "timestamp": "2026-03-12T08:12:42.620931+00:00",
+        "url": "https://www.benzinga.com/news/26/03/51197014/irans-foreign-minister-araghchi-says-national-infrastructure-is-under-attack-this-time-a-branch-of-m"
+      },
+      {
+        "catalyst_type": "unknown",
+        "debug": {
+          "raw_id": 51196838
+        },
+        "headline": "'Iran Says Truce Depends on US, Israel Pledging No Future Strikes' - Bloomberg",
+        "relevance_label": "symbol_linked",
+        "source": "alpaca_or_fallback",
+        "summary": "'Iran Says Truce Depends on US, Israel Pledging No Future Strikes' - Bloomberg",
+        "symbols": [
+          "SPY",
+          "USO"
+        ],
+        "timestamp": "2026-03-12T08:12:42.620931+00:00",
+        "url": "https://www.benzinga.com/news/26/03/51196838/iran-says-truce-depends-on-us-israel-pledging-no-future-strikes-bloomberg"
+      },
+      {
+        "catalyst_type": "unknown",
+        "debug": {
+          "raw_id": 51196353
+        },
+        "headline": "'Microsoft In Talks To Lease Large Texas Data Center Site After Oracle Walked Away' - The Information Exclusive",
+        "relevance_label": "symbol_linked",
+        "source": "alpaca_or_fallback",
+        "summary": "'Microsoft In Talks To Lease Large Texas Data Center Site After Oracle Walked Away' - The Information Exclusive",
+        "symbols": [
+          "MSFT"
+        ],
+        "timestamp": "2026-03-12T08:12:42.620931+00:00",
+        "url": "https://www.benzinga.com/news/26/03/51196353/microsoft-in-talks-to-lease-large-texas-data-center-site-after-oracle-walked-away-the-information-ex"
+      },
+      {
+        "catalyst_type": "unknown",
+        "debug": {
+          "raw_id": 51195966
+        },
+        "headline": "Broadcom Debuts Powerful Chip To Handle AI's Exploding Data Needs",
+        "relevance_label": "symbol_linked",
+        "source": "alpaca_or_fallback",
+        "summary": "Broadcom unveils the Taurus BCM83640 chip, enabling 1.6T data modules to supercharge AI data center efficiency and networking speed.",
+        "symbols": [
+          "AVGO",
+          "FLEX",
+          "GOOGL",
+          "META",
+          "TSM"
+        ],
+        "timestamp": "2026-03-12T08:12:42.620931+00:00",
+        "url": "https://www.benzinga.com/markets/tech/26/03/51195966/broadcom-debuts-powerful-chip-to-handle-ais-exploding-data-needs"
+      },
+      {
+        "catalyst_type": "unknown",
+        "debug": {
+          "raw_id": 51195899
+        },
+        "headline": "Iran's President Says Talking To Leaders Of Russia And Pakistan, I Reaffirmed Iran's Commitment To Peace In The Region. The Only Way To End This War\u2014Ignited By The Zionist Regime & U.S.\u2014is Recognizing Iran's Legitimate Rights, Payment Of Reparations, And Firm Int'l Guarantees Against Future Aggression",
+        "relevance_label": "symbol_linked",
+        "source": "alpaca_or_fallback",
+        "summary": "Iran's President Says Talking To Leaders Of Russia And Pakistan, I Reaffirmed Iran's Commitment To Peace In The Region. The Only Way To End This War\u2014Ignited By The Zionist Regim...",
+        "symbols": [
+          "SPY",
+          "USO"
+        ],
+        "timestamp": "2026-03-12T08:12:42.620931+00:00",
+        "url": "https://www.benzinga.com/news/26/03/51195899/irans-president-says-talking-to-leaders-of-russia-and-pakistan-i-reaffirmed-irans-commitment-to-peac"
+      }
+    ],
     "market_calendar": [],
     "market_clock": {
       "debug": {
-        "timestamp": null
+        "timestamp": "2026-03-12T04:12:42.717648376-04:00"
       },
       "is_open": false,
-      "next_close": null,
-      "next_open": null,
-      "session_label": "unknown",
+      "next_close": "2026-03-12T20:00:00+00:00",
+      "next_open": "2026-03-12T13:30:00+00:00",
+      "session_label": "premarket",
       "source": "alpaca",
-      "timestamp": "2026-03-12T06:24:34.829412+00:00"
+      "timestamp": "2026-03-12T08:12:42.620931+00:00"
     },
-    "most_active": [
-      {
-        "last_price": 103.0,
-        "source": "alpaca_or_derived",
-        "symbol": "QQQ",
-        "timestamp": "2026-03-12T06:24:34.829412+00:00",
-        "trade_count": null,
-        "volume": 350000.0
-      },
-      {
-        "last_price": 103.0,
-        "source": "alpaca_or_derived",
-        "symbol": "NVDA",
-        "timestamp": "2026-03-12T06:24:34.829412+00:00",
-        "trade_count": null,
-        "volume": 350000.0
-      },
-      {
-        "last_price": 103.0,
-        "source": "alpaca_or_derived",
-        "symbol": "MSFT",
-        "timestamp": "2026-03-12T06:24:34.829412+00:00",
-        "trade_count": null,
-        "volume": 350000.0
-      },
-      {
-        "last_price": 103.0,
-        "source": "alpaca_or_derived",
-        "symbol": "SPY",
-        "timestamp": "2026-03-12T06:24:34.829412+00:00",
-        "trade_count": null,
-        "volume": 350000.0
-      },
-      {
-        "last_price": 103.0,
-        "source": "alpaca_or_derived",
-        "symbol": "META",
-        "timestamp": "2026-03-12T06:24:34.829412+00:00",
-        "trade_count": null,
-        "volume": 350000.0
-      },
-      {
-        "last_price": 103.0,
-        "source": "alpaca_or_derived",
-        "symbol": "AMD",
-        "timestamp": "2026-03-12T06:24:34.829412+00:00",
-        "trade_count": null,
-        "volume": 350000.0
-      }
-    ],
+    "most_active": [],
     "regime": {
       "debug": {
         "breadth_bias": "risk_on",
-        "evaluated_at": "2026-03-12T06:24:34.829412+00:00",
-        "has_major_news": false,
+        "evaluated_at": "2026-03-12T08:12:42.620931+00:00",
+        "has_major_news": true,
         "intraday_range_state": "expanded",
         "qqq_trend_pct": 1.3381,
         "spy_trend_pct": 1.3381,
         "volume_bias": "normal"
       },
       "reasons": [
-        "index trend magnitude elevated (1.34%)",
+        "major catalyst headlines detected",
         "breadth is risk_on",
         "market is not in regular session"
       ],
-      "regime_confidence": 0.78,
-      "regime_label": "volatile",
+      "regime_confidence": 0.83,
+      "regime_label": "news_event",
       "source": "market_regime_engine",
-      "timestamp": "2026-03-12T06:24:34.829412+00:00"
+      "timestamp": "2026-03-12T08:12:42.620931+00:00"
     },
     "source": "market_intelligence_service",
     "top_movers": [
       {
         "debug": {
           "raw": {
-            "change_pct": 0.45,
-            "mover_type": "derived",
-            "price": 103.0,
-            "symbol": "QQQ",
-            "volume": 350000.0
+            "change_pct": 113.33,
+            "mover_type": "gainer",
+            "price": 0.016,
+            "symbol": "NVVEW",
+            "volume": null
           }
         },
         "direction": "up",
-        "last_price": 103.0,
-        "move_pct": 0.45,
-        "mover_type": "derived",
+        "last_price": 0.016,
+        "move_pct": 113.33,
+        "mover_type": "gainer",
         "source": "alpaca_or_derived",
-        "symbol": "QQQ",
-        "timestamp": "2026-03-12T06:24:34.829412+00:00",
-        "volume": 350000.0
+        "symbol": "NVVEW",
+        "timestamp": "2026-03-12T08:12:42.620931+00:00",
+        "volume": null
       },
       {
         "debug": {
           "raw": {
-            "change_pct": 0.45,
-            "mover_type": "derived",
-            "price": 103.0,
-            "symbol": "NVDA",
-            "volume": 350000.0
+            "change_pct": 107.93,
+            "mover_type": "gainer",
+            "price": 6.03,
+            "symbol": "ACXP",
+            "volume": null
           }
         },
         "direction": "up",
-        "last_price": 103.0,
-        "move_pct": 0.45,
-        "mover_type": "derived",
+        "last_price": 6.03,
+        "move_pct": 107.93,
+        "mover_type": "gainer",
         "source": "alpaca_or_derived",
-        "symbol": "NVDA",
-        "timestamp": "2026-03-12T06:24:34.829412+00:00",
-        "volume": 350000.0
+        "symbol": "ACXP",
+        "timestamp": "2026-03-12T08:12:42.620931+00:00",
+        "volume": null
       },
       {
         "debug": {
           "raw": {
-            "change_pct": 0.45,
-            "mover_type": "derived",
-            "price": 103.0,
-            "symbol": "MSFT",
-            "volume": 350000.0
+            "change_pct": 84.21,
+            "mover_type": "gainer",
+            "price": 0.07,
+            "symbol": "SXTPW",
+            "volume": null
           }
         },
         "direction": "up",
-        "last_price": 103.0,
-        "move_pct": 0.45,
-        "mover_type": "derived",
+        "last_price": 0.07,
+        "move_pct": 84.21,
+        "mover_type": "gainer",
         "source": "alpaca_or_derived",
-        "symbol": "MSFT",
-        "timestamp": "2026-03-12T06:24:34.829412+00:00",
-        "volume": 350000.0
+        "symbol": "SXTPW",
+        "timestamp": "2026-03-12T08:12:42.620931+00:00",
+        "volume": null
       },
       {
         "debug": {
           "raw": {
-            "change_pct": 0.45,
-            "mover_type": "derived",
-            "price": 103.0,
-            "symbol": "SPY",
-            "volume": 350000.0
+            "change_pct": 74.5,
+            "mover_type": "gainer",
+            "price": 0.4982,
+            "symbol": "SAFX",
+            "volume": null
           }
         },
         "direction": "up",
-        "last_price": 103.0,
-        "move_pct": 0.45,
-        "mover_type": "derived",
+        "last_price": 0.4982,
+        "move_pct": 74.5,
+        "mover_type": "gainer",
         "source": "alpaca_or_derived",
-        "symbol": "SPY",
-        "timestamp": "2026-03-12T06:24:34.829412+00:00",
-        "volume": 350000.0
+        "symbol": "SAFX",
+        "timestamp": "2026-03-12T08:12:42.620931+00:00",
+        "volume": null
       },
       {
         "debug": {
           "raw": {
-            "change_pct": 0.45,
-            "mover_type": "derived",
-            "price": 103.0,
-            "symbol": "META",
-            "volume": 350000.0
+            "change_pct": 71.28,
+            "mover_type": "gainer",
+            "price": 3.22,
+            "symbol": "SXTP",
+            "volume": null
           }
         },
         "direction": "up",
-        "last_price": 103.0,
-        "move_pct": 0.45,
-        "mover_type": "derived",
+        "last_price": 3.22,
+        "move_pct": 71.28,
+        "mover_type": "gainer",
         "source": "alpaca_or_derived",
-        "symbol": "META",
-        "timestamp": "2026-03-12T06:24:34.829412+00:00",
-        "volume": 350000.0
+        "symbol": "SXTP",
+        "timestamp": "2026-03-12T08:12:42.620931+00:00",
+        "volume": null
       },
       {
         "debug": {
           "raw": {
-            "change_pct": 0.45,
-            "mover_type": "derived",
-            "price": 103.0,
-            "symbol": "AMD",
-            "volume": 350000.0
+            "change_pct": 60.93,
+            "mover_type": "gainer",
+            "price": 0.0346,
+            "symbol": "ZOOZW",
+            "volume": null
           }
         },
         "direction": "up",
-        "last_price": 103.0,
-        "move_pct": 0.45,
-        "mover_type": "derived",
+        "last_price": 0.0346,
+        "move_pct": 60.93,
+        "mover_type": "gainer",
         "source": "alpaca_or_derived",
-        "symbol": "AMD",
-        "timestamp": "2026-03-12T06:24:34.829412+00:00",
-        "volume": 350000.0
+        "symbol": "ZOOZW",
+        "timestamp": "2026-03-12T08:12:42.620931+00:00",
+        "volume": null
+      },
+      {
+        "debug": {
+          "raw": {
+            "change_pct": 59.19,
+            "mover_type": "gainer",
+            "price": 0.11,
+            "symbol": "BUI.RTWI",
+            "volume": null
+          }
+        },
+        "direction": "up",
+        "last_price": 0.11,
+        "move_pct": 59.19,
+        "mover_type": "gainer",
+        "source": "alpaca_or_derived",
+        "symbol": "BUI.RTWI",
+        "timestamp": "2026-03-12T08:12:42.620931+00:00",
+        "volume": null
+      },
+      {
+        "debug": {
+          "raw": {
+            "change_pct": 54.14,
+            "mover_type": "gainer",
+            "price": 0.0689,
+            "symbol": "NXPLW",
+            "volume": null
+          }
+        },
+        "direction": "up",
+        "last_price": 0.0689,
+        "move_pct": 54.14,
+        "mover_type": "gainer",
+        "source": "alpaca_or_derived",
+        "symbol": "NXPLW",
+        "timestamp": "2026-03-12T08:12:42.620931+00:00",
+        "volume": null
+      },
+      {
+        "debug": {
+          "raw": {
+            "change_pct": 49.89,
+            "mover_type": "gainer",
+            "price": 34.1,
+            "symbol": "NVTX",
+            "volume": null
+          }
+        },
+        "direction": "up",
+        "last_price": 34.1,
+        "move_pct": 49.89,
+        "mover_type": "gainer",
+        "source": "alpaca_or_derived",
+        "symbol": "NVTX",
+        "timestamp": "2026-03-12T08:12:42.620931+00:00",
+        "volume": null
+      },
+      {
+        "debug": {
+          "raw": {
+            "change_pct": 47.57,
+            "mover_type": "gainer",
+            "price": 0.555,
+            "symbol": "ASNS",
+            "volume": null
+          }
+        },
+        "direction": "up",
+        "last_price": 0.555,
+        "move_pct": 47.57,
+        "mover_type": "gainer",
+        "source": "alpaca_or_derived",
+        "symbol": "ASNS",
+        "timestamp": "2026-03-12T08:12:42.620931+00:00",
+        "volume": null
       }
     ]
   },
-  "latest_market_regime": "volatile",
+  "latest_market_regime": "news_event",
   "latest_premarket_gameplan": {
     "agenda_notes": [
-      "Market posture is mixed. Regime is volatile (0.78).",
+      "Market posture is mixed. Regime is news_event (0.83).",
+      "Key catalysts: Stryker Confirms Cybersecurity Incident Disrupting Microsoft Environment; Systems Access Limited As Investigation And Restoration Efforts Continue, Xbox To Start Introducing New Console To Developers In Early 2027, Why Astera Labs Shares Are Surging On Wednesday.",
       "Top watchlist focus: NVDA, MSFT, META."
     ],
     "debug": {
@@ -398,202 +960,312 @@
     "earnings_today": [],
     "futures_or_index_context": {
       "is_open": false,
-      "regime_confidence": 0.78,
-      "regime_label": "volatile",
-      "session_label": "unknown"
+      "regime_confidence": 0.83,
+      "regime_label": "news_event",
+      "session_label": "premarket"
     },
-    "generated_at": "2026-03-12T06:24:34.829412+00:00",
-    "key_catalysts": [],
+    "generated_at": "2026-03-12T08:12:42.620931+00:00",
+    "key_catalysts": [
+      {
+        "category": "regulatory",
+        "debug": {
+          "relevance": "symbol_linked",
+          "score": 4
+        },
+        "headline": "Stryker Confirms Cybersecurity Incident Disrupting Microsoft Environment; Systems Access Limited As Investigation And Restoration Efforts Continue",
+        "priority": "priority_medium",
+        "scope": "symbol",
+        "summary": "Stryker Confirms Cybersecurity Incident Disrupting Microsoft Environment; Systems Access Limited As Investigation And Restoration Efforts Continue",
+        "symbols": [
+          "MSFT",
+          "SYK"
+        ]
+      },
+      {
+        "category": "unknown",
+        "debug": {
+          "relevance": "symbol_linked",
+          "score": 2
+        },
+        "headline": "Xbox To Start Introducing New Console To Developers In Early 2027",
+        "priority": "priority_low",
+        "scope": "symbol",
+        "summary": "Xbox To Start Introducing New Console To Developers In Early 2027",
+        "symbols": [
+          "MSFT"
+        ]
+      },
+      {
+        "category": "analyst",
+        "debug": {
+          "relevance": "symbol_linked",
+          "score": 2
+        },
+        "headline": "Why Astera Labs Shares Are Surging On Wednesday",
+        "priority": "priority_low",
+        "scope": "symbol",
+        "summary": "ALAB stock is surging. Learn why analysts are bullish on Astera Labs Inc (NASDAQ: ALAB) and its role in the AI infrastructure super-cycle.",
+        "symbols": [
+          "ALAB",
+          "AMZN",
+          "NVDA"
+        ]
+      },
+      {
+        "category": "unknown",
+        "debug": {
+          "relevance": "symbol_linked",
+          "score": 2
+        },
+        "headline": "Trump Says U.S. Will Reduce Strategic Petroleum Reserve 'A Little Bit'",
+        "priority": "priority_low",
+        "scope": "symbol",
+        "summary": "Trump Says U.S. Will Reduce Strategic Petroleum Reserve 'A Little Bit'",
+        "symbols": [
+          "SPY",
+          "USO"
+        ]
+      },
+      {
+        "category": "unknown",
+        "debug": {
+          "relevance": "symbol_linked",
+          "score": 2
+        },
+        "headline": "President Trump On Iran Says Knocked Out 58 Iranian Naval Ships; We Don't Want To Go Back Every Two Years",
+        "priority": "priority_low",
+        "scope": "symbol",
+        "summary": "President Trump On Iran Says Knocked Out 58 Iranian Naval Ships; We Don't Want To Go Back Every Two Years",
+        "symbols": [
+          "SPY",
+          "USO"
+        ]
+      },
+      {
+        "category": "unknown",
+        "debug": {
+          "relevance": "symbol_linked",
+          "score": 2
+        },
+        "headline": "Jensen Huang Takes Nvidia's Alpamayo Self-Driving Tech For A Spin, Says It 'Drives Like A Human'",
+        "priority": "priority_low",
+        "scope": "symbol",
+        "summary": "Nvidia&#39;s CEO showcases Alpamayo self-driving tech in a video, touting its human-like driving and upcoming Robotaxi network.",
+        "symbols": [
+          "HSAI",
+          "NVDA"
+        ]
+      },
+      {
+        "category": "unknown",
+        "debug": {
+          "relevance": "symbol_linked",
+          "score": 2
+        },
+        "headline": "Iran's President Says Talking To Leaders Of Russia And Pakistan, I Reaffirmed Iran's Commitment To Peace In The Region. The Only Way To End This War\u2014Ignited By The Zionist Regime & U.S.\u2014is Recognizing Iran's Legitimate Rights, Payment Of Reparations, And Firm Int'l Guarantees Against Future Aggression",
+        "priority": "priority_low",
+        "scope": "symbol",
+        "summary": "Iran's President Says Talking To Leaders Of Russia And Pakistan, I Reaffirmed Iran's Commitment To Peace In The Region. The Only Way To End This War\u2014Ignited By The Zionist Regim...",
+        "symbols": [
+          "SPY",
+          "USO"
+        ]
+      },
+      {
+        "category": "unknown",
+        "debug": {
+          "relevance": "symbol_linked",
+          "score": 2
+        },
+        "headline": "Iran's Foreign Minister Araghchi Says National Infrastructure Is Under Attack. This Time, A Branch Of My Country's Oldest Bank Was Bombed While Full Of Employees. They Were Laboring To Ensure Iranians Have Food On The Table Ahead Of Our New Year.",
+        "priority": "priority_low",
+        "scope": "symbol",
+        "summary": "Iran's Foreign Minister Araghchi Says National Infrastructure Is Under Attack. This Time, A Branch Of My Country's Oldest Bank Was Bombed While Full Of Employees. They Were Labo...",
+        "symbols": [
+          "SPY",
+          "USO"
+        ]
+      }
+    ],
     "market_posture": {
       "debug": {
         "earnings_density": 0,
-        "macro_count": 0,
+        "macro_count": 1,
         "mover_concentration": 4
       },
       "posture_label": "mixed",
       "reasons": [
-        "Regime is volatile at confidence 0.78.",
+        "Regime is news_event at confidence 0.83.",
         "Session is outside normal premarket/open windows."
       ],
-      "regime_confidence": 0.78,
-      "regime_label": "volatile",
-      "session_label": "unknown"
+      "regime_confidence": 0.83,
+      "regime_label": "news_event",
+      "session_label": "premarket"
     },
-    "most_active_context": [
-      {
-        "last_price": 103.0,
-        "source": "alpaca_or_derived",
-        "symbol": "QQQ",
-        "timestamp": "2026-03-12T06:24:34.829412+00:00",
-        "trade_count": null,
-        "volume": 350000.0
-      },
-      {
-        "last_price": 103.0,
-        "source": "alpaca_or_derived",
-        "symbol": "NVDA",
-        "timestamp": "2026-03-12T06:24:34.829412+00:00",
-        "trade_count": null,
-        "volume": 350000.0
-      },
-      {
-        "last_price": 103.0,
-        "source": "alpaca_or_derived",
-        "symbol": "MSFT",
-        "timestamp": "2026-03-12T06:24:34.829412+00:00",
-        "trade_count": null,
-        "volume": 350000.0
-      },
-      {
-        "last_price": 103.0,
-        "source": "alpaca_or_derived",
-        "symbol": "SPY",
-        "timestamp": "2026-03-12T06:24:34.829412+00:00",
-        "trade_count": null,
-        "volume": 350000.0
-      },
-      {
-        "last_price": 103.0,
-        "source": "alpaca_or_derived",
-        "symbol": "META",
-        "timestamp": "2026-03-12T06:24:34.829412+00:00",
-        "trade_count": null,
-        "volume": 350000.0
-      },
-      {
-        "last_price": 103.0,
-        "source": "alpaca_or_derived",
-        "symbol": "AMD",
-        "timestamp": "2026-03-12T06:24:34.829412+00:00",
-        "trade_count": null,
-        "volume": 350000.0
-      }
-    ],
+    "most_active_context": [],
     "movers_to_watch": [
       {
         "debug": {
           "raw": {
-            "change_pct": 0.45,
-            "mover_type": "derived",
-            "price": 103.0,
-            "symbol": "QQQ",
-            "volume": 350000.0
+            "change_pct": 113.33,
+            "mover_type": "gainer",
+            "price": 0.016,
+            "symbol": "NVVEW",
+            "volume": null
           }
         },
         "direction": "up",
-        "last_price": 103.0,
-        "move_pct": 0.45,
-        "mover_type": "derived",
+        "last_price": 0.016,
+        "move_pct": 113.33,
+        "mover_type": "gainer",
         "source": "alpaca_or_derived",
-        "symbol": "QQQ",
-        "timestamp": "2026-03-12T06:24:34.829412+00:00",
-        "volume": 350000.0
+        "symbol": "NVVEW",
+        "timestamp": "2026-03-12T08:12:42.620931+00:00",
+        "volume": null
       },
       {
         "debug": {
           "raw": {
-            "change_pct": 0.45,
-            "mover_type": "derived",
-            "price": 103.0,
-            "symbol": "NVDA",
-            "volume": 350000.0
+            "change_pct": 107.93,
+            "mover_type": "gainer",
+            "price": 6.03,
+            "symbol": "ACXP",
+            "volume": null
           }
         },
         "direction": "up",
-        "last_price": 103.0,
-        "move_pct": 0.45,
-        "mover_type": "derived",
+        "last_price": 6.03,
+        "move_pct": 107.93,
+        "mover_type": "gainer",
         "source": "alpaca_or_derived",
-        "symbol": "NVDA",
-        "timestamp": "2026-03-12T06:24:34.829412+00:00",
-        "volume": 350000.0
+        "symbol": "ACXP",
+        "timestamp": "2026-03-12T08:12:42.620931+00:00",
+        "volume": null
       },
       {
         "debug": {
           "raw": {
-            "change_pct": 0.45,
-            "mover_type": "derived",
-            "price": 103.0,
-            "symbol": "MSFT",
-            "volume": 350000.0
+            "change_pct": 84.21,
+            "mover_type": "gainer",
+            "price": 0.07,
+            "symbol": "SXTPW",
+            "volume": null
           }
         },
         "direction": "up",
-        "last_price": 103.0,
-        "move_pct": 0.45,
-        "mover_type": "derived",
+        "last_price": 0.07,
+        "move_pct": 84.21,
+        "mover_type": "gainer",
         "source": "alpaca_or_derived",
-        "symbol": "MSFT",
-        "timestamp": "2026-03-12T06:24:34.829412+00:00",
-        "volume": 350000.0
+        "symbol": "SXTPW",
+        "timestamp": "2026-03-12T08:12:42.620931+00:00",
+        "volume": null
       },
       {
         "debug": {
           "raw": {
-            "change_pct": 0.45,
-            "mover_type": "derived",
-            "price": 103.0,
-            "symbol": "SPY",
-            "volume": 350000.0
+            "change_pct": 74.5,
+            "mover_type": "gainer",
+            "price": 0.4982,
+            "symbol": "SAFX",
+            "volume": null
           }
         },
         "direction": "up",
-        "last_price": 103.0,
-        "move_pct": 0.45,
-        "mover_type": "derived",
+        "last_price": 0.4982,
+        "move_pct": 74.5,
+        "mover_type": "gainer",
         "source": "alpaca_or_derived",
-        "symbol": "SPY",
-        "timestamp": "2026-03-12T06:24:34.829412+00:00",
-        "volume": 350000.0
+        "symbol": "SAFX",
+        "timestamp": "2026-03-12T08:12:42.620931+00:00",
+        "volume": null
       },
       {
         "debug": {
           "raw": {
-            "change_pct": 0.45,
-            "mover_type": "derived",
-            "price": 103.0,
-            "symbol": "META",
-            "volume": 350000.0
+            "change_pct": 71.28,
+            "mover_type": "gainer",
+            "price": 3.22,
+            "symbol": "SXTP",
+            "volume": null
           }
         },
         "direction": "up",
-        "last_price": 103.0,
-        "move_pct": 0.45,
-        "mover_type": "derived",
+        "last_price": 3.22,
+        "move_pct": 71.28,
+        "mover_type": "gainer",
         "source": "alpaca_or_derived",
-        "symbol": "META",
-        "timestamp": "2026-03-12T06:24:34.829412+00:00",
-        "volume": 350000.0
+        "symbol": "SXTP",
+        "timestamp": "2026-03-12T08:12:42.620931+00:00",
+        "volume": null
       },
       {
         "debug": {
           "raw": {
-            "change_pct": 0.45,
-            "mover_type": "derived",
-            "price": 103.0,
-            "symbol": "AMD",
-            "volume": 350000.0
+            "change_pct": 60.93,
+            "mover_type": "gainer",
+            "price": 0.0346,
+            "symbol": "ZOOZW",
+            "volume": null
           }
         },
         "direction": "up",
-        "last_price": 103.0,
-        "move_pct": 0.45,
-        "mover_type": "derived",
+        "last_price": 0.0346,
+        "move_pct": 60.93,
+        "mover_type": "gainer",
         "source": "alpaca_or_derived",
-        "symbol": "AMD",
-        "timestamp": "2026-03-12T06:24:34.829412+00:00",
-        "volume": 350000.0
+        "symbol": "ZOOZW",
+        "timestamp": "2026-03-12T08:12:42.620931+00:00",
+        "volume": null
+      },
+      {
+        "debug": {
+          "raw": {
+            "change_pct": 59.19,
+            "mover_type": "gainer",
+            "price": 0.11,
+            "symbol": "BUI.RTWI",
+            "volume": null
+          }
+        },
+        "direction": "up",
+        "last_price": 0.11,
+        "move_pct": 59.19,
+        "mover_type": "gainer",
+        "source": "alpaca_or_derived",
+        "symbol": "BUI.RTWI",
+        "timestamp": "2026-03-12T08:12:42.620931+00:00",
+        "volume": null
+      },
+      {
+        "debug": {
+          "raw": {
+            "change_pct": 54.14,
+            "mover_type": "gainer",
+            "price": 0.0689,
+            "symbol": "NXPLW",
+            "volume": null
+          }
+        },
+        "direction": "up",
+        "last_price": 0.0689,
+        "move_pct": 54.14,
+        "mover_type": "gainer",
+        "source": "alpaca_or_derived",
+        "symbol": "NXPLW",
+        "timestamp": "2026-03-12T08:12:42.620931+00:00",
+        "volume": null
       }
     ],
     "opportunities": [
-      "High-priority watchlist names: NVDA, MSFT, META."
+      "Selective monitoring posture; wait for cleaner alignment."
     ],
-    "regime_confidence": 0.78,
-    "regime_label": "volatile",
+    "regime_confidence": 0.83,
+    "regime_label": "news_event",
     "risks": [],
     "summary": {
-      "catalyst_count": 0,
-      "headline": "Market posture is mixed. Regime is volatile (0.78).",
+      "catalyst_count": 8,
+      "headline": "Market posture is mixed. Regime is news_event (0.83).",
       "opportunity_count": 1,
       "posture": "mixed",
       "risk_count": 0,
@@ -606,90 +1278,83 @@
     "watchlist_priorities": [
       {
         "debug": {
-          "has_activity": true,
-          "has_mover": true,
-          "news_count": 0
+          "has_activity": false,
+          "has_mover": false,
+          "news_count": 2
         },
-        "priority": "priority_high",
+        "priority": "priority_medium",
         "reasons": [
           "Aligned with broad market context.",
-          "Appears in top movers.",
-          "Shows elevated activity."
+          "Has symbol-specific catalyst."
         ],
-        "score": 4.0,
+        "score": 3.5,
         "symbol": "NVDA"
       },
       {
         "debug": {
-          "has_activity": true,
-          "has_mover": true,
-          "news_count": 0
+          "has_activity": false,
+          "has_mover": false,
+          "news_count": 3
         },
-        "priority": "priority_high",
+        "priority": "priority_medium",
         "reasons": [
           "Aligned with broad market context.",
-          "Appears in top movers.",
-          "Shows elevated activity."
+          "Has symbol-specific catalyst."
         ],
-        "score": 4.0,
+        "score": 3.5,
         "symbol": "MSFT"
       },
       {
         "debug": {
-          "has_activity": true,
-          "has_mover": true,
-          "news_count": 0
+          "has_activity": false,
+          "has_mover": false,
+          "news_count": 1
         },
-        "priority": "priority_high",
+        "priority": "priority_medium",
         "reasons": [
           "Aligned with broad market context.",
-          "Appears in top movers.",
-          "Shows elevated activity."
+          "Has symbol-specific catalyst."
         ],
-        "score": 4.0,
+        "score": 3.5,
         "symbol": "META"
       },
       {
         "debug": {
-          "has_activity": true,
-          "has_mover": true,
+          "has_activity": false,
+          "has_mover": false,
           "news_count": 0
         },
-        "priority": "priority_high",
+        "priority": "priority_medium",
         "reasons": [
-          "Aligned with broad market context.",
-          "Appears in top movers.",
-          "Shows elevated activity."
+          "Aligned with broad market context."
         ],
-        "score": 4.0,
+        "score": 2.0,
         "symbol": "AMD"
       },
       {
         "debug": {
-          "has_activity": true,
-          "has_mover": true,
-          "news_count": 0
+          "has_activity": false,
+          "has_mover": false,
+          "news_count": 6
         },
-        "priority": "priority_medium",
+        "priority": "priority_low",
         "reasons": [
-          "Appears in top movers.",
-          "Shows elevated activity."
+          "Has symbol-specific catalyst."
         ],
-        "score": 2.0,
+        "score": 1.5,
         "symbol": "SPY"
       },
       {
         "debug": {
-          "has_activity": true,
-          "has_mover": true,
+          "has_activity": false,
+          "has_mover": false,
           "news_count": 0
         },
-        "priority": "priority_medium",
+        "priority": "monitor_only",
         "reasons": [
-          "Appears in top movers.",
-          "Shows elevated activity."
+          "No meaningful catalyst or alignment edge."
         ],
-        "score": 2.0,
+        "score": 0.0,
         "symbol": "QQQ"
       }
     ]
@@ -701,6 +1366,174 @@
   "latest_trade_plan_tracking": {},
   "latest_trade_review": {},
   "latest_visual_explanation": {},
+  "llm_summaries": {
+    "market_intelligence": {
+      "allow_trade_logic_override": false,
+      "core_payload_preserved": true,
+      "deterministic_text": "Market regime is news_event with confidence 0.83. Top movers: NVVEW, ACXP, SXTPW.",
+      "generated_at": "2026-03-12T08:12:43.074054+00:00",
+      "generation": {
+        "content": "Market regime is news_event with 83% confidence. Top movers include NVVEW, ACXP, and SXTPW.",
+        "error": null,
+        "finish_reason": "stop",
+        "model": "llama3.1:latest",
+        "provider_name": "ollama",
+        "raw_response": {
+          "done": true,
+          "eval_count": 27,
+          "prompt_eval_count": 4096
+        },
+        "success": true
+      },
+      "llm_used": true,
+      "model": "llama3.1:latest",
+      "narrative_text": "Market regime is news_event with 83% confidence. Top movers include NVVEW, ACXP, and SXTPW.",
+      "payload_keys": [
+        "cross_symbol_context",
+        "debug",
+        "earnings",
+        "generated_at",
+        "key_news",
+        "market_calendar",
+        "market_clock",
+        "most_active",
+        "regime",
+        "source",
+        "top_movers"
+      ],
+      "provider_name": "ollama",
+      "source": "ollama",
+      "summary_id": "market_intelligence-917cc1f960",
+      "summary_type": "market_intelligence"
+    },
+    "premarket_gameplan": {
+      "allow_trade_logic_override": false,
+      "core_payload_preserved": true,
+      "deterministic_text": "Market posture is mixed. Regime is news_event (0.83). Posture mixed. Top watchlist: NVDA, MSFT, META.",
+      "generated_at": "2026-03-12T08:13:06.616267+00:00",
+      "generation": {
+        "content": "Market posture is mixed, driven by a news_event regime with 83% confidence. The top watchlist symbols are NVDA, MSFT, and META.",
+        "error": null,
+        "finish_reason": "stop",
+        "model": "llama3.1:latest",
+        "provider_name": "ollama",
+        "raw_response": {
+          "done": true,
+          "eval_count": 33,
+          "prompt_eval_count": 2819
+        },
+        "success": true
+      },
+      "llm_used": true,
+      "model": "llama3.1:latest",
+      "narrative_text": "Market posture is mixed, driven by a news_event regime with 83% confidence. The top watchlist symbols are NVDA, MSFT, and META.",
+      "payload_keys": [
+        "agenda_notes",
+        "debug",
+        "earnings_today",
+        "futures_or_index_context",
+        "generated_at",
+        "key_catalysts",
+        "market_posture",
+        "most_active_context",
+        "movers_to_watch",
+        "opportunities",
+        "regime_confidence",
+        "regime_label",
+        "risks",
+        "summary",
+        "watchlist_priorities"
+      ],
+      "provider_name": "ollama",
+      "source": "ollama",
+      "summary_id": "premarket_gameplan-117200ae23",
+      "summary_type": "premarket_gameplan"
+    }
+  },
+  "llm_summary_history": [
+    {
+      "allow_trade_logic_override": false,
+      "core_payload_preserved": true,
+      "deterministic_text": "Market regime is news_event with confidence 0.83. Top movers: NVVEW, ACXP, SXTPW.",
+      "generated_at": "2026-03-12T08:12:43.074054+00:00",
+      "generation": {
+        "content": "Market regime is news_event with 83% confidence. Top movers include NVVEW, ACXP, and SXTPW.",
+        "error": null,
+        "finish_reason": "stop",
+        "model": "llama3.1:latest",
+        "provider_name": "ollama",
+        "raw_response": {
+          "done": true,
+          "eval_count": 27,
+          "prompt_eval_count": 4096
+        },
+        "success": true
+      },
+      "llm_used": true,
+      "model": "llama3.1:latest",
+      "narrative_text": "Market regime is news_event with 83% confidence. Top movers include NVVEW, ACXP, and SXTPW.",
+      "payload_keys": [
+        "cross_symbol_context",
+        "debug",
+        "earnings",
+        "generated_at",
+        "key_news",
+        "market_calendar",
+        "market_clock",
+        "most_active",
+        "regime",
+        "source",
+        "top_movers"
+      ],
+      "provider_name": "ollama",
+      "source": "ollama",
+      "summary_id": "market_intelligence-917cc1f960",
+      "summary_type": "market_intelligence"
+    },
+    {
+      "allow_trade_logic_override": false,
+      "core_payload_preserved": true,
+      "deterministic_text": "Market posture is mixed. Regime is news_event (0.83). Posture mixed. Top watchlist: NVDA, MSFT, META.",
+      "generated_at": "2026-03-12T08:13:06.616267+00:00",
+      "generation": {
+        "content": "Market posture is mixed, driven by a news_event regime with 83% confidence. The top watchlist symbols are NVDA, MSFT, and META.",
+        "error": null,
+        "finish_reason": "stop",
+        "model": "llama3.1:latest",
+        "provider_name": "ollama",
+        "raw_response": {
+          "done": true,
+          "eval_count": 33,
+          "prompt_eval_count": 2819
+        },
+        "success": true
+      },
+      "llm_used": true,
+      "model": "llama3.1:latest",
+      "narrative_text": "Market posture is mixed, driven by a news_event regime with 83% confidence. The top watchlist symbols are NVDA, MSFT, and META.",
+      "payload_keys": [
+        "agenda_notes",
+        "debug",
+        "earnings_today",
+        "futures_or_index_context",
+        "generated_at",
+        "key_catalysts",
+        "market_posture",
+        "most_active_context",
+        "movers_to_watch",
+        "opportunities",
+        "regime_confidence",
+        "regime_label",
+        "risks",
+        "summary",
+        "watchlist_priorities"
+      ],
+      "provider_name": "ollama",
+      "source": "ollama",
+      "summary_id": "premarket_gameplan-117200ae23",
+      "summary_type": "premarket_gameplan"
+    }
+  ],
   "market_intelligence_history": [
     {
       "cross_symbol_context": {
@@ -728,7 +1561,7 @@
           "sector_proxy": "SMH",
           "source": "cross_symbol_context_engine",
           "symbol": "AMD",
-          "timestamp": "2026-03-12T06:24:34.829412+00:00"
+          "timestamp": "2026-03-12T08:12:42.620931+00:00"
         },
         "META": {
           "alignment_label": "aligned",
@@ -754,7 +1587,7 @@
           "sector_proxy": "XLC",
           "source": "cross_symbol_context_engine",
           "symbol": "META",
-          "timestamp": "2026-03-12T06:24:34.829412+00:00"
+          "timestamp": "2026-03-12T08:12:42.620931+00:00"
         },
         "MSFT": {
           "alignment_label": "aligned",
@@ -780,7 +1613,7 @@
           "sector_proxy": "XLK",
           "source": "cross_symbol_context_engine",
           "symbol": "MSFT",
-          "timestamp": "2026-03-12T06:24:34.829412+00:00"
+          "timestamp": "2026-03-12T08:12:42.620931+00:00"
         },
         "NVDA": {
           "alignment_label": "aligned",
@@ -806,219 +1639,532 @@
           "sector_proxy": "SMH",
           "source": "cross_symbol_context_engine",
           "symbol": "NVDA",
-          "timestamp": "2026-03-12T06:24:34.829412+00:00"
+          "timestamp": "2026-03-12T08:12:42.620931+00:00"
         }
       },
       "debug": {
         "news_summary": {
-          "catalyst_breakdown": {},
-          "headline_count": 0,
-          "key_items": [],
+          "catalyst_breakdown": {
+            "analyst": 1,
+            "regulatory": 1,
+            "unknown": 10
+          },
+          "headline_count": 12,
+          "key_items": [
+            {
+              "catalyst_type": "unknown",
+              "debug": {
+                "raw_id": 51204454
+              },
+              "headline": "Jensen Huang Takes Nvidia's Alpamayo Self-Driving Tech For A Spin, Says It 'Drives Like A Human'",
+              "relevance_label": "symbol_linked",
+              "source": "alpaca_or_fallback",
+              "summary": "Nvidia&#39;s CEO showcases Alpamayo self-driving tech in a video, touting its human-like driving and upcoming Robotaxi network.",
+              "symbols": [
+                "HSAI",
+                "NVDA"
+              ],
+              "timestamp": "2026-03-12T08:12:42.620931+00:00",
+              "url": "https://www.benzinga.com/markets/tech/26/03/51204454/jensen-huang-takes-nvidias-alpamayo-self-driving-tech-for-a-spin-says-it-drives-like-a-human"
+            },
+            {
+              "catalyst_type": "regulatory",
+              "debug": {
+                "raw_id": 51203250
+              },
+              "headline": "Stryker Confirms Cybersecurity Incident Disrupting Microsoft Environment; Systems Access Limited As Investigation And Restoration Efforts Continue",
+              "relevance_label": "symbol_linked",
+              "source": "alpaca_or_fallback",
+              "summary": "Stryker Confirms Cybersecurity Incident Disrupting Microsoft Environment; Systems Access Limited As Investigation And Restoration Efforts Continue",
+              "symbols": [
+                "MSFT",
+                "SYK"
+              ],
+              "timestamp": "2026-03-12T08:12:42.620931+00:00",
+              "url": "https://www.benzinga.com/news/26/03/51203250/stryker-confirms-cybersecurity-incident-disrupting-microsoft-environment-systems-access-limited-as-i"
+            },
+            {
+              "catalyst_type": "unknown",
+              "debug": {
+                "raw_id": 51200630
+              },
+              "headline": "President Trump On Iran Says Knocked Out 58 Iranian Naval Ships; We Don't Want To Go Back Every Two Years",
+              "relevance_label": "symbol_linked",
+              "source": "alpaca_or_fallback",
+              "summary": "President Trump On Iran Says Knocked Out 58 Iranian Naval Ships; We Don't Want To Go Back Every Two Years",
+              "symbols": [
+                "SPY",
+                "USO"
+              ],
+              "timestamp": "2026-03-12T08:12:42.620931+00:00",
+              "url": "https://www.benzinga.com/news/26/03/51200630/president-trump-on-iran-says-knocked-out-58-iranian-naval-ships-we-dont-want-to-go-back-every-two-ye"
+            },
+            {
+              "catalyst_type": "unknown",
+              "debug": {
+                "raw_id": 51199780
+              },
+              "headline": "Trump Says U.S. Will Reduce Strategic Petroleum Reserve 'A Little Bit'",
+              "relevance_label": "symbol_linked",
+              "source": "alpaca_or_fallback",
+              "summary": "Trump Says U.S. Will Reduce Strategic Petroleum Reserve 'A Little Bit'",
+              "symbols": [
+                "SPY",
+                "USO"
+              ],
+              "timestamp": "2026-03-12T08:12:42.620931+00:00",
+              "url": "https://www.benzinga.com/economics/macro-economic-events/26/03/51199780/trump-says-u-s-will-reduce-strategic-petroleum-reserve-a-little-bit"
+            },
+            {
+              "catalyst_type": "unknown",
+              "debug": {
+                "raw_id": 51199703
+              },
+              "headline": "'Pentagon Going After Goldman Sachs, Morgan Stanley, JPMorgan, BofA As Prime Recruiting Targets For 30-Person Defense Deals Team' - Semafor",
+              "relevance_label": "symbol_linked",
+              "source": "alpaca_or_fallback",
+              "summary": "'Pentagon Going After Goldman Sachs, Morgan Stanley, JPMorgan, BofA As Prime Recruiting Targets For 30-Person Defense Deals Team' - Semafor",
+              "symbols": [
+                "BAC",
+                "GS",
+                "JPM",
+                "MS",
+                "SPY"
+              ],
+              "timestamp": "2026-03-12T08:12:42.620931+00:00",
+              "url": "https://www.benzinga.com/news/26/03/51199703/pentagon-going-after-goldman-sachs-morgan-stanley-jpmorgan-bofa-as-prime-recruiting-targets-for-30-p"
+            }
+          ],
           "source": "alpaca_or_fallback",
-          "timestamp": "2026-03-12T06:24:34.829412+00:00"
+          "timestamp": "2026-03-12T08:12:42.620931+00:00"
         },
-        "source_available": false
+        "source_available": true
       },
       "earnings": [],
-      "generated_at": "2026-03-12T06:24:34.829412+00:00",
-      "key_news": [],
+      "generated_at": "2026-03-12T08:12:42.620931+00:00",
+      "key_news": [
+        {
+          "catalyst_type": "unknown",
+          "debug": {
+            "raw_id": 51204454
+          },
+          "headline": "Jensen Huang Takes Nvidia's Alpamayo Self-Driving Tech For A Spin, Says It 'Drives Like A Human'",
+          "relevance_label": "symbol_linked",
+          "source": "alpaca_or_fallback",
+          "summary": "Nvidia&#39;s CEO showcases Alpamayo self-driving tech in a video, touting its human-like driving and upcoming Robotaxi network.",
+          "symbols": [
+            "HSAI",
+            "NVDA"
+          ],
+          "timestamp": "2026-03-12T08:12:42.620931+00:00",
+          "url": "https://www.benzinga.com/markets/tech/26/03/51204454/jensen-huang-takes-nvidias-alpamayo-self-driving-tech-for-a-spin-says-it-drives-like-a-human"
+        },
+        {
+          "catalyst_type": "regulatory",
+          "debug": {
+            "raw_id": 51203250
+          },
+          "headline": "Stryker Confirms Cybersecurity Incident Disrupting Microsoft Environment; Systems Access Limited As Investigation And Restoration Efforts Continue",
+          "relevance_label": "symbol_linked",
+          "source": "alpaca_or_fallback",
+          "summary": "Stryker Confirms Cybersecurity Incident Disrupting Microsoft Environment; Systems Access Limited As Investigation And Restoration Efforts Continue",
+          "symbols": [
+            "MSFT",
+            "SYK"
+          ],
+          "timestamp": "2026-03-12T08:12:42.620931+00:00",
+          "url": "https://www.benzinga.com/news/26/03/51203250/stryker-confirms-cybersecurity-incident-disrupting-microsoft-environment-systems-access-limited-as-i"
+        },
+        {
+          "catalyst_type": "unknown",
+          "debug": {
+            "raw_id": 51200630
+          },
+          "headline": "President Trump On Iran Says Knocked Out 58 Iranian Naval Ships; We Don't Want To Go Back Every Two Years",
+          "relevance_label": "symbol_linked",
+          "source": "alpaca_or_fallback",
+          "summary": "President Trump On Iran Says Knocked Out 58 Iranian Naval Ships; We Don't Want To Go Back Every Two Years",
+          "symbols": [
+            "SPY",
+            "USO"
+          ],
+          "timestamp": "2026-03-12T08:12:42.620931+00:00",
+          "url": "https://www.benzinga.com/news/26/03/51200630/president-trump-on-iran-says-knocked-out-58-iranian-naval-ships-we-dont-want-to-go-back-every-two-ye"
+        },
+        {
+          "catalyst_type": "unknown",
+          "debug": {
+            "raw_id": 51199780
+          },
+          "headline": "Trump Says U.S. Will Reduce Strategic Petroleum Reserve 'A Little Bit'",
+          "relevance_label": "symbol_linked",
+          "source": "alpaca_or_fallback",
+          "summary": "Trump Says U.S. Will Reduce Strategic Petroleum Reserve 'A Little Bit'",
+          "symbols": [
+            "SPY",
+            "USO"
+          ],
+          "timestamp": "2026-03-12T08:12:42.620931+00:00",
+          "url": "https://www.benzinga.com/economics/macro-economic-events/26/03/51199780/trump-says-u-s-will-reduce-strategic-petroleum-reserve-a-little-bit"
+        },
+        {
+          "catalyst_type": "unknown",
+          "debug": {
+            "raw_id": 51199703
+          },
+          "headline": "'Pentagon Going After Goldman Sachs, Morgan Stanley, JPMorgan, BofA As Prime Recruiting Targets For 30-Person Defense Deals Team' - Semafor",
+          "relevance_label": "symbol_linked",
+          "source": "alpaca_or_fallback",
+          "summary": "'Pentagon Going After Goldman Sachs, Morgan Stanley, JPMorgan, BofA As Prime Recruiting Targets For 30-Person Defense Deals Team' - Semafor",
+          "symbols": [
+            "BAC",
+            "GS",
+            "JPM",
+            "MS",
+            "SPY"
+          ],
+          "timestamp": "2026-03-12T08:12:42.620931+00:00",
+          "url": "https://www.benzinga.com/news/26/03/51199703/pentagon-going-after-goldman-sachs-morgan-stanley-jpmorgan-bofa-as-prime-recruiting-targets-for-30-p"
+        },
+        {
+          "catalyst_type": "unknown",
+          "debug": {
+            "raw_id": 51197485
+          },
+          "headline": "Xbox To Start Introducing New Console To Developers In Early 2027",
+          "relevance_label": "symbol_linked",
+          "source": "alpaca_or_fallback",
+          "summary": "Xbox To Start Introducing New Console To Developers In Early 2027",
+          "symbols": [
+            "MSFT"
+          ],
+          "timestamp": "2026-03-12T08:12:42.620931+00:00",
+          "url": "https://www.benzinga.com/news/26/03/51197485/xbox-to-start-introducing-new-console-to-developers-in-early-2027"
+        },
+        {
+          "catalyst_type": "analyst",
+          "debug": {
+            "raw_id": 51197239
+          },
+          "headline": "Why Astera Labs Shares Are Surging On Wednesday",
+          "relevance_label": "symbol_linked",
+          "source": "alpaca_or_fallback",
+          "summary": "ALAB stock is surging. Learn why analysts are bullish on Astera Labs Inc (NASDAQ: ALAB) and its role in the AI infrastructure super-cycle.",
+          "symbols": [
+            "ALAB",
+            "AMZN",
+            "NVDA"
+          ],
+          "timestamp": "2026-03-12T08:12:42.620931+00:00",
+          "url": "https://www.benzinga.com/trading-ideas/movers/26/03/51197239/why-astera-labs-shares-are-surging-on-wednesday"
+        },
+        {
+          "catalyst_type": "unknown",
+          "debug": {
+            "raw_id": 51197014
+          },
+          "headline": "Iran's Foreign Minister Araghchi Says National Infrastructure Is Under Attack. This Time, A Branch Of My Country's Oldest Bank Was Bombed While Full Of Employees. They Were Laboring To Ensure Iranians Have Food On The Table Ahead Of Our New Year.",
+          "relevance_label": "symbol_linked",
+          "source": "alpaca_or_fallback",
+          "summary": "Iran's Foreign Minister Araghchi Says National Infrastructure Is Under Attack. This Time, A Branch Of My Country's Oldest Bank Was Bombed While Full Of Employees. They Were Labo...",
+          "symbols": [
+            "SPY",
+            "USO"
+          ],
+          "timestamp": "2026-03-12T08:12:42.620931+00:00",
+          "url": "https://www.benzinga.com/news/26/03/51197014/irans-foreign-minister-araghchi-says-national-infrastructure-is-under-attack-this-time-a-branch-of-m"
+        },
+        {
+          "catalyst_type": "unknown",
+          "debug": {
+            "raw_id": 51196838
+          },
+          "headline": "'Iran Says Truce Depends on US, Israel Pledging No Future Strikes' - Bloomberg",
+          "relevance_label": "symbol_linked",
+          "source": "alpaca_or_fallback",
+          "summary": "'Iran Says Truce Depends on US, Israel Pledging No Future Strikes' - Bloomberg",
+          "symbols": [
+            "SPY",
+            "USO"
+          ],
+          "timestamp": "2026-03-12T08:12:42.620931+00:00",
+          "url": "https://www.benzinga.com/news/26/03/51196838/iran-says-truce-depends-on-us-israel-pledging-no-future-strikes-bloomberg"
+        },
+        {
+          "catalyst_type": "unknown",
+          "debug": {
+            "raw_id": 51196353
+          },
+          "headline": "'Microsoft In Talks To Lease Large Texas Data Center Site After Oracle Walked Away' - The Information Exclusive",
+          "relevance_label": "symbol_linked",
+          "source": "alpaca_or_fallback",
+          "summary": "'Microsoft In Talks To Lease Large Texas Data Center Site After Oracle Walked Away' - The Information Exclusive",
+          "symbols": [
+            "MSFT"
+          ],
+          "timestamp": "2026-03-12T08:12:42.620931+00:00",
+          "url": "https://www.benzinga.com/news/26/03/51196353/microsoft-in-talks-to-lease-large-texas-data-center-site-after-oracle-walked-away-the-information-ex"
+        },
+        {
+          "catalyst_type": "unknown",
+          "debug": {
+            "raw_id": 51195966
+          },
+          "headline": "Broadcom Debuts Powerful Chip To Handle AI's Exploding Data Needs",
+          "relevance_label": "symbol_linked",
+          "source": "alpaca_or_fallback",
+          "summary": "Broadcom unveils the Taurus BCM83640 chip, enabling 1.6T data modules to supercharge AI data center efficiency and networking speed.",
+          "symbols": [
+            "AVGO",
+            "FLEX",
+            "GOOGL",
+            "META",
+            "TSM"
+          ],
+          "timestamp": "2026-03-12T08:12:42.620931+00:00",
+          "url": "https://www.benzinga.com/markets/tech/26/03/51195966/broadcom-debuts-powerful-chip-to-handle-ais-exploding-data-needs"
+        },
+        {
+          "catalyst_type": "unknown",
+          "debug": {
+            "raw_id": 51195899
+          },
+          "headline": "Iran's President Says Talking To Leaders Of Russia And Pakistan, I Reaffirmed Iran's Commitment To Peace In The Region. The Only Way To End This War\u2014Ignited By The Zionist Regime & U.S.\u2014is Recognizing Iran's Legitimate Rights, Payment Of Reparations, And Firm Int'l Guarantees Against Future Aggression",
+          "relevance_label": "symbol_linked",
+          "source": "alpaca_or_fallback",
+          "summary": "Iran's President Says Talking To Leaders Of Russia And Pakistan, I Reaffirmed Iran's Commitment To Peace In The Region. The Only Way To End This War\u2014Ignited By The Zionist Regim...",
+          "symbols": [
+            "SPY",
+            "USO"
+          ],
+          "timestamp": "2026-03-12T08:12:42.620931+00:00",
+          "url": "https://www.benzinga.com/news/26/03/51195899/irans-president-says-talking-to-leaders-of-russia-and-pakistan-i-reaffirmed-irans-commitment-to-peac"
+        }
+      ],
       "market_calendar": [],
       "market_clock": {
         "debug": {
-          "timestamp": null
+          "timestamp": "2026-03-12T04:12:42.717648376-04:00"
         },
         "is_open": false,
-        "next_close": null,
-        "next_open": null,
-        "session_label": "unknown",
+        "next_close": "2026-03-12T20:00:00+00:00",
+        "next_open": "2026-03-12T13:30:00+00:00",
+        "session_label": "premarket",
         "source": "alpaca",
-        "timestamp": "2026-03-12T06:24:34.829412+00:00"
+        "timestamp": "2026-03-12T08:12:42.620931+00:00"
       },
-      "most_active": [
-        {
-          "last_price": 103.0,
-          "source": "alpaca_or_derived",
-          "symbol": "QQQ",
-          "timestamp": "2026-03-12T06:24:34.829412+00:00",
-          "trade_count": null,
-          "volume": 350000.0
-        },
-        {
-          "last_price": 103.0,
-          "source": "alpaca_or_derived",
-          "symbol": "NVDA",
-          "timestamp": "2026-03-12T06:24:34.829412+00:00",
-          "trade_count": null,
-          "volume": 350000.0
-        },
-        {
-          "last_price": 103.0,
-          "source": "alpaca_or_derived",
-          "symbol": "MSFT",
-          "timestamp": "2026-03-12T06:24:34.829412+00:00",
-          "trade_count": null,
-          "volume": 350000.0
-        },
-        {
-          "last_price": 103.0,
-          "source": "alpaca_or_derived",
-          "symbol": "SPY",
-          "timestamp": "2026-03-12T06:24:34.829412+00:00",
-          "trade_count": null,
-          "volume": 350000.0
-        },
-        {
-          "last_price": 103.0,
-          "source": "alpaca_or_derived",
-          "symbol": "META",
-          "timestamp": "2026-03-12T06:24:34.829412+00:00",
-          "trade_count": null,
-          "volume": 350000.0
-        },
-        {
-          "last_price": 103.0,
-          "source": "alpaca_or_derived",
-          "symbol": "AMD",
-          "timestamp": "2026-03-12T06:24:34.829412+00:00",
-          "trade_count": null,
-          "volume": 350000.0
-        }
-      ],
+      "most_active": [],
       "regime": {
         "debug": {
           "breadth_bias": "risk_on",
-          "evaluated_at": "2026-03-12T06:24:34.829412+00:00",
-          "has_major_news": false,
+          "evaluated_at": "2026-03-12T08:12:42.620931+00:00",
+          "has_major_news": true,
           "intraday_range_state": "expanded",
           "qqq_trend_pct": 1.3381,
           "spy_trend_pct": 1.3381,
           "volume_bias": "normal"
         },
         "reasons": [
-          "index trend magnitude elevated (1.34%)",
+          "major catalyst headlines detected",
           "breadth is risk_on",
           "market is not in regular session"
         ],
-        "regime_confidence": 0.78,
-        "regime_label": "volatile",
+        "regime_confidence": 0.83,
+        "regime_label": "news_event",
         "source": "market_regime_engine",
-        "timestamp": "2026-03-12T06:24:34.829412+00:00"
+        "timestamp": "2026-03-12T08:12:42.620931+00:00"
       },
       "source": "market_intelligence_service",
       "top_movers": [
         {
           "debug": {
             "raw": {
-              "change_pct": 0.45,
-              "mover_type": "derived",
-              "price": 103.0,
-              "symbol": "QQQ",
-              "volume": 350000.0
+              "change_pct": 113.33,
+              "mover_type": "gainer",
+              "price": 0.016,
+              "symbol": "NVVEW",
+              "volume": null
             }
           },
           "direction": "up",
-          "last_price": 103.0,
-          "move_pct": 0.45,
-          "mover_type": "derived",
+          "last_price": 0.016,
+          "move_pct": 113.33,
+          "mover_type": "gainer",
           "source": "alpaca_or_derived",
-          "symbol": "QQQ",
-          "timestamp": "2026-03-12T06:24:34.829412+00:00",
-          "volume": 350000.0
+          "symbol": "NVVEW",
+          "timestamp": "2026-03-12T08:12:42.620931+00:00",
+          "volume": null
         },
         {
           "debug": {
             "raw": {
-              "change_pct": 0.45,
-              "mover_type": "derived",
-              "price": 103.0,
-              "symbol": "NVDA",
-              "volume": 350000.0
+              "change_pct": 107.93,
+              "mover_type": "gainer",
+              "price": 6.03,
+              "symbol": "ACXP",
+              "volume": null
             }
           },
           "direction": "up",
-          "last_price": 103.0,
-          "move_pct": 0.45,
-          "mover_type": "derived",
+          "last_price": 6.03,
+          "move_pct": 107.93,
+          "mover_type": "gainer",
           "source": "alpaca_or_derived",
-          "symbol": "NVDA",
-          "timestamp": "2026-03-12T06:24:34.829412+00:00",
-          "volume": 350000.0
+          "symbol": "ACXP",
+          "timestamp": "2026-03-12T08:12:42.620931+00:00",
+          "volume": null
         },
         {
           "debug": {
             "raw": {
-              "change_pct": 0.45,
-              "mover_type": "derived",
-              "price": 103.0,
-              "symbol": "MSFT",
-              "volume": 350000.0
+              "change_pct": 84.21,
+              "mover_type": "gainer",
+              "price": 0.07,
+              "symbol": "SXTPW",
+              "volume": null
             }
           },
           "direction": "up",
-          "last_price": 103.0,
-          "move_pct": 0.45,
-          "mover_type": "derived",
+          "last_price": 0.07,
+          "move_pct": 84.21,
+          "mover_type": "gainer",
           "source": "alpaca_or_derived",
-          "symbol": "MSFT",
-          "timestamp": "2026-03-12T06:24:34.829412+00:00",
-          "volume": 350000.0
+          "symbol": "SXTPW",
+          "timestamp": "2026-03-12T08:12:42.620931+00:00",
+          "volume": null
         },
         {
           "debug": {
             "raw": {
-              "change_pct": 0.45,
-              "mover_type": "derived",
-              "price": 103.0,
-              "symbol": "SPY",
-              "volume": 350000.0
+              "change_pct": 74.5,
+              "mover_type": "gainer",
+              "price": 0.4982,
+              "symbol": "SAFX",
+              "volume": null
             }
           },
           "direction": "up",
-          "last_price": 103.0,
-          "move_pct": 0.45,
-          "mover_type": "derived",
+          "last_price": 0.4982,
+          "move_pct": 74.5,
+          "mover_type": "gainer",
           "source": "alpaca_or_derived",
-          "symbol": "SPY",
-          "timestamp": "2026-03-12T06:24:34.829412+00:00",
-          "volume": 350000.0
+          "symbol": "SAFX",
+          "timestamp": "2026-03-12T08:12:42.620931+00:00",
+          "volume": null
         },
         {
           "debug": {
             "raw": {
-              "change_pct": 0.45,
-              "mover_type": "derived",
-              "price": 103.0,
-              "symbol": "META",
-              "volume": 350000.0
+              "change_pct": 71.28,
+              "mover_type": "gainer",
+              "price": 3.22,
+              "symbol": "SXTP",
+              "volume": null
             }
           },
           "direction": "up",
-          "last_price": 103.0,
-          "move_pct": 0.45,
-          "mover_type": "derived",
+          "last_price": 3.22,
+          "move_pct": 71.28,
+          "mover_type": "gainer",
           "source": "alpaca_or_derived",
-          "symbol": "META",
-          "timestamp": "2026-03-12T06:24:34.829412+00:00",
-          "volume": 350000.0
+          "symbol": "SXTP",
+          "timestamp": "2026-03-12T08:12:42.620931+00:00",
+          "volume": null
         },
         {
           "debug": {
             "raw": {
-              "change_pct": 0.45,
-              "mover_type": "derived",
-              "price": 103.0,
-              "symbol": "AMD",
-              "volume": 350000.0
+              "change_pct": 60.93,
+              "mover_type": "gainer",
+              "price": 0.0346,
+              "symbol": "ZOOZW",
+              "volume": null
             }
           },
           "direction": "up",
-          "last_price": 103.0,
-          "move_pct": 0.45,
-          "mover_type": "derived",
+          "last_price": 0.0346,
+          "move_pct": 60.93,
+          "mover_type": "gainer",
           "source": "alpaca_or_derived",
-          "symbol": "AMD",
-          "timestamp": "2026-03-12T06:24:34.829412+00:00",
-          "volume": 350000.0
+          "symbol": "ZOOZW",
+          "timestamp": "2026-03-12T08:12:42.620931+00:00",
+          "volume": null
+        },
+        {
+          "debug": {
+            "raw": {
+              "change_pct": 59.19,
+              "mover_type": "gainer",
+              "price": 0.11,
+              "symbol": "BUI.RTWI",
+              "volume": null
+            }
+          },
+          "direction": "up",
+          "last_price": 0.11,
+          "move_pct": 59.19,
+          "mover_type": "gainer",
+          "source": "alpaca_or_derived",
+          "symbol": "BUI.RTWI",
+          "timestamp": "2026-03-12T08:12:42.620931+00:00",
+          "volume": null
+        },
+        {
+          "debug": {
+            "raw": {
+              "change_pct": 54.14,
+              "mover_type": "gainer",
+              "price": 0.0689,
+              "symbol": "NXPLW",
+              "volume": null
+            }
+          },
+          "direction": "up",
+          "last_price": 0.0689,
+          "move_pct": 54.14,
+          "mover_type": "gainer",
+          "source": "alpaca_or_derived",
+          "symbol": "NXPLW",
+          "timestamp": "2026-03-12T08:12:42.620931+00:00",
+          "volume": null
+        },
+        {
+          "debug": {
+            "raw": {
+              "change_pct": 49.89,
+              "mover_type": "gainer",
+              "price": 34.1,
+              "symbol": "NVTX",
+              "volume": null
+            }
+          },
+          "direction": "up",
+          "last_price": 34.1,
+          "move_pct": 49.89,
+          "mover_type": "gainer",
+          "source": "alpaca_or_derived",
+          "symbol": "NVTX",
+          "timestamp": "2026-03-12T08:12:42.620931+00:00",
+          "volume": null
+        },
+        {
+          "debug": {
+            "raw": {
+              "change_pct": 47.57,
+              "mover_type": "gainer",
+              "price": 0.555,
+              "symbol": "ASNS",
+              "volume": null
+            }
+          },
+          "direction": "up",
+          "last_price": 0.555,
+          "move_pct": 47.57,
+          "mover_type": "gainer",
+          "source": "alpaca_or_derived",
+          "symbol": "ASNS",
+          "timestamp": "2026-03-12T08:12:42.620931+00:00",
+          "volume": null
         }
       ]
     }
@@ -1026,7 +2172,8 @@
   "premarket_gameplan_history": [
     {
       "agenda_notes": [
-        "Market posture is mixed. Regime is volatile (0.78).",
+        "Market posture is mixed. Regime is news_event (0.83).",
+        "Key catalysts: Stryker Confirms Cybersecurity Incident Disrupting Microsoft Environment; Systems Access Limited As Investigation And Restoration Efforts Continue, Xbox To Start Introducing New Console To Developers In Early 2027, Why Astera Labs Shares Are Surging On Wednesday.",
         "Top watchlist focus: NVDA, MSFT, META."
       ],
       "debug": {
@@ -1036,202 +2183,312 @@
       "earnings_today": [],
       "futures_or_index_context": {
         "is_open": false,
-        "regime_confidence": 0.78,
-        "regime_label": "volatile",
-        "session_label": "unknown"
+        "regime_confidence": 0.83,
+        "regime_label": "news_event",
+        "session_label": "premarket"
       },
-      "generated_at": "2026-03-12T06:24:34.829412+00:00",
-      "key_catalysts": [],
+      "generated_at": "2026-03-12T08:12:42.620931+00:00",
+      "key_catalysts": [
+        {
+          "category": "regulatory",
+          "debug": {
+            "relevance": "symbol_linked",
+            "score": 4
+          },
+          "headline": "Stryker Confirms Cybersecurity Incident Disrupting Microsoft Environment; Systems Access Limited As Investigation And Restoration Efforts Continue",
+          "priority": "priority_medium",
+          "scope": "symbol",
+          "summary": "Stryker Confirms Cybersecurity Incident Disrupting Microsoft Environment; Systems Access Limited As Investigation And Restoration Efforts Continue",
+          "symbols": [
+            "MSFT",
+            "SYK"
+          ]
+        },
+        {
+          "category": "unknown",
+          "debug": {
+            "relevance": "symbol_linked",
+            "score": 2
+          },
+          "headline": "Xbox To Start Introducing New Console To Developers In Early 2027",
+          "priority": "priority_low",
+          "scope": "symbol",
+          "summary": "Xbox To Start Introducing New Console To Developers In Early 2027",
+          "symbols": [
+            "MSFT"
+          ]
+        },
+        {
+          "category": "analyst",
+          "debug": {
+            "relevance": "symbol_linked",
+            "score": 2
+          },
+          "headline": "Why Astera Labs Shares Are Surging On Wednesday",
+          "priority": "priority_low",
+          "scope": "symbol",
+          "summary": "ALAB stock is surging. Learn why analysts are bullish on Astera Labs Inc (NASDAQ: ALAB) and its role in the AI infrastructure super-cycle.",
+          "symbols": [
+            "ALAB",
+            "AMZN",
+            "NVDA"
+          ]
+        },
+        {
+          "category": "unknown",
+          "debug": {
+            "relevance": "symbol_linked",
+            "score": 2
+          },
+          "headline": "Trump Says U.S. Will Reduce Strategic Petroleum Reserve 'A Little Bit'",
+          "priority": "priority_low",
+          "scope": "symbol",
+          "summary": "Trump Says U.S. Will Reduce Strategic Petroleum Reserve 'A Little Bit'",
+          "symbols": [
+            "SPY",
+            "USO"
+          ]
+        },
+        {
+          "category": "unknown",
+          "debug": {
+            "relevance": "symbol_linked",
+            "score": 2
+          },
+          "headline": "President Trump On Iran Says Knocked Out 58 Iranian Naval Ships; We Don't Want To Go Back Every Two Years",
+          "priority": "priority_low",
+          "scope": "symbol",
+          "summary": "President Trump On Iran Says Knocked Out 58 Iranian Naval Ships; We Don't Want To Go Back Every Two Years",
+          "symbols": [
+            "SPY",
+            "USO"
+          ]
+        },
+        {
+          "category": "unknown",
+          "debug": {
+            "relevance": "symbol_linked",
+            "score": 2
+          },
+          "headline": "Jensen Huang Takes Nvidia's Alpamayo Self-Driving Tech For A Spin, Says It 'Drives Like A Human'",
+          "priority": "priority_low",
+          "scope": "symbol",
+          "summary": "Nvidia&#39;s CEO showcases Alpamayo self-driving tech in a video, touting its human-like driving and upcoming Robotaxi network.",
+          "symbols": [
+            "HSAI",
+            "NVDA"
+          ]
+        },
+        {
+          "category": "unknown",
+          "debug": {
+            "relevance": "symbol_linked",
+            "score": 2
+          },
+          "headline": "Iran's President Says Talking To Leaders Of Russia And Pakistan, I Reaffirmed Iran's Commitment To Peace In The Region. The Only Way To End This War\u2014Ignited By The Zionist Regime & U.S.\u2014is Recognizing Iran's Legitimate Rights, Payment Of Reparations, And Firm Int'l Guarantees Against Future Aggression",
+          "priority": "priority_low",
+          "scope": "symbol",
+          "summary": "Iran's President Says Talking To Leaders Of Russia And Pakistan, I Reaffirmed Iran's Commitment To Peace In The Region. The Only Way To End This War\u2014Ignited By The Zionist Regim...",
+          "symbols": [
+            "SPY",
+            "USO"
+          ]
+        },
+        {
+          "category": "unknown",
+          "debug": {
+            "relevance": "symbol_linked",
+            "score": 2
+          },
+          "headline": "Iran's Foreign Minister Araghchi Says National Infrastructure Is Under Attack. This Time, A Branch Of My Country's Oldest Bank Was Bombed While Full Of Employees. They Were Laboring To Ensure Iranians Have Food On The Table Ahead Of Our New Year.",
+          "priority": "priority_low",
+          "scope": "symbol",
+          "summary": "Iran's Foreign Minister Araghchi Says National Infrastructure Is Under Attack. This Time, A Branch Of My Country's Oldest Bank Was Bombed While Full Of Employees. They Were Labo...",
+          "symbols": [
+            "SPY",
+            "USO"
+          ]
+        }
+      ],
       "market_posture": {
         "debug": {
           "earnings_density": 0,
-          "macro_count": 0,
+          "macro_count": 1,
           "mover_concentration": 4
         },
         "posture_label": "mixed",
         "reasons": [
-          "Regime is volatile at confidence 0.78.",
+          "Regime is news_event at confidence 0.83.",
           "Session is outside normal premarket/open windows."
         ],
-        "regime_confidence": 0.78,
-        "regime_label": "volatile",
-        "session_label": "unknown"
+        "regime_confidence": 0.83,
+        "regime_label": "news_event",
+        "session_label": "premarket"
       },
-      "most_active_context": [
-        {
-          "last_price": 103.0,
-          "source": "alpaca_or_derived",
-          "symbol": "QQQ",
-          "timestamp": "2026-03-12T06:24:34.829412+00:00",
-          "trade_count": null,
-          "volume": 350000.0
-        },
-        {
-          "last_price": 103.0,
-          "source": "alpaca_or_derived",
-          "symbol": "NVDA",
-          "timestamp": "2026-03-12T06:24:34.829412+00:00",
-          "trade_count": null,
-          "volume": 350000.0
-        },
-        {
-          "last_price": 103.0,
-          "source": "alpaca_or_derived",
-          "symbol": "MSFT",
-          "timestamp": "2026-03-12T06:24:34.829412+00:00",
-          "trade_count": null,
-          "volume": 350000.0
-        },
-        {
-          "last_price": 103.0,
-          "source": "alpaca_or_derived",
-          "symbol": "SPY",
-          "timestamp": "2026-03-12T06:24:34.829412+00:00",
-          "trade_count": null,
-          "volume": 350000.0
-        },
-        {
-          "last_price": 103.0,
-          "source": "alpaca_or_derived",
-          "symbol": "META",
-          "timestamp": "2026-03-12T06:24:34.829412+00:00",
-          "trade_count": null,
-          "volume": 350000.0
-        },
-        {
-          "last_price": 103.0,
-          "source": "alpaca_or_derived",
-          "symbol": "AMD",
-          "timestamp": "2026-03-12T06:24:34.829412+00:00",
-          "trade_count": null,
-          "volume": 350000.0
-        }
-      ],
+      "most_active_context": [],
       "movers_to_watch": [
         {
           "debug": {
             "raw": {
-              "change_pct": 0.45,
-              "mover_type": "derived",
-              "price": 103.0,
-              "symbol": "QQQ",
-              "volume": 350000.0
+              "change_pct": 113.33,
+              "mover_type": "gainer",
+              "price": 0.016,
+              "symbol": "NVVEW",
+              "volume": null
             }
           },
           "direction": "up",
-          "last_price": 103.0,
-          "move_pct": 0.45,
-          "mover_type": "derived",
+          "last_price": 0.016,
+          "move_pct": 113.33,
+          "mover_type": "gainer",
           "source": "alpaca_or_derived",
-          "symbol": "QQQ",
-          "timestamp": "2026-03-12T06:24:34.829412+00:00",
-          "volume": 350000.0
+          "symbol": "NVVEW",
+          "timestamp": "2026-03-12T08:12:42.620931+00:00",
+          "volume": null
         },
         {
           "debug": {
             "raw": {
-              "change_pct": 0.45,
-              "mover_type": "derived",
-              "price": 103.0,
-              "symbol": "NVDA",
-              "volume": 350000.0
+              "change_pct": 107.93,
+              "mover_type": "gainer",
+              "price": 6.03,
+              "symbol": "ACXP",
+              "volume": null
             }
           },
           "direction": "up",
-          "last_price": 103.0,
-          "move_pct": 0.45,
-          "mover_type": "derived",
+          "last_price": 6.03,
+          "move_pct": 107.93,
+          "mover_type": "gainer",
           "source": "alpaca_or_derived",
-          "symbol": "NVDA",
-          "timestamp": "2026-03-12T06:24:34.829412+00:00",
-          "volume": 350000.0
+          "symbol": "ACXP",
+          "timestamp": "2026-03-12T08:12:42.620931+00:00",
+          "volume": null
         },
         {
           "debug": {
             "raw": {
-              "change_pct": 0.45,
-              "mover_type": "derived",
-              "price": 103.0,
-              "symbol": "MSFT",
-              "volume": 350000.0
+              "change_pct": 84.21,
+              "mover_type": "gainer",
+              "price": 0.07,
+              "symbol": "SXTPW",
+              "volume": null
             }
           },
           "direction": "up",
-          "last_price": 103.0,
-          "move_pct": 0.45,
-          "mover_type": "derived",
+          "last_price": 0.07,
+          "move_pct": 84.21,
+          "mover_type": "gainer",
           "source": "alpaca_or_derived",
-          "symbol": "MSFT",
-          "timestamp": "2026-03-12T06:24:34.829412+00:00",
-          "volume": 350000.0
+          "symbol": "SXTPW",
+          "timestamp": "2026-03-12T08:12:42.620931+00:00",
+          "volume": null
         },
         {
           "debug": {
             "raw": {
-              "change_pct": 0.45,
-              "mover_type": "derived",
-              "price": 103.0,
-              "symbol": "SPY",
-              "volume": 350000.0
+              "change_pct": 74.5,
+              "mover_type": "gainer",
+              "price": 0.4982,
+              "symbol": "SAFX",
+              "volume": null
             }
           },
           "direction": "up",
-          "last_price": 103.0,
-          "move_pct": 0.45,
-          "mover_type": "derived",
+          "last_price": 0.4982,
+          "move_pct": 74.5,
+          "mover_type": "gainer",
           "source": "alpaca_or_derived",
-          "symbol": "SPY",
-          "timestamp": "2026-03-12T06:24:34.829412+00:00",
-          "volume": 350000.0
+          "symbol": "SAFX",
+          "timestamp": "2026-03-12T08:12:42.620931+00:00",
+          "volume": null
         },
         {
           "debug": {
             "raw": {
-              "change_pct": 0.45,
-              "mover_type": "derived",
-              "price": 103.0,
-              "symbol": "META",
-              "volume": 350000.0
+              "change_pct": 71.28,
+              "mover_type": "gainer",
+              "price": 3.22,
+              "symbol": "SXTP",
+              "volume": null
             }
           },
           "direction": "up",
-          "last_price": 103.0,
-          "move_pct": 0.45,
-          "mover_type": "derived",
+          "last_price": 3.22,
+          "move_pct": 71.28,
+          "mover_type": "gainer",
           "source": "alpaca_or_derived",
-          "symbol": "META",
-          "timestamp": "2026-03-12T06:24:34.829412+00:00",
-          "volume": 350000.0
+          "symbol": "SXTP",
+          "timestamp": "2026-03-12T08:12:42.620931+00:00",
+          "volume": null
         },
         {
           "debug": {
             "raw": {
-              "change_pct": 0.45,
-              "mover_type": "derived",
-              "price": 103.0,
-              "symbol": "AMD",
-              "volume": 350000.0
+              "change_pct": 60.93,
+              "mover_type": "gainer",
+              "price": 0.0346,
+              "symbol": "ZOOZW",
+              "volume": null
             }
           },
           "direction": "up",
-          "last_price": 103.0,
-          "move_pct": 0.45,
-          "mover_type": "derived",
+          "last_price": 0.0346,
+          "move_pct": 60.93,
+          "mover_type": "gainer",
           "source": "alpaca_or_derived",
-          "symbol": "AMD",
-          "timestamp": "2026-03-12T06:24:34.829412+00:00",
-          "volume": 350000.0
+          "symbol": "ZOOZW",
+          "timestamp": "2026-03-12T08:12:42.620931+00:00",
+          "volume": null
+        },
+        {
+          "debug": {
+            "raw": {
+              "change_pct": 59.19,
+              "mover_type": "gainer",
+              "price": 0.11,
+              "symbol": "BUI.RTWI",
+              "volume": null
+            }
+          },
+          "direction": "up",
+          "last_price": 0.11,
+          "move_pct": 59.19,
+          "mover_type": "gainer",
+          "source": "alpaca_or_derived",
+          "symbol": "BUI.RTWI",
+          "timestamp": "2026-03-12T08:12:42.620931+00:00",
+          "volume": null
+        },
+        {
+          "debug": {
+            "raw": {
+              "change_pct": 54.14,
+              "mover_type": "gainer",
+              "price": 0.0689,
+              "symbol": "NXPLW",
+              "volume": null
+            }
+          },
+          "direction": "up",
+          "last_price": 0.0689,
+          "move_pct": 54.14,
+          "mover_type": "gainer",
+          "source": "alpaca_or_derived",
+          "symbol": "NXPLW",
+          "timestamp": "2026-03-12T08:12:42.620931+00:00",
+          "volume": null
         }
       ],
       "opportunities": [
-        "High-priority watchlist names: NVDA, MSFT, META."
+        "Selective monitoring posture; wait for cleaner alignment."
       ],
-      "regime_confidence": 0.78,
-      "regime_label": "volatile",
+      "regime_confidence": 0.83,
+      "regime_label": "news_event",
       "risks": [],
       "summary": {
-        "catalyst_count": 0,
-        "headline": "Market posture is mixed. Regime is volatile (0.78).",
+        "catalyst_count": 8,
+        "headline": "Market posture is mixed. Regime is news_event (0.83).",
         "opportunity_count": 1,
         "posture": "mixed",
         "risk_count": 0,
@@ -1244,90 +2501,83 @@
       "watchlist_priorities": [
         {
           "debug": {
-            "has_activity": true,
-            "has_mover": true,
-            "news_count": 0
+            "has_activity": false,
+            "has_mover": false,
+            "news_count": 2
           },
-          "priority": "priority_high",
+          "priority": "priority_medium",
           "reasons": [
             "Aligned with broad market context.",
-            "Appears in top movers.",
-            "Shows elevated activity."
+            "Has symbol-specific catalyst."
           ],
-          "score": 4.0,
+          "score": 3.5,
           "symbol": "NVDA"
         },
         {
           "debug": {
-            "has_activity": true,
-            "has_mover": true,
-            "news_count": 0
+            "has_activity": false,
+            "has_mover": false,
+            "news_count": 3
           },
-          "priority": "priority_high",
+          "priority": "priority_medium",
           "reasons": [
             "Aligned with broad market context.",
-            "Appears in top movers.",
-            "Shows elevated activity."
+            "Has symbol-specific catalyst."
           ],
-          "score": 4.0,
+          "score": 3.5,
           "symbol": "MSFT"
         },
         {
           "debug": {
-            "has_activity": true,
-            "has_mover": true,
-            "news_count": 0
+            "has_activity": false,
+            "has_mover": false,
+            "news_count": 1
           },
-          "priority": "priority_high",
+          "priority": "priority_medium",
           "reasons": [
             "Aligned with broad market context.",
-            "Appears in top movers.",
-            "Shows elevated activity."
+            "Has symbol-specific catalyst."
           ],
-          "score": 4.0,
+          "score": 3.5,
           "symbol": "META"
         },
         {
           "debug": {
-            "has_activity": true,
-            "has_mover": true,
+            "has_activity": false,
+            "has_mover": false,
             "news_count": 0
           },
-          "priority": "priority_high",
+          "priority": "priority_medium",
           "reasons": [
-            "Aligned with broad market context.",
-            "Appears in top movers.",
-            "Shows elevated activity."
+            "Aligned with broad market context."
           ],
-          "score": 4.0,
+          "score": 2.0,
           "symbol": "AMD"
         },
         {
           "debug": {
-            "has_activity": true,
-            "has_mover": true,
-            "news_count": 0
+            "has_activity": false,
+            "has_mover": false,
+            "news_count": 6
           },
-          "priority": "priority_medium",
+          "priority": "priority_low",
           "reasons": [
-            "Appears in top movers.",
-            "Shows elevated activity."
+            "Has symbol-specific catalyst."
           ],
-          "score": 2.0,
+          "score": 1.5,
           "symbol": "SPY"
         },
         {
           "debug": {
-            "has_activity": true,
-            "has_mover": true,
+            "has_activity": false,
+            "has_mover": false,
             "news_count": 0
           },
-          "priority": "priority_medium",
+          "priority": "monitor_only",
           "reasons": [
-            "Appears in top movers.",
-            "Shows elevated activity."
+            "No meaningful catalyst or alignment edge."
           ],
-          "score": 2.0,
+          "score": 0.0,
           "symbol": "QQQ"
         }
       ]
@@ -1337,6 +2587,73 @@
     "degraded": [],
     "policy": "warn_on_degraded",
     "providers": {
+      "alpaca_market_data": {
+        "active": true,
+        "metadata": {
+          "api_key_present": true,
+          "base_url": "https://paper-api.alpaca.markets",
+          "data_url": "https://data.alpaca.markets",
+          "enabled": true,
+          "historical_enabled": true,
+          "is_real_provider": true,
+          "mock_on_unavailable": true,
+          "secret_key_present": true,
+          "supports_historical_bars": true,
+          "supports_streaming": false
+        },
+        "provider_name": "alpaca",
+        "provider_type": "market_data",
+        "state": "ready"
+      },
+      "alpaca_options_data": {
+        "active": false,
+        "metadata": {
+          "api_key_present": true,
+          "enabled": false,
+          "is_real_provider": true,
+          "mock_on_unavailable": true,
+          "secret_key_present": true,
+          "supported": false,
+          "supports_chain_fetch": false
+        },
+        "provider_name": "alpaca_options",
+        "provider_type": "options_data",
+        "state": "disabled"
+      },
+      "historical_data": {
+        "active": true,
+        "metadata": {
+          "api_key_present": true,
+          "base_url": "https://paper-api.alpaca.markets",
+          "data_url": "https://data.alpaca.markets",
+          "enabled": true,
+          "historical_enabled": true,
+          "is_real_provider": true,
+          "mock_on_unavailable": true,
+          "secret_key_present": true,
+          "supports_historical_bars": true,
+          "supports_streaming": false
+        },
+        "provider_name": "alpaca",
+        "provider_type": "market_data",
+        "state": "ready"
+      },
+      "llm": {
+        "active": true,
+        "metadata": {
+          "api_key_present": false,
+          "available_models": [
+            "llama3.1:latest"
+          ],
+          "enabled": true,
+          "host": "http://localhost:11434",
+          "model": "llama3.1:latest",
+          "timeout_seconds": 30
+        },
+        "provider_name": "ollama",
+        "provider_type": "llm",
+        "state": "ready"
+      },
       "market_data": {
         "active": true,
         "metadata": {
@@ -1349,6 +2666,23 @@
         "provider_type": "market_data",
         "state": "mock"
       },
+      "market_intelligence": {
+        "active": true,
+        "metadata": {
+          "api_key_present": true,
+          "base_url": "https://paper-api.alpaca.markets",
+          "calendar_supported": true,
+          "clock_supported": true,
+          "data_url": "https://data.alpaca.markets",
+          "enabled": true,
+          "movers_supported": true,
+          "news_supported": true,
+          "secret_key_present": true
+        },
+        "provider_name": "alpaca",
+        "provider_type": "market_intelligence",
+        "state": "ready"
+      },
       "options_data": {
         "active": true,
         "metadata": {
@@ -1359,6 +2693,18 @@
         },
         "provider_name": "mock_chain",
         "provider_type": "options_data",
+        "state": "mock"
+      },
+      "runtime_market_loop": {
+        "active": true,
+        "metadata": {
+          "backend": "deterministic",
+          "is_real_provider": false,
+          "supports_historical_bars": true,
+          "supports_streaming": false
+        },
+        "provider_name": "mock_alpaca",
+        "provider_type": "market_data",
         "state": "mock"
       },
       "stt": {
@@ -1470,12 +2816,23 @@
           "state": "mock"
         }
       },
-      "timestamp": "2026-03-12T06:24:34.829969+00:00"
+      "timestamp": "2026-03-12T08:13:23.350198+00:00"
     }
   ],
+  "provider_routes": {
+    "historical_data_provider": "alpaca",
+    "market_intelligence_provider": "alpaca",
+    "options_runtime_provider": "mock",
+    "runtime_market_loop_provider": "mock"
+  },
   "provider_selection": {
+    "historical_data": "alpaca",
+    "llm": "ollama",
     "market_data": "mock_alpaca",
+    "market_intelligence": "alpaca",
     "options_data": "mock_chain",
+    "options_runtime": "mock_chain",
+    "runtime_market_loop": "mock_alpaca",
     "stt": "mock",
     "tts": "kokoro",
     "wakeword": "mock"
@@ -1487,8 +2844,8 @@
       "intent": "status",
       "provider_mode": "disabled",
       "source": "text",
-      "spoken_text": "Tracking 6 symbols with 1 active plans.",
-      "timestamp": "2026-03-12T06:24:34.829894+00:00"
+      "spoken_text": "Tracking 6 symbols with 5 active plans.",
+      "timestamp": "2026-03-12T08:13:23.349979+00:00"
     }
   ],
   "recent_voice_events": [],
@@ -1500,8 +2857,8 @@
         "intent": "status",
         "provider_mode": "disabled",
         "source": "text",
-        "spoken_text": "Tracking 6 symbols with 1 active plans.",
-        "timestamp": "2026-03-12T06:24:34.829894+00:00"
+        "spoken_text": "Tracking 6 symbols with 5 active plans.",
+        "timestamp": "2026-03-12T08:13:23.349979+00:00"
       }
     ],
     "retention_limit": 40
@@ -1509,6 +2866,6 @@
   "strategy_history": [],
   "trade_review_history": [],
   "trade_review_metrics": {},
-  "trades_today": 2,
+  "trades_today": 6,
   "visual_explanation_history": []
 }

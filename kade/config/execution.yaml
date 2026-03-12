@@ -150,9 +150,9 @@ providers:
   diagnostics_policy: warn_on_degraded
   market_data_backends:
     alpaca:
-      enabled: false
-      api_key: ''
-      secret_key: ''
+      enabled: true
+      api_key: ${APCA_API_KEY_ID}
+      secret_key: ${APCA_API_SECRET_KEY}
       base_url: https://paper-api.alpaca.markets
       data_url: https://data.alpaca.markets
       mock_on_unavailable: true
@@ -160,6 +160,6 @@ providers:
     alpaca:
       enabled: false
       supported: false
-      api_key: ''
-      secret_key: ''
+      api_key: ${APCA_API_KEY_ID}
+      secret_key: ${APCA_API_SECRET_KEY}
       mock_on_unavailable: true

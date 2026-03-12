@@ -1,13 +1,13 @@
 llm:
-  provider: mock
+  provider: ollama
   providers:
     mock:
-      enabled: true
+      enabled: false
       model: mock-narrative
     ollama:
-      enabled: false
+      enabled: true
       host: http://localhost:11434
-      model: llama3.1
+      model: llama3.1:latest
       timeout_seconds: 30
       api_key: ""
   usage:

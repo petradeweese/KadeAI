@@ -35,6 +35,150 @@
       "state": "trigger_imminent",
       "symbol": "NVDA",
       "timestamp": "2026-03-12T06:24:34.827389+00:00"
+    },
+    {
+      "event_type": "state_change",
+      "previous_score": null,
+      "previous_state": null,
+      "score": 65.5,
+      "state": "trigger_imminent",
+      "symbol": "AMD",
+      "timestamp": "2026-03-12T07:50:57.995752+00:00"
+    },
+    {
+      "event_type": "state_change",
+      "previous_score": null,
+      "previous_state": null,
+      "score": 65.5,
+      "state": "trigger_imminent",
+      "symbol": "META",
+      "timestamp": "2026-03-12T07:50:57.995753+00:00"
+    },
+    {
+      "event_type": "state_change",
+      "previous_score": null,
+      "previous_state": null,
+      "score": 65.5,
+      "state": "trigger_imminent",
+      "symbol": "MSFT",
+      "timestamp": "2026-03-12T07:50:57.995754+00:00"
+    },
+    {
+      "event_type": "state_change",
+      "previous_score": null,
+      "previous_state": null,
+      "score": 65.5,
+      "state": "trigger_imminent",
+      "symbol": "NVDA",
+      "timestamp": "2026-03-12T07:50:57.995755+00:00"
+    },
+    {
+      "event_type": "state_change",
+      "previous_score": null,
+      "previous_state": null,
+      "score": 65.5,
+      "state": "trigger_imminent",
+      "symbol": "AMD",
+      "timestamp": "2026-03-12T08:05:50.239854+00:00"
+    },
+    {
+      "event_type": "state_change",
+      "previous_score": null,
+      "previous_state": null,
+      "score": 65.5,
+      "state": "trigger_imminent",
+      "symbol": "META",
+      "timestamp": "2026-03-12T08:05:50.239856+00:00"
+    },
+    {
+      "event_type": "state_change",
+      "previous_score": null,
+      "previous_state": null,
+      "score": 65.5,
+      "state": "trigger_imminent",
+      "symbol": "MSFT",
+      "timestamp": "2026-03-12T08:05:50.239857+00:00"
+    },
+    {
+      "event_type": "state_change",
+      "previous_score": null,
+      "previous_state": null,
+      "score": 65.5,
+      "state": "trigger_imminent",
+      "symbol": "NVDA",
+      "timestamp": "2026-03-12T08:05:50.239858+00:00"
+    },
+    {
+      "event_type": "state_change",
+      "previous_score": null,
+      "previous_state": null,
+      "score": 65.5,
+      "state": "trigger_imminent",
+      "symbol": "AMD",
+      "timestamp": "2026-03-12T08:08:29.527349+00:00"
+    },
+    {
+      "event_type": "state_change",
+      "previous_score": null,
+      "previous_state": null,
+      "score": 65.5,
+      "state": "trigger_imminent",
+      "symbol": "META",
+      "timestamp": "2026-03-12T08:08:29.527351+00:00"
+    },
+    {
+      "event_type": "state_change",
+      "previous_score": null,
+      "previous_state": null,
+      "score": 65.5,
+      "state": "trigger_imminent",
+      "symbol": "MSFT",
+      "timestamp": "2026-03-12T08:08:29.527352+00:00"
+    },
+    {
+      "event_type": "state_change",
+      "previous_score": null,
+      "previous_state": null,
+      "score": 65.5,
+      "state": "trigger_imminent",
+      "symbol": "NVDA",
+      "timestamp": "2026-03-12T08:08:29.527353+00:00"
+    },
+    {
+      "event_type": "state_change",
+      "previous_score": null,
+      "previous_state": null,
+      "score": 65.5,
+      "state": "trigger_imminent",
+      "symbol": "AMD",
+      "timestamp": "2026-03-12T08:12:42.617552+00:00"
+    },
+    {
+      "event_type": "state_change",
+      "previous_score": null,
+      "previous_state": null,
+      "score": 65.5,
+      "state": "trigger_imminent",
+      "symbol": "META",
+      "timestamp": "2026-03-12T08:12:42.617553+00:00"
+    },
+    {
+      "event_type": "state_change",
+      "previous_score": null,
+      "previous_state": null,
+      "score": 65.5,
+      "state": "trigger_imminent",
+      "symbol": "MSFT",
+      "timestamp": "2026-03-12T08:12:42.617554+00:00"
+    },
+    {
+      "event_type": "state_change",
+      "previous_score": null,
+      "previous_state": null,
+      "score": 65.5,
+      "state": "trigger_imminent",
+      "symbol": "NVDA",
+      "timestamp": "2026-03-12T08:12:42.617555+00:00"
     }
   ]
 }

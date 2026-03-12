@@ -83,6 +83,238 @@
       "status": "partially_filled",
       "symbol": "AMD",
       "timestamp": "2026-03-12T06:24:34.828359+00:00"
+    },
+    {
+      "contracts": 65,
+      "event_type": "paper_order_request",
+      "limit_price": 2.2,
+      "option_symbol": "AMD-5D-C-103.0",
+      "symbol": "AMD",
+      "timestamp": "2026-03-12T07:50:57.996940+00:00"
+    },
+    {
+      "contracts": 3,
+      "event_type": "paper_order_request",
+      "limit_price": 2.53,
+      "option_symbol": "AMD-12D-C-103.0",
+      "symbol": "AMD",
+      "timestamp": "2026-03-12T07:50:57.996941+00:00"
+    },
+    {
+      "avg_fill_price": 2.2,
+      "event_type": "paper_order_status",
+      "filled_contracts": 39,
+      "lifecycle": {
+        "events": [
+          {
+            "from_state": "staged",
+            "happened_at": "2026-03-12T07:50:57.996873+00:00",
+            "reason": "user_confirmed",
+            "to_state": "confirmed"
+          },
+          {
+            "from_state": "confirmed",
+            "happened_at": "2026-03-12T07:50:57.996876+00:00",
+            "reason": "paper_submission",
+            "to_state": "submitted"
+          },
+          {
+            "from_state": "submitted",
+            "happened_at": "2026-03-12T07:50:57.996880+00:00",
+            "reason": "paper_fill_update",
+            "to_state": "partially_filled"
+          }
+        ],
+        "state": "partially_filled"
+      },
+      "nudged_limit_price": 2.22,
+      "option_symbol": "AMD-5D-C-103.0",
+      "remaining_contracts": 26,
+      "status": "partially_filled",
+      "symbol": "AMD",
+      "timestamp": "2026-03-12T07:50:57.996942+00:00"
+    },
+    {
+      "avg_fill_price": 2.53,
+      "event_type": "paper_order_status",
+      "filled_contracts": 1,
+      "lifecycle": {
+        "events": [
+          {
+            "from_state": "staged",
+            "happened_at": "2026-03-12T07:50:57.996912+00:00",
+            "reason": "user_confirmed",
+            "to_state": "confirmed"
+          },
+          {
+            "from_state": "confirmed",
+            "happened_at": "2026-03-12T07:50:57.996914+00:00",
+            "reason": "paper_submission",
+            "to_state": "submitted"
+          },
+          {
+            "from_state": "submitted",
+            "happened_at": "2026-03-12T07:50:57.996917+00:00",
+            "reason": "paper_fill_update",
+            "to_state": "partially_filled"
+          }
+        ],
+        "state": "partially_filled"
+      },
+      "nudged_limit_price": 2.55,
+      "option_symbol": "AMD-12D-C-103.0",
+      "remaining_contracts": 2,
+      "status": "partially_filled",
+      "symbol": "AMD",
+      "timestamp": "2026-03-12T07:50:57.996944+00:00"
+    },
+    {
+      "contracts": 65,
+      "event_type": "paper_order_request",
+      "limit_price": 2.2,
+      "option_symbol": "AMD-5D-C-103.0",
+      "symbol": "AMD",
+      "timestamp": "2026-03-12T08:05:50.241333+00:00"
+    },
+    {
+      "contracts": 3,
+      "event_type": "paper_order_request",
+      "limit_price": 2.53,
+      "option_symbol": "AMD-12D-C-103.0",
+      "symbol": "AMD",
+      "timestamp": "2026-03-12T08:05:50.241335+00:00"
+    },
+    {
+      "avg_fill_price": 2.2,
+      "event_type": "paper_order_status",
+      "filled_contracts": 39,
+      "lifecycle": {
+        "events": [
+          {
+            "from_state": "staged",
+            "happened_at": "2026-03-12T08:05:50.241265+00:00",
+            "reason": "user_confirmed",
+            "to_state": "confirmed"
+          },
+          {
+            "from_state": "confirmed",
+            "happened_at": "2026-03-12T08:05:50.241268+00:00",
+            "reason": "paper_submission",
+            "to_state": "submitted"
+          },
+          {
+            "from_state": "submitted",
+            "happened_at": "2026-03-12T08:05:50.241272+00:00",
+            "reason": "paper_fill_update",
+            "to_state": "partially_filled"
+          }
+        ],
+        "state": "partially_filled"
+      },
+      "nudged_limit_price": 2.22,
+      "option_symbol": "AMD-5D-C-103.0",
+      "remaining_contracts": 26,
+      "status": "partially_filled",
+      "symbol": "AMD",
+      "timestamp": "2026-03-12T08:05:50.241336+00:00"
+    },
+    {
+      "avg_fill_price": 2.53,
+      "event_type": "paper_order_status",
+      "filled_contracts": 1,
+      "lifecycle": {
+        "events": [
+          {
+            "from_state": "staged",
+            "happened_at": "2026-03-12T08:05:50.241306+00:00",
+            "reason": "user_confirmed",
+            "to_state": "confirmed"
+          },
+          {
+            "from_state": "confirmed",
+            "happened_at": "2026-03-12T08:05:50.241307+00:00",
+            "reason": "paper_submission",
+            "to_state": "submitted"
+          },
+          {
+            "from_state": "submitted",
+            "happened_at": "2026-03-12T08:05:50.241310+00:00",
+            "reason": "paper_fill_update",
+            "to_state": "partially_filled"
+          }
+        ],
+        "state": "partially_filled"
+      },
+      "nudged_limit_price": 2.55,
+      "option_symbol": "AMD-12D-C-103.0",
+      "remaining_contracts": 2,
+      "status": "partially_filled",
+      "symbol": "AMD",
+      "timestamp": "2026-03-12T08:05:50.241338+00:00"
+    },
+    {
+      "contracts": 65,
+      "event_type": "paper_order_request",
+      "limit_price": 2.2,
+      "option_symbol": "AMD-5D-C-103.0",
+      "symbol": "AMD",
+      "timestamp": "2026-03-12T08:08:29.529142+00:00"
+    },
+    {
+      "contracts": 3,
+      "event_type": "paper_order_request",
+      "limit_price": 2.53,
+      "option_symbol": "AMD-12D-C-103.0",
+      "symbol": "AMD",
+      "timestamp": "2026-03-12T08:08:29.529143+00:00"
+    },
+    {
+      "code": "max_trades_reached",
+      "event_type": "guardrail_failure",
+      "option_symbol": "AMD-5D-C-103.0",
+      "reason": "Max trades per day reached",
+      "symbol": "AMD",
+      "timestamp": "2026-03-12T08:08:29.529144+00:00"
+    },
+    {
+      "code": "max_trades_reached",
+      "event_type": "guardrail_failure",
+      "option_symbol": "AMD-12D-C-103.0",
+      "reason": "Max trades per day reached",
+      "symbol": "AMD",
+      "timestamp": "2026-03-12T08:08:29.529145+00:00"
+    },
+    {
+      "contracts": 65,
+      "event_type": "paper_order_request",
+      "limit_price": 2.2,
+      "option_symbol": "AMD-5D-C-103.0",
+      "symbol": "AMD",
+      "timestamp": "2026-03-12T08:12:42.619285+00:00"
+    },
+    {
+      "contracts": 3,
+      "event_type": "paper_order_request",
+      "limit_price": 2.53,
+      "option_symbol": "AMD-12D-C-103.0",
+      "symbol": "AMD",
+      "timestamp": "2026-03-12T08:12:42.619287+00:00"
+    },
+    {
+      "code": "max_trades_reached",
+      "event_type": "guardrail_failure",
+      "option_symbol": "AMD-5D-C-103.0",
+      "reason": "Max trades per day reached",
+      "symbol": "AMD",
+      "timestamp": "2026-03-12T08:12:42.619288+00:00"
+    },
+    {
+      "code": "max_trades_reached",
+      "event_type": "guardrail_failure",
+      "option_symbol": "AMD-12D-C-103.0",
+      "reason": "Max trades per day reached",
+      "symbol": "AMD",
+      "timestamp": "2026-03-12T08:12:42.619289+00:00"
     }
   ]
 }
