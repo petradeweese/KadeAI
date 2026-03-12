@@ -90,17 +90,7 @@ class OperatorBackend:
         fallback = {"available": True, "reason": "", "message": ""}
         try:
             provider_bars = self._historical_provider.get_bars(active_symbol, normalized_timeframe, limit=180)
-            bars = [
-                {
-                    "timestamp": bar.timestamp.isoformat(),
-                    "open": float(bar.open),
-                    "high": float(bar.high),
-                    "low": float(bar.low),
-                    "close": float(bar.close),
-                    "volume": float(bar.volume),
-                }
-                for bar in provider_bars
-            ]
+            bars = [normalized for item in provider_bars if (normalized := self._normalize_chart_bar(item)) is not None]
         except Exception as exc:  # pragma: no cover - defensive fallback
             fallback = {
                 "available": False,
@@ -136,6 +126,47 @@ class OperatorBackend:
                 "requested_timeframe": requested_timeframe,
                 "timeframe_supported": requested_timeframe in {"1m", "5m", "15m", "1h"},
             },
+        }
+
+
+    @staticmethod
+    def _normalize_chart_bar(bar: object) -> dict[str, object] | None:
+        if isinstance(bar, dict):
+            ts = bar.get("timestamp") or bar.get("t")
+            open_price = bar.get("open") if bar.get("open") is not None else bar.get("o")
+            high_price = bar.get("high") if bar.get("high") is not None else bar.get("h")
+            low_price = bar.get("low") if bar.get("low") is not None else bar.get("l")
+            close_price = bar.get("close") if bar.get("close") is not None else bar.get("c")
+            volume = bar.get("volume") if bar.get("volume") is not None else bar.get("v", 0.0)
+        else:
+            ts = getattr(bar, "timestamp", None) or getattr(bar, "t", None)
+            open_price = getattr(bar, "open", None)
+            if open_price is None:
+                open_price = getattr(bar, "o", None)
+            high_price = getattr(bar, "high", None)
+            if high_price is None:
+                high_price = getattr(bar, "h", None)
+            low_price = getattr(bar, "low", None)
+            if low_price is None:
+                low_price = getattr(bar, "l", None)
+            close_price = getattr(bar, "close", None)
+            if close_price is None:
+                close_price = getattr(bar, "c", None)
+            volume = getattr(bar, "volume", None)
+            if volume is None:
+                volume = getattr(bar, "v", 0.0)
+
+        if ts is None or open_price is None or high_price is None or low_price is None or close_price is None:
+            return None
+
+        timestamp = ts.isoformat() if hasattr(ts, "isoformat") else str(ts)
+        return {
+            "timestamp": timestamp,
+            "open": float(open_price),
+            "high": float(high_price),
+            "low": float(low_price),
+            "close": float(close_price),
+            "volume": float(volume or 0.0),
         }
 
     def command(self, command: str) -> dict[str, object]:
@@ -233,10 +264,35 @@ class OperatorBackend:
             overlays.append({"type": "vwap", "label": "VWAP", "price": round(vwap, 4), "color": "#2563eb", "reason": "Session VWAP from chart bars.", "source": "chart_bars", "priority": 4})
 
         plan = dict(self._runtime.state.latest_trade_plan or {})
+        idea = dict(self._runtime.state.latest_trade_idea_opinion or {})
         levels = [
-            ("entry", "Entry", parse_first_level(dict(plan.get("entry_plan", {})).get("trigger_condition")) or parse_first_level(plan.get("trigger")), "#16a34a", "trade_plan.entry"),
-            ("invalidation", "Invalidation", parse_first_level(dict(plan.get("invalidation_plan", {})).get("invalidation_condition")) or parse_first_level(plan.get("invalidation")), "#dc2626", "trade_plan.invalidation"),
-            ("target", "Target", parse_first_level(dict(plan.get("target_plan", {})).get("primary_target")) or parse_first_level(plan.get("target")), "#9333ea", "trade_plan.target"),
+            (
+                "entry",
+                "Entry",
+                parse_first_level(dict(plan.get("entry_plan", {})).get("trigger_condition"))
+                or parse_first_level(plan.get("trigger"))
+                or parse_first_level(idea.get("entry")),
+                "#16a34a",
+                "trade_plan.entry" if plan else "trade_idea_opinion.entry",
+            ),
+            (
+                "invalidation",
+                "Invalidation",
+                parse_first_level(dict(plan.get("invalidation_plan", {})).get("invalidation_condition"))
+                or parse_first_level(plan.get("invalidation"))
+                or parse_first_level(idea.get("invalidation")),
+                "#dc2626",
+                "trade_plan.invalidation" if plan else "trade_idea_opinion.invalidation",
+            ),
+            (
+                "target",
+                "Target",
+                parse_first_level(dict(plan.get("target_plan", {})).get("primary_target"))
+                or parse_first_level(plan.get("target"))
+                or parse_first_level(idea.get("target")),
+                "#9333ea",
+                "trade_plan.target" if plan else "trade_idea_opinion.target",
+            ),
         ]
         for overlay_type, label, value, color, source in levels:
             if value is None:
@@ -246,13 +302,22 @@ class OperatorBackend:
         return sorted(overlays, key=lambda item: int(item.get("priority", 9)))
 
     def _chart_summary(self, symbol: str, timeframe: str, overlays: list[dict[str, object]]) -> dict[str, object]:
-        thesis = str(dict(self._runtime.state.latest_trade_idea_opinion or {}).get("summary") or f"Monitoring deterministic setup for {symbol}.")
+        idea = dict(self._runtime.state.latest_trade_idea_opinion or {})
+        thesis = str(idea.get("summary") or f"Monitoring deterministic setup for {symbol}.")
+        entry = next((item.get("price") for item in overlays if item.get("type") == "entry"), None)
+        invalidation = next((item.get("price") for item in overlays if item.get("type") == "invalidation"), None)
+        target = next((item.get("price") for item in overlays if item.get("type") == "target"), None)
         return {
             "symbol": symbol,
             "timeframe": timeframe,
             "thesis": thesis,
             "key_levels": [f"{item['label']}: {item.get('price', 'n/a')}" for item in overlays if item.get("type") in {"entry", "invalidation", "target", "vwap"}],
-            "reasoning": "Levels are sourced from deterministic trade plan and computed chart VWAP.",
+            "reasoning": (
+                f"Wait for {idea.get('entry', 'breakdown/breakout confirmation')}; "
+                f"target around {target if target is not None else 'n/a'}; "
+                f"invalidation near {invalidation if invalidation is not None else 'n/a'}; "
+                f"reference entry {entry if entry is not None else 'n/a'}."
+            ),
         }
 
     @staticmethod

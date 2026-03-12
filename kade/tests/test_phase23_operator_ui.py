@@ -168,6 +168,7 @@ def test_ui_template_includes_secondary_collapsible_section() -> None:
     assert "Secondary Panels" in html
     assert "active-direction" in html
     assert "market-context-card" in html
+    assert "market-pill" in html
 
 
 
@@ -201,8 +202,9 @@ def test_visual_explainability_panel_has_polished_sparse_fallback() -> None:
         js = handle.read()
 
     assert "Chart data unavailable for" in js
-    assert "entry, invalidation, target, and VWAP" in js
+    assert "map entry, invalidation, target, and VWAP" in js
     assert "tf-btn" in js
+    assert "chart-empty" in js
 
 
 def test_parser_handles_trade_idea_exit_phrasing_and_stopwords() -> None:
@@ -236,3 +238,69 @@ def test_deterministic_trade_idea_reply_is_not_mock_placeholder() -> None:
     assert "Mock narrative summary" not in result["reply"]
     assert "NVDA" in result["reply"]
     assert "182.80" in result["reply"]
+
+
+def test_trade_idea_fallback_reply_is_direction_aware() -> None:
+    backend = OperatorBackend(llm_enabled=False)
+
+    put_reply = backend.chat("what do you think about a put on NVDA exit of 182.80")["reply"].lower()
+    call_reply = backend.chat("what do you think about a call on NVDA exit of 205")["reply"].lower()
+
+    assert "downside objective" in put_reply
+    assert "upside objective" in call_reply
+    assert "downside/upside objective" not in put_reply
+
+
+def test_chat_transcript_intent_metadata_is_deemphasized_in_auxiliary_meta() -> None:
+    with open("kade/ui/static/app.js", encoding="utf-8") as handle:
+        js = handle.read()
+    with open("kade/ui/templates/index.html", encoding="utf-8") as handle:
+        html = handle.read()
+
+    assert "chat-meta" in html
+    assert "Action:" not in js
+    assert "addMessage('kade', data.reply" in js
+
+
+def test_chart_summary_reasoning_reflects_overlay_levels() -> None:
+    backend = OperatorBackend(llm_enabled=False)
+    backend.chat("what do you think about a put on NVDA exit of 182.80")
+    backend.command("trade_plan symbol=NVDA")
+
+    chart = backend.chart_data(symbol="NVDA", timeframe="5m")
+    reasoning = str(chart["summary"]["reasoning"])
+    overlay_types = {item["type"] for item in chart["overlays"]}
+
+    assert "target around" in reasoning
+    assert "invalidation near" in reasoning
+    assert {"entry", "invalidation", "target", "vwap"}.issubset(overlay_types)
+
+
+def test_chart_endpoint_normalizes_alpaca_shorthand_fields() -> None:
+    backend = OperatorBackend(llm_enabled=False)
+
+    class _Provider:
+        provider_name = "alpaca"
+
+        def get_bars(self, symbol: str, timeframe: str, limit: int = 180):
+            return [
+                {"t": "2026-01-01T14:30:00+00:00", "o": 100.1, "h": 101.2, "l": 99.8, "c": 100.9, "v": 12345},
+                {"t": "2026-01-01T14:35:00+00:00", "o": 100.9, "h": 101.5, "l": 100.4, "c": 101.1, "v": 11321},
+            ]
+
+    backend._historical_provider = _Provider()
+    payload = backend.chart_data(symbol="NVDA", timeframe="5m")
+
+    assert payload["bars"]
+    first = payload["bars"][0]
+    assert set(["timestamp", "open", "high", "low", "close"]).issubset(first.keys())
+    assert not any(key in first for key in ["t", "o", "h", "l", "c"])
+
+
+def test_dashboard_visual_chart_bars_are_non_empty_when_provider_has_data() -> None:
+    backend = OperatorBackend(llm_enabled=False)
+    dashboard = backend.dashboard()
+    bars = dashboard["operator_console"]["visual_explainability"]["charts"][0]["bars"]
+
+    assert isinstance(bars, list)
+    assert len(bars) > 0
