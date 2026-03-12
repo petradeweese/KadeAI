@@ -92,6 +92,23 @@ class InteractionOrchestrator:
         self.trade_review_handler = trade_review_handler
         self.latest_trade_review_handler = latest_trade_review_handler
 
+    def _provider_mode(self, tts_provider: str = "disabled") -> dict[str, str]:
+        return {
+            "stt": self.stt_provider.provider_name,
+            "tts": tts_provider,
+            "wakeword": self.voice_orchestrator.wakeword_detector.provider_name,
+        }
+
+    def _panel_response(self, intent: str, formatted_response: str, now: datetime, raw_result: dict[str, object], provider_mode: dict[str, object] | None = None) -> dict[str, object]:
+        return {
+            "intent": intent,
+            "formatted_response": formatted_response,
+            "advisor_radar_status_summary": self.state.latest_advisor_or_status,
+            "provider_mode": provider_mode if provider_mode is not None else self._provider_mode(),
+            "timestamp": now.isoformat(),
+            "raw_result": raw_result,
+        }
+
     def submit_text_command(self, command: str, now: datetime | None = None, include_debug: bool = True) -> dict[str, object]:
         now = now or utc_now()
         log_event(
@@ -123,27 +140,29 @@ class InteractionOrchestrator:
         return response
 
     def submit_text_panel_command(self, payload: dict[str, object], now: datetime | None = None) -> dict[str, object]:
-        if payload.get("target_move_request"):
-            return self.submit_target_move_request(dict(payload["target_move_request"]), now=now)
-        if payload.get("trade_idea_request"):
-            return self.submit_trade_idea_opinion(dict(payload["trade_idea_request"]), now=now)
-        if payload.get("trade_plan_request"):
-            return self.submit_trade_plan_request(dict(payload["trade_plan_request"]), now=now)
-        if payload.get("trade_plan_status_request"):
-            return self.submit_trade_plan_status_request(dict(payload["trade_plan_status_request"]), now=now)
-        if payload.get("trade_plan_tracking_request"):
-            return self.submit_trade_plan_tracking_request(dict(payload["trade_plan_tracking_request"]), now=now)
+        panel_payload = payload if isinstance(payload, dict) else {}
+        if panel_payload.get("target_move_request"):
+            return self.submit_target_move_request(dict(panel_payload["target_move_request"]), now=now)
+        if panel_payload.get("trade_idea_request"):
+            return self.submit_trade_idea_opinion(dict(panel_payload["trade_idea_request"]), now=now)
+        if panel_payload.get("trade_plan_request"):
+            return self.submit_trade_plan_request(dict(panel_payload["trade_plan_request"]), now=now)
+        if panel_payload.get("trade_plan_status_request"):
+            return self.submit_trade_plan_status_request(dict(panel_payload["trade_plan_status_request"]), now=now)
+        if panel_payload.get("trade_plan_tracking_request"):
+            return self.submit_trade_plan_tracking_request(dict(panel_payload["trade_plan_tracking_request"]), now=now)
 
-        command = str(payload.get("command", "")).strip()
-        include_debug = bool(payload.get("include_debug", True))
+        command = str(panel_payload.get("command", "")).strip()
+        include_debug = bool(panel_payload.get("include_debug", True))
         if not command:
-            return {
-                "intent": "invalid",
-                "formatted_response": "Command cannot be empty.",
-                "advisor_radar_status_summary": {"runtime_mode": self.state.runtime_mode},
-                "provider_mode": {},
-                "timestamp": utc_now_iso(),
-            }
+            now_ts = now or utc_now()
+            return self._panel_response(
+                intent="invalid",
+                formatted_response="Command cannot be empty.",
+                now=now_ts,
+                raw_result={"intent": "invalid", "error": "empty_command"},
+                provider_mode=self._provider_mode(),
+            )
         if command.lower().startswith("target_move"):
             parsed = self._parse_target_move_command(command)
             return self.submit_target_move_request(parsed, now=now)
@@ -164,13 +183,13 @@ class InteractionOrchestrator:
     def submit_target_move_request(self, request_payload: dict[str, object], now: datetime | None = None) -> dict[str, object]:
         now = now or utc_now()
         if not self.target_move_handler:
-            return {
-                "intent": "target_move_scenario_unavailable",
-                "formatted_response": "Target-move scenario handler is not configured.",
-                "advisor_radar_status_summary": {"runtime_mode": self.state.runtime_mode},
-                "provider_mode": {},
-                "timestamp": now.isoformat(),
-            }
+            return self._panel_response(
+                intent="target_move_scenario_unavailable",
+                formatted_response="Target-move scenario handler is not configured.",
+                now=now,
+                raw_result={"intent": "target_move_scenario", "target_move_board": {}},
+                provider_mode=self._provider_mode("disabled"),
+            )
 
         board = self.target_move_handler(request_payload)
         self.state.latest_target_move_board = board
@@ -179,11 +198,7 @@ class InteractionOrchestrator:
             "intent": "target_move_scenario",
             "formatted_response": f"Generated {len(board.get('candidates', []))} target-move scenario candidates.",
             "advisor_radar_status_summary": self.state.latest_advisor_or_status,
-            "provider_mode": {
-                "stt": self.stt_provider.provider_name,
-                "tts": "disabled",
-                "wakeword": self.voice_orchestrator.wakeword_detector.provider_name,
-            },
+            "provider_mode": self._provider_mode("disabled"),
             "timestamp": now.isoformat(),
             "raw_result": {"intent": "target_move_scenario", "target_move_board": board},
         }
@@ -198,7 +213,7 @@ class InteractionOrchestrator:
                 "intent": "trade_idea_opinion",
                 "formatted_response": "Trade-idea opinion mode is not configured.",
                 "advisor_radar_status_summary": self.state.latest_advisor_or_status,
-                "provider_mode": {},
+                "provider_mode": self._provider_mode("disabled"),
                 "timestamp": now.isoformat(),
                 "raw_result": {"intent": "trade_idea_opinion", "trade_idea_opinion": {}},
             }
@@ -226,11 +241,7 @@ class InteractionOrchestrator:
             "intent": "trade_idea_opinion",
             "formatted_response": str(opinion.get("summary", "Generated trade idea opinion.")),
             "advisor_radar_status_summary": self.state.latest_advisor_or_status,
-            "provider_mode": {
-                "stt": self.stt_provider.provider_name,
-                "tts": "disabled",
-                "wakeword": self.voice_orchestrator.wakeword_detector.provider_name,
-            },
+            "provider_mode": self._provider_mode("disabled"),
             "timestamp": now.isoformat(),
             "raw_result": {"intent": "trade_idea_opinion", "trade_idea_opinion": opinion},
         }
@@ -251,7 +262,7 @@ class InteractionOrchestrator:
                 "intent": "trade_plan",
                 "formatted_response": "Trade-plan builder is not configured.",
                 "advisor_radar_status_summary": self.state.latest_advisor_or_status,
-                "provider_mode": {},
+                "provider_mode": self._provider_mode("disabled"),
                 "timestamp": now.isoformat(),
                 "raw_result": {"intent": "trade_plan", "trade_plan": {}},
             }
@@ -274,11 +285,7 @@ class InteractionOrchestrator:
             "intent": "trade_plan",
             "formatted_response": f"Generated trade plan for {plan.get('symbol', request_payload.get('symbol', 'symbol'))} with posture {plan.get('risk_posture', 'watch_only')}.",
             "advisor_radar_status_summary": self.state.latest_advisor_or_status,
-            "provider_mode": {
-                "stt": self.stt_provider.provider_name,
-                "tts": "disabled",
-                "wakeword": self.voice_orchestrator.wakeword_detector.provider_name,
-            },
+            "provider_mode": self._provider_mode("disabled"),
             "timestamp": now.isoformat(),
             "raw_result": {"intent": "trade_plan", "trade_plan": plan},
         }
@@ -299,7 +306,7 @@ class InteractionOrchestrator:
                 "intent": "trade_plan_status",
                 "formatted_response": "Trade-plan status handler is not configured.",
                 "advisor_radar_status_summary": self.state.latest_advisor_or_status,
-                "provider_mode": {},
+                "provider_mode": self._provider_mode("disabled"),
                 "timestamp": now.isoformat(),
                 "raw_result": {"intent": "trade_plan_status", "trade_plan": {}},
             }
@@ -334,7 +341,7 @@ class InteractionOrchestrator:
                 "intent": "trade_plan_tracking",
                 "formatted_response": "Trade-plan tracking handler is not configured.",
                 "advisor_radar_status_summary": self.state.latest_advisor_or_status,
-                "provider_mode": {},
+                "provider_mode": self._provider_mode("disabled"),
                 "timestamp": now.isoformat(),
                 "raw_result": {"intent": "trade_plan_tracking", "trade_plan_tracking": {}},
             }
@@ -406,7 +413,7 @@ class InteractionOrchestrator:
                 "intent": "trade_review",
                 "formatted_response": "Trade-review handler is not configured.",
                 "advisor_radar_status_summary": self.state.latest_advisor_or_status,
-                "provider_mode": {},
+                "provider_mode": self._provider_mode("disabled"),
                 "timestamp": now.isoformat(),
                 "raw_result": {"intent": "trade_review", "trade_review": {}},
             }
@@ -575,7 +582,14 @@ class InteractionOrchestrator:
             key, value = part.split("=", 1)
             parsed[key.strip().lower()] = value.strip()
         if "dtes" in parsed:
-            parsed["allowed_dtes"] = [int(token.strip()) for token in str(parsed.pop("dtes")).split(",") if token.strip()]
+            tokens = [token.strip() for token in str(parsed.pop("dtes")).split(",") if token.strip()]
+            dtes: list[int] = []
+            for token in tokens:
+                try:
+                    dtes.append(int(token))
+                except ValueError:
+                    continue
+            parsed["allowed_dtes"] = dtes
         return parsed
 
     def _parse_trade_idea_command(self, command: str) -> dict[str, object]:

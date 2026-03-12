@@ -39,8 +39,12 @@ class PlanStatusTransitions:
             return "triggered", actions
         elif status == "triggered":
             active_states = set(self.config.get("active_execution_states", ["filled", "active", "in_position"]))
-            if execution_state in active_states or bool(self.config.get("auto_triggered_to_active", True)):
-                actions.append("triggered_to_active")
+            auto_promote = bool(self.config.get("auto_triggered_to_active", False))
+            if execution_state in active_states:
+                actions.append("triggered_to_active_with_execution_evidence")
+                return "active", actions
+            if auto_promote:
+                actions.append("triggered_to_active_auto")
                 return "active", actions
         elif status == "active":
             exit_states = set(self.config.get("exit_execution_states", ["closed", "exited", "flat"]))

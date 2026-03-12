@@ -140,3 +140,61 @@ def test_runtime_payload_shape_and_timeline_operator_console() -> None:
     assert "trade_plan_evaluated" in event_types
     assert "trade_plan_ready" in event_types
     assert app_status["operator_console"]["trade_plan_tracking"]["status_after"] == "ready"
+
+
+def test_triggered_does_not_auto_activate_without_evidence_when_disabled() -> None:
+    tracker, plan_id = _plan_tracker("triggered")
+    monitor = TradePlanMonitor(
+        tracker,
+        {**TRACKING_CFG, "transitions": {**TRACKING_CFG["transitions"], "auto_triggered_to_active": False}},
+    )
+    plan = tracker.plans[plan_id]
+
+    snap = monitor.evaluate(
+        TradePlanTrackingContext(plan=plan, ticker_state=_ticker(last_price=188.0, momentum="strong_down"), radar_context={}, breadth_context={"bias": "risk_off"}),
+        apply_transition=True,
+    )
+
+    assert snap.status_after == "triggered"
+
+
+def test_trigger_and_invalidation_conflict_prioritizes_hard_invalidation() -> None:
+    tracker, plan_id = _plan_tracker("ready")
+    monitor = TradePlanMonitor(tracker, TRACKING_CFG)
+    plan = tracker.plans[plan_id]
+    plan.direction = "call"
+
+    snap = monitor.evaluate(
+        TradePlanTrackingContext(
+            plan=plan,
+            ticker_state=_ticker(last_price=188.1, vwap=188.3, trend="bullish", momentum="up_bias", structure="reclaim"),
+            radar_context={"alignment_label": "aligned"},
+            breadth_context={"bias": "risk_on"},
+        )
+    )
+
+    assert snap.trigger_state == "triggered"
+    assert snap.invalidation_state == "hard_invalidated"
+    assert snap.status_after == "cancelled"
+
+
+def test_staleness_safe_with_missing_updated_at_and_hold_plan() -> None:
+    tracker, plan_id = _plan_tracker("watching")
+    plan = tracker.plans[plan_id]
+    plan.updated_at = None
+    plan.hold_plan = {}
+    monitor = TradePlanMonitor(tracker, TRACKING_CFG)
+
+    snap = monitor.evaluate(TradePlanTrackingContext(plan=plan, ticker_state=_ticker(), radar_context={}, breadth_context={"bias": "risk_off"}), apply_transition=False)
+
+    assert snap.staleness_state == "fresh"
+
+
+def test_noop_transition_safety_with_unknown_status() -> None:
+    tracker, plan_id = _plan_tracker("watching")
+    plan = tracker.plans[plan_id]
+    plan.status = "paused"
+    monitor = TradePlanMonitor(tracker, TRACKING_CFG)
+    snap = monitor.evaluate(TradePlanTrackingContext(plan=plan, ticker_state=_ticker(), radar_context={}, breadth_context={"bias": "risk_off"}))
+
+    assert snap.status_after == "paused"

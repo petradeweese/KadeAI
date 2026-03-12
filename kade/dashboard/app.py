@@ -77,6 +77,11 @@ def create_app_status(
     top_radar_signals = voice_payload.get("latest_radar_signals") or radar_payload.get("queue", [])[:5]
     latest_execution = (voice_payload.get("execution_monitor", {}).get("lifecycle_history") or execution_payload.get("orders", []))[-1:]
 
+    def _panel(data: object, empty: dict[str, object]) -> dict[str, object]:
+        if isinstance(data, dict) and data:
+            return {"available": True, **empty, **data}
+        return {"available": False, **empty}
+
     radar_quality = {
         "top_quality": [s for s in top_radar_signals if float(s.get("confidence", 0.0)) >= 70],
         "weak_or_noisy": [s for s in top_radar_signals if float(s.get("confidence", 0.0)) < 55],
@@ -129,13 +134,13 @@ def create_app_status(
                 "emergency_shutdown": session_payload.get("emergency_shutdown", False),
             },
             "timeline": voice_payload.get("timeline", {"retention": 0, "events": []}),
-            "target_move_board": voice_payload.get("target_move_board", {}),
-            "trade_idea_opinion": voice_payload.get("trade_idea_opinion", {}),
-            "trade_plan": voice_payload.get("trade_plan", {}),
-            "trade_plan_tracking": voice_payload.get("trade_plan_tracking", {}),
-            "trade_review": voice_payload.get("trade_review", {"latest_review": {}, "metrics_summary": {}}),
-            "backtesting": voice_payload.get("backtesting", {}),
-            "historical_data": voice_payload.get("historical_data", {}),
+            "target_move_board": _panel(voice_payload.get("target_move_board"), {"candidate_count": 0}),
+            "trade_idea_opinion": _panel(voice_payload.get("trade_idea_opinion"), {"symbol": None, "summary": ""}),
+            "trade_plan": _panel(voice_payload.get("trade_plan"), {"plan_id": None, "status": "unknown"}),
+            "trade_plan_tracking": _panel(voice_payload.get("trade_plan_tracking"), {"plan_id": None, "status_after": "unknown"}),
+            "trade_review": _panel(voice_payload.get("trade_review"), {"latest_review": {}, "metrics_summary": {}, "history": []}),
+            "backtesting": _panel(voice_payload.get("backtesting"), {"latest_run_summary": {}, "recent_evaluations": {}}),
+            "historical_data": _panel(voice_payload.get("historical_data"), {"last_download": {}, "cache_status": {}, "recent_downloads": [], "index_status": {}}),
         },
         "session": session_payload,
         "history": history_payload,

@@ -67,13 +67,14 @@ class TradePlanEvaluator:
         qqq = str(state.qqq_confirmation or "mixed")
         structure = str(state.structure or "")
         radar_alignment = str(context.radar_context.get("alignment_label") or context.radar_context.get("market_alignment") or "mixed")
+        allow_radar_only_trigger = bool(self.config.get("allow_radar_only_trigger", True))
 
         if direction == "bearish":
             ready = (trend == "bearish") and (momentum in {"down_bias", "strong_down"}) and breadth != "risk_on"
             triggered = ready and (
                 (state.vwap is not None and (state.last_price or 0) <= state.vwap)
                 or ("break" in structure.lower() and momentum == "strong_down")
-                or radar_alignment == "aligned"
+                or (allow_radar_only_trigger and radar_alignment == "aligned")
             )
             reasons = [
                 "Downside alignment remains intact." if ready else "Downside alignment is not fully intact.",
@@ -85,7 +86,7 @@ class TradePlanEvaluator:
             triggered = ready and (
                 (state.vwap is not None and (state.last_price or 0) >= state.vwap)
                 or ("reclaim" in structure.lower() and momentum in {"up_bias", "strong_up"})
-                or radar_alignment == "aligned"
+                or (allow_radar_only_trigger and radar_alignment == "aligned")
             )
             reasons = [
                 "Upside alignment remains intact." if ready else "Upside alignment is not fully intact.",
@@ -103,7 +104,7 @@ class TradePlanEvaluator:
         return TriggerEvaluation(
             state=trigger_state,
             reasons=reasons,
-            debug={"trend": trend, "momentum": momentum, "breadth": breadth, "radar_alignment": radar_alignment},
+            debug={"trend": trend, "momentum": momentum, "breadth": breadth, "radar_alignment": radar_alignment, "allow_radar_only_trigger": allow_radar_only_trigger},
         )
 
     def _evaluate_invalidation(self, context: TradePlanTrackingContext, direction: str) -> InvalidationEvaluation:
@@ -140,9 +141,14 @@ class TradePlanEvaluator:
         now = context.now or utc_now()
         elapsed = context.elapsed_minutes
         if elapsed is None:
-            elapsed = max(int((now - context.plan.updated_at).total_seconds() // 60), 0)
+            updated_at = context.plan.updated_at
+            if isinstance(updated_at, datetime):
+                elapsed = max(int((now - updated_at).total_seconds() // 60), 0)
+            else:
+                elapsed = 0
 
-        hold_minutes = int(context.plan.hold_plan.get("max_hold_minutes", context.plan.max_hold_minutes or 60))
+        hold_plan = context.plan.hold_plan if isinstance(context.plan.hold_plan, dict) else {}
+        hold_minutes = int(hold_plan.get("max_hold_minutes", context.plan.max_hold_minutes or 60))
         stale_ratio = float(self.config.get("stale_ratio_of_hold", 0.65))
         stale_minutes = int(self.config.get("default_stale_minutes", max(15, int(hold_minutes * stale_ratio))))
         aging_minutes = int(self.config.get("aging_minutes", max(5, stale_minutes // 2)))

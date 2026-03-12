@@ -201,3 +201,58 @@ def test_aggregate_metrics_rollup() -> None:
     assert snap.review_label_distribution["drifted_from_plan"] == 1
     assert snap.invalidation_respected_rate == 1.0
     assert snap.posture_respected_rate == 0.5
+
+
+def test_triggered_without_realized_target_hit_is_not_counted_as_positive() -> None:
+    analyzer = TradeReviewAnalyzer({})
+    review = analyzer.review(
+        _ctx(
+            _plan(status="exited", risk_posture="full"),
+            [{"plan_id": "plan-NVDA-1", "trigger_state": "triggered", "invalidation_state": "valid", "staleness_state": "fresh", "posture_state": "neutral", "status_after": "exited", "actions": []}],
+            realized_outcome={"target_hit": False, "realized_pnl": 0.0, "checklist_completed": 3},
+            final_status="exited",
+        )
+    )
+
+    assert review.outcome_label == "closed_without_target"
+
+
+def test_disciplined_loss_and_poor_discipline_positive_outcome() -> None:
+    analyzer = TradeReviewAnalyzer({"discipline": {"conservative_postures": ["watch_only"]}})
+    disciplined_loss = analyzer.review(
+        _ctx(
+            _plan(status="cancelled", risk_posture="watch_only"),
+            [{"plan_id": "plan-NVDA-1", "invalidation_state": "hard_invalidated", "staleness_state": "fresh", "posture_state": "neutral", "status_after": "cancelled", "actions": []}],
+            realized_outcome={"target_hit": False, "realized_pnl": -25.0, "checklist_completed": 3},
+            final_status="cancelled",
+        )
+    )
+    poor_discipline_positive = analyzer.review(
+        _ctx(
+            _plan(status="exited", risk_posture="watch_only"),
+            [{"plan_id": "plan-NVDA-1", "invalidation_state": "valid", "staleness_state": "fresh", "posture_state": "posture_not_respected", "status_after": "exited", "actions": []}],
+            execution_state={"lifecycle": {"state": "filled"}},
+            realized_outcome={"target_hit": True, "realized_pnl": 10.0, "checklist_completed": 1},
+            final_status="exited",
+        )
+    )
+
+    assert disciplined_loss.discipline_label == "disciplined"
+    assert disciplined_loss.outcome_label in {"cancelled_correctly", "closed_without_target"}
+    assert poor_discipline_positive.discipline_label == "posture_not_respected"
+    assert poor_discipline_positive.outcome_label == "target_reached_or_positive"
+
+
+def test_metrics_setup_tag_grouping_and_optional_plan_fields() -> None:
+    aggregator = ReviewMetricsAggregator({})
+    snap = aggregator.build_snapshot(
+        [
+            {"review_label": "well_executed", "discipline_label": "disciplined", "plan": {"linked_target_move_board": {"setup_tags": ["trend"]}}},
+            {"review_label": "unknown", "discipline_label": "unknown", "plan": {}},
+            {"review_label": "unknown", "discipline_label": "unknown"},
+        ],
+        now_iso="2026-01-01T00:00:00+00:00",
+    )
+
+    assert snap.performance_by_setup_tag["trend"]["well_executed"] == 1
+    assert snap.performance_by_setup_tag["untagged"]["unknown"] == 2
