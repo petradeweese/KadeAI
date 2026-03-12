@@ -29,6 +29,7 @@ class TradePlanBuilder:
         direction = normalize_direction(context.direction)
         state = context.ticker_state if isinstance(context.ticker_state, TickerState) else TickerState(symbol=context.symbol)
         opinion = dict(context.trade_idea_opinion or {})
+        request_context = dict(context.user_request_context or {})
         stance = str(opinion.get("stance") or "cautious")
         confidence = str(opinion.get("confidence_label") or str(state.confidence_label or "medium"))
         plausibility = str(opinion.get("target_plausibility") or "possible_but_stretched")
@@ -38,9 +39,25 @@ class TradePlanBuilder:
         align = str(opinion.get("market_alignment") or market_alignment(direction, state, breadth_bias))
 
         cautious = stance in {"cautious", "pass"} or align != "aligned" or trap_risk in {"moderate", "high"}
-        current_price = float(opinion.get("current_price") or context.user_request_context.get("current_price") if context.user_request_context else state.last_price or 0.0)
-        target_price = float(opinion.get("target_price") or context.user_request_context.get("target_price") if context.user_request_context else current_price)
-        minutes = int(opinion.get("time_horizon_minutes") or context.user_request_context.get("time_horizon_minutes") if context.user_request_context else 60)
+
+        current_price_raw = opinion.get("current_price")
+        if current_price_raw is None:
+            current_price_raw = request_context.get("current_price")
+        if current_price_raw is None:
+            current_price_raw = state.last_price
+        current_price = float(current_price_raw if current_price_raw is not None else 0.0)
+
+        target_price_raw = opinion.get("target_price")
+        if target_price_raw is None:
+            target_price_raw = request_context.get("target_price")
+        if target_price_raw is None:
+            target_price_raw = current_price
+        target_price = float(target_price_raw)
+
+        minutes_raw = opinion.get("time_horizon_minutes")
+        if minutes_raw is None:
+            minutes_raw = request_context.get("time_horizon_minutes")
+        minutes = int(minutes_raw if minutes_raw is not None else 60)
 
         entry = entry_plan(direction, state, align, cautious)
         invalidation = invalidation_plan(direction, state)
@@ -72,8 +89,12 @@ class TradePlanBuilder:
             hold_plan=hold,
             risk_posture=posture,
             execution_checklist=checklist,
-            linked_target_move_board=top_scenario_summary(context.target_move_board),
-            linked_trade_idea_opinion={"symbol": opinion.get("symbol"), "stance": stance, "summary": opinion.get("summary")},
+            linked_target_move_board=top_scenario_summary(context.target_move_board if isinstance(context.target_move_board, dict) else None),
+            linked_trade_idea_opinion={
+                "symbol": opinion.get("symbol") or context.symbol,
+                "stance": stance,
+                "summary": opinion.get("summary") or "No trade-idea opinion summary available.",
+            },
             notes=["Deterministic planning rules applied.", f"Source mode: {context.source_mode}."],
             debug={
                 "direction": direction,

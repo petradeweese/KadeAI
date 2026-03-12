@@ -328,10 +328,13 @@ def main() -> None:
     )
     scenario_engine = TargetMoveScenarioBoard(configs["execution.yaml"]["execution"]["option_scenarios"])
     opinion_engine = TradeIdeaOpinionEngine(brain_config.get("trade_idea_opinion", {}), logger=LOGGER)
-    trade_plan_builder = TradePlanBuilder(configs["planning.yaml"].get("planning", {}))
-    trade_plan_monitor = TradePlanMonitor(plan_tracker, configs["tracking.yaml"].get("tracking", {}))
+    planning_cfg = dict(configs["planning.yaml"].get("planning", {}))
+    tracking_cfg = dict(configs["tracking.yaml"].get("tracking", {}))
+    review_cfg = dict(configs["review.yaml"].get("review", {}))
+
+    trade_plan_builder = TradePlanBuilder(planning_cfg)
+    trade_plan_monitor = TradePlanMonitor(plan_tracker, tracking_cfg)
     trade_plan_tracking_history: list[dict[str, object]] = list(session_state.get("trade_plan_tracking_history", []))
-    review_cfg = configs["review.yaml"].get("review", {})
     review_analyzer = TradeReviewAnalyzer(review_cfg)
     review_metrics = ReviewMetricsAggregator(review_cfg)
     trade_review_history: list[dict[str, object]] = list(session_state.get("trade_review_history", []))
@@ -512,7 +515,7 @@ def main() -> None:
         snapshot = trade_plan_monitor.evaluate(context, apply_transition=bool(payload.get("apply_transition", True)))
         tracking = tracking_payload(snapshot)
         trade_plan_tracking_history.append(tracking)
-        limit = int(configs["tracking.yaml"].get("tracking", {}).get("history_limit", 40))
+        limit = int(tracking_cfg.get("history_limit", 40))
         del trade_plan_tracking_history[:-limit]
         session_state["trade_plan_tracking_history"] = trade_plan_tracking_history
         session_state["latest_trade_plan_tracking"] = tracking
@@ -637,12 +640,23 @@ def main() -> None:
         latest_trade_review_handler=review_latest_trade_plan_payload,
     )
 
+    if session_state.get("latest_target_move_board"):
+        interaction.state.latest_target_move_board = dict(session_state.get("latest_target_move_board", {}))
+    if session_state.get("latest_trade_idea_opinion"):
+        interaction.state.latest_trade_idea_opinion = dict(session_state.get("latest_trade_idea_opinion", {}))
+    if session_state.get("latest_trade_plan"):
+        interaction.state.latest_trade_plan = dict(session_state.get("latest_trade_plan", {}))
     if session_state.get("latest_trade_plan_tracking"):
         interaction.state.latest_trade_plan_tracking = dict(session_state.get("latest_trade_plan_tracking", {}))
     if session_state.get("latest_trade_review"):
         interaction.state.latest_trade_review = dict(session_state.get("latest_trade_review", {}))
-    interaction.state.trade_review_history = list(session_state.get("trade_review_history", []))
+    interaction.state.trade_review_history = list(session_state.get("trade_review_history", []))[-int(review_cfg.get("history_limit", 120)) :]
     interaction.state.trade_review_metrics = dict(session_state.get("trade_review_metrics", {}))
+    if session_state.get("latest_backtest_run_summary"):
+        interaction.state.latest_backtest_run_summary = dict(session_state.get("latest_backtest_run_summary", {}))
+    interaction.state.recent_backtest_evaluations = dict(session_state.get("recent_backtest_evaluations", {}))
+    interaction.state.latest_historical_data = dict(session_state.get("latest_historical_data", {}))
+    trade_plan_tracking_history[:] = trade_plan_tracking_history[-int(tracking_cfg.get("history_limit", 40)) :]
 
     diagnostics = ProviderDiagnostics(policy=str(provider_runtime.get("diagnostics_policy", "warn_on_degraded")), logger=LOGGER)
     provider_diagnostics = diagnostics.evaluate(
@@ -743,6 +757,16 @@ def main() -> None:
         "tts": voice_orchestrator.tts_provider.provider_name,
     }
     session_state["replay_debug"] = interaction.replay_runtime.snapshot()
+    session_state["latest_target_move_board"] = interaction_state.latest_target_move_board
+    session_state["latest_trade_idea_opinion"] = interaction_state.latest_trade_idea_opinion
+    session_state["latest_trade_plan"] = interaction_state.latest_trade_plan
+    session_state["latest_trade_plan_tracking"] = interaction_state.latest_trade_plan_tracking
+    session_state["latest_trade_review"] = interaction_state.latest_trade_review
+    session_state["trade_review_history"] = interaction_state.trade_review_history
+    session_state["trade_review_metrics"] = interaction_state.trade_review_metrics
+    session_state["latest_backtest_run_summary"] = interaction_state.latest_backtest_run_summary
+    session_state["recent_backtest_evaluations"] = interaction_state.recent_backtest_evaluations
+    session_state["latest_historical_data"] = interaction_state.latest_historical_data
     persistence.retain_recent_voice_events(session_state)
     persistence.retain_recent_commands(session_state)
     persistence.retain_provider_health_history(session_state)

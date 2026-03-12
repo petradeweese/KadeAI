@@ -7,7 +7,7 @@ tracking:
     reason_limit: 8
     action_limit: 5
   transitions:
-    auto_triggered_to_active: true
+    auto_triggered_to_active: false
     auto_cancel_stale_watch: false
     allow_cancel_active_on_hard_invalidation: false
     active_execution_states:

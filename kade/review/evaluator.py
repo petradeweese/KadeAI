@@ -24,7 +24,8 @@ def evaluate_discipline(context: TradeReviewContext, config: dict[str, object]) 
     posture_respected = posture_respected and posture_state != "posture_not_respected"
 
     stale_respected = staleness_state != "stale" or final_status in {"cancelled", "exited"} or "de_risk" in " ".join(latest.get("actions", []))
-    cancellation_correctness = not (final_status == "cancelled" and invalidation_state == "valid" and staleness_state == "fresh")
+    cancellation_reasonable = invalidation_state in {"soft_warning", "hard_invalidated"} or staleness_state in {"aging", "stale"}
+    cancellation_correctness = final_status != "cancelled" or cancellation_reasonable
 
     checklist_len = len(list(plan.get("execution_checklist", [])))
     checklist_completed = min(int(dict(context.realized_outcome or {}).get("checklist_completed", checklist_len)), checklist_len)
@@ -85,7 +86,7 @@ def evaluate_outcome(context: TradeReviewContext, discipline: DisciplineEvaluati
     realized = context.realized_outcome or {}
 
     pnl = float(realized.get("realized_pnl", 0.0)) if realized.get("realized_pnl") is not None else 0.0
-    target_hit = bool(realized.get("target_hit", False)) or latest.get("trigger_state") == "triggered"
+    target_hit = bool(realized.get("target_hit", False))
 
     confidence = str(plan.get("confidence_label", "medium"))
     trap_risk = str(plan.get("trap_risk", "unknown"))
@@ -97,7 +98,7 @@ def evaluate_outcome(context: TradeReviewContext, discipline: DisciplineEvaluati
     else:
         quality = "mixed_quality_setup"
 
-    if final_status == "cancelled" and discipline.invalidation_respected:
+    if final_status == "cancelled" and discipline.cancellation_correctness and discipline.invalidation_respected:
         outcome_label = "cancelled_correctly"
     elif latest.get("staleness_state") == "stale" and discipline.stale_respected:
         outcome_label = "stale_but_managed"
@@ -127,6 +128,7 @@ def evaluate_outcome(context: TradeReviewContext, discipline: DisciplineEvaluati
             "realized": realized,
             "latest_snapshot": latest,
             "target_hit": target_hit,
+            "trigger_state": latest.get("trigger_state"),
             "realized_pnl": pnl,
         },
     )

@@ -101,3 +101,14 @@ def test_radar_and_execution_monitor_payload_structure() -> None:
     payload = interaction.dashboard_payload()
     assert payload["latest_radar_signals"][0]["supporting_indicators"] == ["vwap", "rvol"]
     assert payload["execution_monitor"]["lifecycle_history"][0]["option_symbol"] == "NVDA-C-100"
+
+
+def test_operator_console_panels_stable_with_sparse_inputs() -> None:
+    payload = create_app_status(voice_payload={})
+    operator = payload["operator_console"]
+
+    assert operator["trade_plan"]["available"] is False
+    assert operator["trade_plan_tracking"]["status_after"] == "unknown"
+    assert operator["trade_review"]["latest_review"] == {}
+    assert operator["historical_data"]["recent_downloads"] == []
+    assert operator["backtesting"]["latest_run_summary"] == {}

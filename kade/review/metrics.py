@@ -72,7 +72,9 @@ class ReviewMetricsAggregator:
     def _group_setup_tags(self, reviews: list[dict[str, object]]) -> dict[str, dict[str, int]]:
         grouped: dict[str, Counter[str]] = {}
         for review in reviews:
-            tags = review.get("plan", {}).get("linked_target_move_board", {}).get("setup_tags") if isinstance(review.get("plan"), dict) else None
+            plan = review.get("plan") if isinstance(review.get("plan"), dict) else {}
+            board = plan.get("linked_target_move_board") if isinstance(plan.get("linked_target_move_board"), dict) else {}
+            tags = board.get("setup_tags")
             normalized = tags if isinstance(tags, list) and tags else ["untagged"]
             for tag in normalized:
                 grouped.setdefault(str(tag), Counter())

@@ -104,3 +104,28 @@ def test_missing_files_are_graceful(tmp_path) -> None:
     assert ExecutionStore(tmp_path).load_events() == []
     session = SessionStore(tmp_path).load_session()
     assert session["trades_today"] == 0
+
+from kade.runtime.persistence import RuntimePersistence
+
+
+def test_runtime_persistence_bounded_history_after_reload(tmp_path) -> None:
+    persistence = RuntimePersistence.from_config({"root_dir": str(tmp_path), "history": {"advisor_limit": 2}}, logger=None)
+    session = {"advisor_history": [{"i": 1}, {"i": 2}, {"i": 3}]}
+
+    bounded = persistence.persist_advisor_history(session["advisor_history"], session)
+
+    assert len(bounded) == 2
+    assert session["advisor_history"] == [{"i": 2}, {"i": 3}]
+
+
+def test_runtime_persistence_compat_with_empty_or_partial_session(tmp_path) -> None:
+    persistence = RuntimePersistence.from_config({"root_dir": str(tmp_path), "session": {}}, logger=None)
+    session = {}
+
+    persistence.retain_recent_commands(session)
+    persistence.retain_recent_voice_events(session)
+    persistence.retain_provider_health_history(session)
+
+    assert session["recent_command_history"] == []
+    assert session["recent_voice_events"] == []
+    assert session["provider_health_history"] == []

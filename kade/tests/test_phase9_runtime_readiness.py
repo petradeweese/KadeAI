@@ -98,3 +98,29 @@ def test_text_first_defaults_preserved_in_config() -> None:
     assert voice["runtime_mode"] == "text_first"
     assert voice["voice_runtime_enabled"] is False
     assert voice["text_command_input_enabled"] is True
+
+
+def test_text_panel_handles_malformed_payloads_and_missing_handlers() -> None:
+    interaction = _interaction()
+
+    empty = interaction.submit_text_panel_command({})
+    malformed = interaction.submit_text_panel_command({"command": "target_move symbol=NVDA dtes=a,b,1"})
+
+    assert empty["intent"] == "invalid"
+    assert "raw_result" in empty
+    assert malformed["intent"] == "target_move_scenario_unavailable"
+    assert "raw_result" in malformed
+
+
+def test_repeated_requests_update_latest_state_without_cross_panel_leakage() -> None:
+    interaction = _interaction()
+    interaction.trade_plan_handler = lambda payload: {"plan_id": payload.get("plan_id", "p1"), "symbol": "NVDA", "status": "watching", "risk_posture": "watch_only"}
+    interaction.trade_review_handler = lambda payload: {"latest_review": {"plan_id": payload.get("plan_id", "p1"), "symbol": "NVDA", "summary": "ok"}, "metrics_summary": {"review_count": 1}}
+
+    interaction.submit_trade_plan_request({"plan_id": "p1", "symbol": "NVDA"})
+    interaction.submit_trade_plan_request({"plan_id": "p2", "symbol": "AAPL"})
+    interaction.submit_trade_review_request({"plan_id": "p1"})
+
+    payload = interaction.dashboard_payload()
+    assert payload["trade_plan"]["plan_id"] == "p2"
+    assert payload["trade_review"]["latest_review"]["plan_id"] == "p1"

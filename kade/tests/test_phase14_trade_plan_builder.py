@@ -190,3 +190,43 @@ def test_trade_plan_separation_from_opinion_and_target_move_modes() -> None:
     assert "trade_plan" in response["raw_result"]
     assert "trade_idea_opinion" not in response["raw_result"]
     assert "target_move_board" not in response["raw_result"]
+
+
+def test_safe_fallbacks_when_opinion_and_target_board_missing() -> None:
+    builder = TradePlanBuilder(PLANNING_CONFIG)
+    decision = builder.build(
+        TradePlanContext(
+            symbol="NVDA",
+            direction="put",
+            ticker_state=_ticker(vwap=None, last_price=None),
+            radar_context={},
+            breadth_context={"bias": "risk_on"},
+            trade_idea_opinion=None,
+            target_move_board=None,
+            user_request_context=None,
+        )
+    )
+
+    assert decision.linked_target_move_board == {}
+    assert decision.linked_trade_idea_opinion["symbol"] == "NVDA"
+    assert decision.target_plan.primary_target.startswith("Primary target: 0.00")
+    assert "VWAP" not in " ".join(decision.invalidation_plan.hard_invalidation)
+
+
+def test_fallback_resolution_prefers_request_context_values() -> None:
+    builder = TradePlanBuilder(PLANNING_CONFIG)
+    decision = builder.build(
+        TradePlanContext(
+            symbol="NVDA",
+            direction="call",
+            ticker_state=_ticker(last_price=188.0, trend="bullish", momentum="up_bias"),
+            radar_context={},
+            breadth_context={"bias": "risk_off"},
+            trade_idea_opinion={"stance": "pass", "target_plausibility": "possible"},
+            user_request_context={"current_price": 187.5, "target_price": 190.0, "time_horizon_minutes": 35},
+        )
+    )
+
+    assert "190.00" in decision.target_plan.primary_target
+    assert decision.hold_plan.max_hold_minutes == 35
+    assert decision.risk_posture in {"watch_only", "pass"}
