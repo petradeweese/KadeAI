@@ -42,6 +42,7 @@ class InteractionRuntimeState:
     last_execution_results: list[dict[str, object]] = field(default_factory=list)
     provider_diagnostics: dict[str, object] = field(default_factory=dict)
     latest_target_move_board: dict[str, object] = field(default_factory=dict)
+    latest_trade_idea_opinion: dict[str, object] = field(default_factory=dict)
 
     def retain_history(self) -> None:
         self.recent_commands = self.recent_commands[-self.command_history_limit :]
@@ -62,6 +63,7 @@ class InteractionOrchestrator:
         replay_runtime: ReplayRuntime | None = None,
         timeline: RuntimeTimeline | None = None,
         target_move_handler: Callable[[dict[str, object]], dict[str, object]] | None = None,
+        trade_idea_handler: Callable[[dict[str, object]], dict[str, object]] | None = None,
     ) -> None:
         self.voice_orchestrator = voice_orchestrator
         self.stt_provider = stt_provider
@@ -70,6 +72,7 @@ class InteractionOrchestrator:
         self.replay_runtime = replay_runtime or ReplayRuntime()
         self.timeline = timeline or RuntimeTimeline()
         self.target_move_handler = target_move_handler
+        self.trade_idea_handler = trade_idea_handler
 
     def submit_text_command(self, command: str, now: datetime | None = None, include_debug: bool = True) -> dict[str, object]:
         now = now or utc_now()
@@ -104,6 +107,8 @@ class InteractionOrchestrator:
     def submit_text_panel_command(self, payload: dict[str, object], now: datetime | None = None) -> dict[str, object]:
         if payload.get("target_move_request"):
             return self.submit_target_move_request(dict(payload["target_move_request"]), now=now)
+        if payload.get("trade_idea_request"):
+            return self.submit_trade_idea_opinion(dict(payload["trade_idea_request"]), now=now)
 
         command = str(payload.get("command", "")).strip()
         include_debug = bool(payload.get("include_debug", True))
@@ -118,6 +123,9 @@ class InteractionOrchestrator:
         if command.lower().startswith("target_move"):
             parsed = self._parse_target_move_command(command)
             return self.submit_target_move_request(parsed, now=now)
+        if command.lower().startswith("trade_idea"):
+            parsed = self._parse_trade_idea_command(command)
+            return self.submit_trade_idea_opinion(parsed, now=now)
         return self.submit_text_command(command=command, now=now, include_debug=include_debug)
 
     def submit_target_move_request(self, request_payload: dict[str, object], now: datetime | None = None) -> dict[str, object]:
@@ -147,6 +155,58 @@ class InteractionOrchestrator:
             "raw_result": {"intent": "target_move_scenario", "target_move_board": board},
         }
         self._record(command=f"target_move {request_payload}", result={"intent": "target_move_scenario", "spoken_text": response["formatted_response"], "target_move_board": board}, source="text_panel", now=now)
+        self._refresh_provider_health()
+        return response
+
+    def submit_trade_idea_opinion(self, request_payload: dict[str, object], now: datetime | None = None) -> dict[str, object]:
+        now = now or utc_now()
+        if self.trade_idea_handler is None:
+            return {
+                "intent": "trade_idea_opinion",
+                "formatted_response": "Trade-idea opinion mode is not configured.",
+                "advisor_radar_status_summary": self.state.latest_advisor_or_status,
+                "provider_mode": {},
+                "timestamp": now.isoformat(),
+                "raw_result": {"intent": "trade_idea_opinion", "trade_idea_opinion": {}},
+            }
+
+        opinion = self.trade_idea_handler(request_payload)
+        self.state.latest_trade_idea_opinion = opinion
+        self.timeline.add_event(
+            "trade_idea_opinion_generated",
+            now.isoformat(),
+            {
+                "request": {
+                    "symbol": request_payload.get("symbol"),
+                    "direction": request_payload.get("direction"),
+                    "current_price": request_payload.get("current_price", request_payload.get("current")),
+                    "target_price": request_payload.get("target_price", request_payload.get("target")),
+                    "time_horizon_minutes": request_payload.get("time_horizon_minutes", request_payload.get("minutes")),
+                },
+                "stance": opinion.get("stance"),
+                "target_plausibility": opinion.get("target_plausibility"),
+                "market_alignment": opinion.get("market_alignment"),
+                "summary": opinion.get("summary"),
+            },
+        )
+        response = {
+            "intent": "trade_idea_opinion",
+            "formatted_response": str(opinion.get("summary", "Generated trade idea opinion.")),
+            "advisor_radar_status_summary": self.state.latest_advisor_or_status,
+            "provider_mode": {
+                "stt": self.stt_provider.provider_name,
+                "tts": "disabled",
+                "wakeword": self.voice_orchestrator.wakeword_detector.provider_name,
+            },
+            "timestamp": now.isoformat(),
+            "raw_result": {"intent": "trade_idea_opinion", "trade_idea_opinion": opinion},
+        }
+        self._record(
+            command=f"trade_idea {request_payload}",
+            result={"intent": "trade_idea_opinion", "spoken_text": response["formatted_response"], "trade_idea_opinion": opinion},
+            source="text_panel",
+            now=now,
+        )
         self._refresh_provider_health()
         return response
 
@@ -212,6 +272,7 @@ class InteractionOrchestrator:
                     "lifecycle_history": self.state.execution_lifecycle_history,
                 },
                 "target_move_board": self.state.latest_target_move_board,
+                "trade_idea_opinion": self.state.latest_trade_idea_opinion,
             }
         )
         return payload
@@ -225,6 +286,15 @@ class InteractionOrchestrator:
             parsed[key.strip().lower()] = value.strip()
         if "dtes" in parsed:
             parsed["allowed_dtes"] = [int(token.strip()) for token in str(parsed.pop("dtes")).split(",") if token.strip()]
+        return parsed
+
+    def _parse_trade_idea_command(self, command: str) -> dict[str, object]:
+        parsed: dict[str, object] = {}
+        for part in command.split():
+            if "=" not in part:
+                continue
+            key, value = part.split("=", 1)
+            parsed[key.strip().lower()] = value.strip()
         return parsed
 
     def set_provider_diagnostics(self, diagnostics: dict[str, object]) -> None:

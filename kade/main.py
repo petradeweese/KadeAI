@@ -7,7 +7,7 @@ from pathlib import Path
 
 import yaml
 
-from kade.brain import AdvisorReasoningEngine, ConversationMemory, SessionPlanTracker, StyleProfileManager
+from kade.brain import AdvisorReasoningEngine, ConversationMemory, SessionPlanTracker, StyleProfileManager, TradeIdeaOpinionEngine, TradeIdeaOpinionRequest
 from kade.execution import PaperExecutionWorkflow
 from kade.execution.models import ExecutionRejection
 from kade.integrations.diagnostics import ProviderDiagnostics
@@ -293,6 +293,49 @@ def main() -> None:
         self_trigger_prevention=bool(voice_config.get("self_trigger_prevention", True)),
     )
     scenario_engine = TargetMoveScenarioBoard(configs["execution.yaml"]["execution"]["option_scenarios"])
+    opinion_engine = TradeIdeaOpinionEngine(brain_config.get("trade_idea_opinion", {}), logger=LOGGER)
+
+    def build_trade_idea_opinion(payload: dict[str, object]) -> dict[str, object]:
+        symbol = str(payload.get("symbol", "")).upper()
+        state = states.get(symbol)
+        if state is None:
+            return {
+                "symbol": symbol,
+                "direction": str(payload.get("direction", "unknown")),
+                "current_price": float(payload.get("current_price") or payload.get("current") or 0.0),
+                "target_price": float(payload.get("target_price") or payload.get("target") or 0.0),
+                "time_horizon_minutes": int(payload.get("time_horizon_minutes") or payload.get("minutes") or 30),
+                "stance": "pass",
+                "confidence_label": "very_low",
+                "target_plausibility": "unclear",
+                "market_alignment": "mixed",
+                "qqq_alignment": "mixed",
+                "breadth_alignment": "mixed",
+                "regime_fit": "unclear",
+                "trap_risk": "unknown",
+                "summary": f"No current ticker state available for {symbol}.",
+                "supporting_reasons": [],
+                "cautionary_reasons": ["Ticker is not in the active runtime state map."],
+                "suggested_next_step": "Load symbol into watchlist and reassess after market state refresh.",
+                "timestamp": utc_now_iso(),
+                "debug": {"reason": "missing_symbol_state"},
+            }
+        request = TradeIdeaOpinionRequest(
+            symbol=symbol,
+            direction=str(payload.get("direction", "")),
+            current_price=float(payload.get("current_price") or payload.get("current") or state.last_price or 0.0),
+            target_price=float(payload.get("target_price") or payload.get("target") or state.last_price or 0.0),
+            time_horizon_minutes=int(payload.get("time_horizon_minutes") or payload.get("minutes") or 30),
+            user_context=str(payload.get("user_context")) if payload.get("user_context") else None,
+            profile=str(payload.get("profile")) if payload.get("profile") else None,
+        )
+        opinion = opinion_engine.evaluate(
+            request=request,
+            ticker_state=state,
+            radar_context=market_loop.latest_radar.get("by_symbol", {}).get(symbol, {}),
+            breadth_context=market_loop.latest_breadth,
+        )
+        return opinion.as_dict()
 
     def build_target_move_board(payload: dict[str, object]) -> dict[str, object]:
         symbol = str(payload.get("symbol", "")).upper()
@@ -353,6 +396,7 @@ def main() -> None:
         replay_runtime=ReplayRuntime(retention_limit=int(dict(voice_config.get("replay_debug", {})).get("retention_limit", 40))),
         timeline=RuntimeTimeline(retention=int(dict(dashboard_cfg.get("timeline", {})).get("retention", 200))),
         target_move_handler=build_target_move_board,
+        trade_idea_handler=build_trade_idea_opinion,
     )
 
     diagnostics = ProviderDiagnostics(policy=str(provider_runtime.get("diagnostics_policy", "warn_on_degraded")), logger=LOGGER)

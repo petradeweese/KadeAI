@@ -20,3 +20,34 @@ style_profile:
 advisor:
   wording:
     include_debug_summary: true
+
+trade_idea_opinion:
+  stance_thresholds:
+    strong: 3.0
+    agree: 1.5
+    cautious: 0.0
+  target_plausibility:
+    realistic_ratio_max: 0.95
+    stretched_ratio_max: 1.45
+    realistic_score_min: 0.9
+    stretched_score_min: -0.1
+  time_horizon_buckets:
+    short_minutes: 30
+    medium_minutes: 90
+    short_move_proxy_pct: 0.7
+    medium_move_proxy_pct: 1.0
+    long_move_proxy_pct: 1.3
+  explanation_limits:
+    supporting_reasons_limit: 4
+    cautionary_reasons_limit: 4
+  alignment_importance:
+    market: 1.2
+    qqq: 0.8
+    breadth: 0.7
+  trap_risk_penalties:
+    low: 0.0
+    moderate: 0.6
+    high: 1.2
+  radar_score:
+    high: 70
+    low: 40
