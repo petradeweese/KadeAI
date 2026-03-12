@@ -4,10 +4,13 @@ from kade.brain.memory import ConversationMemory
 from kade.brain.plans import SessionPlanTracker
 from kade.brain.reasoning import AdvisorReasoningEngine
 from kade.brain.style_profile import StyleProfileManager
+from kade.brain.trade_idea import TradeIdeaOpinionEngine, TradeIdeaOpinionRequest
 
 __all__ = [
     "AdvisorReasoningEngine",
     "ConversationMemory",
     "SessionPlanTracker",
     "StyleProfileManager",
+    "TradeIdeaOpinionEngine",
+    "TradeIdeaOpinionRequest",
 ]

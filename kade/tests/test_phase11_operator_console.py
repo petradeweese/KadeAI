@@ -78,6 +78,7 @@ def test_provider_diagnostics_and_operator_console_panels() -> None:
         "latest_radar_signals": [{"symbol": "NVDA", "setup": "trend_continuation", "confidence": 0.8, "timestamp": "2026-01-01T00:00:00+00:00"}],
         "execution_monitor": {"lifecycle_history": [{"symbol": "NVDA", "status": "partially_filled", "lifecycle_state": "partially_filled", "contracts": 2, "fill_price": 2.12, "timestamp": "2026-01-01T00:00:01+00:00"}]},
         "timeline": {"retention": 200, "events": [{"event_type": "command_received", "timestamp": "2026-01-01T00:00:00+00:00", "payload": {}}]},
+        "trade_idea_opinion": {"symbol": "NVDA", "stance": "agree", "target_plausibility": "possible_but_stretched"},
     }
     payload = create_app_status(voice_payload=voice_payload, session_payload={"trades_today": 1})
     operator = payload["operator_console"]
@@ -85,6 +86,7 @@ def test_provider_diagnostics_and_operator_console_panels() -> None:
     assert operator["providers"]["market_data_provider"]["state"] == "degraded"
     assert operator["radar"]["top_signals"][0]["symbol"] == "NVDA"
     assert operator["execution"]["latest_lifecycle"][0]["symbol"] == "NVDA"
+    assert operator["trade_idea_opinion"]["symbol"] == "NVDA"
 
 
 def test_radar_and_execution_monitor_payload_structure() -> None:
