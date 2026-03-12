@@ -55,6 +55,11 @@ def apply_runtime_env_overrides(configs: dict[str, dict], environ: dict[str, str
 
     market_backends["alpaca"] = market_alpaca
     options_backends["alpaca"] = options_alpaca
+
+    _apply_if_present(providers, "runtime_market_loop_provider", _env_first(env, "KADE_RUNTIME_MARKET_LOOP_PROVIDER"))
+    _apply_if_present(providers, "historical_data_provider", _env_first(env, "KADE_HISTORICAL_DATA_PROVIDER"))
+    _apply_if_present(providers, "market_intelligence_provider", _env_first(env, "KADE_MARKET_INTELLIGENCE_PROVIDER"))
+    _apply_if_present(providers, "options_runtime_provider", _env_first(env, "KADE_OPTIONS_RUNTIME_PROVIDER"))
     providers["market_data_backends"] = market_backends
     providers["options_data_backends"] = options_backends
     execution["providers"] = providers

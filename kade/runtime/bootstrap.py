@@ -48,7 +48,7 @@ def build_dashboard_state(
 
 
 def print_runtime_summary(
-    dashboard_state: dict[str, object], session_state: dict[str, object], history_payload: dict[str, list[dict[str, object]]]
+    dashboard_state: dict[str, object], session_state: dict[str, object], history_payload: dict[str, list[dict[str, object]]], provider_routes: dict[str, str] | None = None
 ) -> None:
     print("Kade Phase 11 initialized")
     print(f"Ticker cards: {dashboard_state['card_count']}")
@@ -63,3 +63,9 @@ def print_runtime_summary(
         f"advisor={len(history_payload['advisor'])} "
         f"execution={len(history_payload['execution'])}"
     )
+    routes = provider_routes or {}
+    if routes:
+        print(f"Provider routing: runtime market loop provider = {routes.get('runtime_market_loop_provider', 'mock')}")
+        print(f"Provider routing: historical data provider = {routes.get('historical_data_provider', 'mock')}")
+        print(f"Provider routing: market intelligence provider = {routes.get('market_intelligence_provider', 'alpaca')}")
+        print(f"Provider routing: options runtime provider = {routes.get('options_runtime_provider', 'mock')}")

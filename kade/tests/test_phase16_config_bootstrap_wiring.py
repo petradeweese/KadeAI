@@ -20,3 +20,13 @@ def test_tracking_transition_defaults_are_wired() -> None:
 
     assert "auto_triggered_to_active" in transitions
     assert "active_execution_states" in transitions
+
+
+def test_execution_provider_routes_include_hybrid_defaults() -> None:
+    cfg = bootstrap_config()
+    providers = cfg["execution.yaml"]["providers"]
+
+    assert providers["runtime_market_loop_provider"] == "mock"
+    assert providers["historical_data_provider"] == "alpaca"
+    assert providers["market_intelligence_provider"] == "alpaca"
+    assert providers["options_runtime_provider"] == "mock"

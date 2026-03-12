@@ -15,8 +15,20 @@ def _use_mock(provider_name: str, cfg: dict[str, object]) -> bool:
     return provider_name == "mock" or fallback == "mock"
 
 
-def build_market_data_provider(runtime_cfg: dict[str, object]) -> MarketDataProvider:
-    provider_name = str(runtime_cfg.get("market_data_provider", "mock"))
+def resolve_runtime_provider_routes(runtime_cfg: dict[str, object]) -> dict[str, str]:
+    """Resolve responsibility-specific provider routing with legacy fallbacks."""
+
+    return {
+        "runtime_market_loop_provider": str(runtime_cfg.get("runtime_market_loop_provider", runtime_cfg.get("market_data_provider", "mock"))),
+        "historical_data_provider": str(runtime_cfg.get("historical_data_provider", runtime_cfg.get("market_data_provider", "mock"))),
+        "market_intelligence_provider": str(runtime_cfg.get("market_intelligence_provider", "alpaca")),
+        "options_runtime_provider": str(runtime_cfg.get("options_runtime_provider", runtime_cfg.get("options_data_provider", "mock"))),
+    }
+
+
+def build_market_data_provider(runtime_cfg: dict[str, object], route_key: str = "runtime_market_loop_provider") -> MarketDataProvider:
+    routes = resolve_runtime_provider_routes(runtime_cfg)
+    provider_name = str(routes.get(route_key, "mock"))
     backends = dict(runtime_cfg.get("market_data_backends", {}))
     if provider_name == "alpaca":
         provider = AlpacaMarketDataProvider(dict(backends.get("alpaca", {})))
@@ -26,8 +38,9 @@ def build_market_data_provider(runtime_cfg: dict[str, object]) -> MarketDataProv
     return MockMarketDataProvider()
 
 
-def build_options_data_provider(runtime_cfg: dict[str, object]) -> OptionsDataProvider:
-    provider_name = str(runtime_cfg.get("options_data_provider", "mock"))
+def build_options_data_provider(runtime_cfg: dict[str, object], route_key: str = "options_runtime_provider") -> OptionsDataProvider:
+    routes = resolve_runtime_provider_routes(runtime_cfg)
+    provider_name = str(routes.get(route_key, "mock"))
     backends = dict(runtime_cfg.get("options_data_backends", {}))
     if provider_name in {"alpaca", "alpaca_options"}:
         provider = AlpacaOptionsDataProvider(dict(backends.get("alpaca", {})))
