@@ -43,6 +43,8 @@ class InteractionRuntimeState:
     provider_diagnostics: dict[str, object] = field(default_factory=dict)
     latest_target_move_board: dict[str, object] = field(default_factory=dict)
     latest_trade_idea_opinion: dict[str, object] = field(default_factory=dict)
+    latest_backtest_run_summary: dict[str, object] = field(default_factory=dict)
+    recent_backtest_evaluations: dict[str, list[dict[str, object]]] = field(default_factory=dict)
 
     def retain_history(self) -> None:
         self.recent_commands = self.recent_commands[-self.command_history_limit :]
@@ -273,9 +275,20 @@ class InteractionOrchestrator:
                 },
                 "target_move_board": self.state.latest_target_move_board,
                 "trade_idea_opinion": self.state.latest_trade_idea_opinion,
+                "backtesting": {
+                    "latest_run_summary": self.state.latest_backtest_run_summary,
+                    "recent_evaluations": self.state.recent_backtest_evaluations,
+                },
             }
         )
         return payload
+
+
+    def ingest_backtest_summary(self, summary: dict[str, object]) -> None:
+        self.state.latest_backtest_run_summary = summary
+        self.state.recent_backtest_evaluations = dict(summary.get("recent_evaluations", {}))
+        timestamp = str(summary.get("generated_at", utc_now_iso()))
+        self.timeline.add_event("backtest_run_completed", timestamp, {"run_id": summary.get("run_id")})
 
     def _parse_target_move_command(self, command: str) -> dict[str, object]:
         parsed: dict[str, object] = {}

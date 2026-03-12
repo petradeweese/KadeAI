@@ -59,6 +59,7 @@ def bootstrap_config() -> dict[str, dict]:
         "brain.yaml",
         "storage.yaml",
         "dashboard.yaml",
+        "backtesting.yaml",
     ]
     loaded_configs: dict[str, dict] = {}
     for name in config_names:

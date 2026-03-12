@@ -1,0 +1,19 @@
+backtesting:
+  replay:
+    default_window_steps: 20
+    max_window_steps: 300
+  evaluation_thresholds:
+    partial_move_ratio: 0.5
+    invalidation_ratio: 0.6
+    radar_hit_move_pct: 0.4
+  target_hit:
+    definition: "target is considered hit when future price reaches or exceeds directional target within replay window"
+  bucket_calibration:
+    score_buckets:
+      high_min: 70
+      medium_min: 50
+    directionality_threshold: 0.5
+  report:
+    recent_evaluations_limit: 20
+  retention:
+    summary_limit: 40
