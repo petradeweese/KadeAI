@@ -143,6 +143,10 @@ execution:
 providers:
   market_data_provider: mock
   options_data_provider: mock
+  runtime_market_loop_provider: mock
+  historical_data_provider: alpaca
+  market_intelligence_provider: alpaca
+  options_runtime_provider: mock
   diagnostics_policy: warn_on_degraded
   market_data_backends:
     alpaca:
