@@ -50,6 +50,12 @@ class HistoryService:
                 expected_bars_per_session=int(download_cfg.get("expected_bars_per_session", 390)),
                 partial_session_tolerance=int(download_cfg.get("partial_session_tolerance", 1)),
                 ignore_extended_hours=bool(download_cfg.get("ignore_extended_hours", True)),
+                skip_weekends=bool(download_cfg.get("skip_weekends", True)),
+                holiday_dates=tuple(str(item) for item in download_cfg.get("holiday_dates", [])),
+                early_close_dates=tuple(str(item) for item in download_cfg.get("early_close_dates", [])),
+                max_retries=int(download_cfg.get("max_retries", 3)),
+                backoff_seconds=tuple(float(item) for item in download_cfg.get("backoff_seconds", [0.5, 1.0, 2.0])),
+                retry_status_codes=tuple(int(item) for item in download_cfg.get("retry_status_codes", [429, 500, 502, 503, 504])),
             ),
         )
         loader = HistoricalDataLoader(cache)
@@ -69,6 +75,9 @@ class HistoryService:
             expected_bars_per_session=self.downloader.config.expected_bars_per_session,
             partial_session_tolerance=self.downloader.config.partial_session_tolerance,
             ignore_extended_hours=self.downloader.config.ignore_extended_hours,
+            skip_weekends=self.downloader.config.skip_weekends,
+            holidays=self.downloader.config.holiday_dates,
+            early_close_dates=self.downloader.config.early_close_dates,
         )
         session_status: dict[str, list[dict[str, object]]] = {}
         for symbol in symbols:
@@ -78,4 +87,11 @@ class HistoryService:
             for day in self.cache.iter_dates(start.date(), end.date()):
                 statuses.append(self.cache.session_coverage(symbol, day, policy, timeframe="1m").to_payload())
             session_status[symbol] = statuses
-        return HistoryCacheStatus(symbols=symbols, date_ranges=ranges, session_status=session_status, missing_ranges=missing)
+        index_status = self.cache.index_status(symbols, start.date(), end.date(), timeframe="1m")
+        return HistoryCacheStatus(
+            symbols=symbols,
+            date_ranges=ranges,
+            session_status=session_status,
+            missing_ranges=missing,
+            index_status=index_status,
+        )

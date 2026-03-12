@@ -52,6 +52,9 @@ class DownloadSummary:
     sessions_partial: int = 0
     sessions_missing: int = 0
     missing_windows_requested: int = 0
+    retry_count: int = 0
+    failed_windows: list[dict[str, str]] = field(default_factory=list)
+    skipped_non_session_days: int = 0
     request_windows: list[dict[str, str]] = field(default_factory=list)
 
 
@@ -61,6 +64,7 @@ class HistoryCacheStatus:
     date_ranges: dict[str, list[dict[str, str]]]
     session_status: dict[str, list[dict[str, object]]]
     missing_ranges: dict[str, list[dict[str, str]]]
+    index_status: dict[str, int] = field(default_factory=dict)
 
 
 @dataclass(frozen=True)

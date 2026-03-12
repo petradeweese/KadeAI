@@ -14,6 +14,12 @@ history:
     expected_bars_per_session: 390
     partial_session_tolerance: 1
     ignore_extended_hours: true
+    skip_weekends: true
+    holiday_dates: []
+    early_close_dates: []
+    max_retries: 3
+    backoff_seconds: [0.5, 1.0, 2.0]
+    retry_status_codes: [429, 500, 502, 503, 504]
   replay:
     future_window: 12
     trigger_lookback_bars: 20
