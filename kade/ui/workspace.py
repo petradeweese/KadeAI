@@ -49,47 +49,61 @@ def build_workspace_layout(mode: str, active_symbol: str | None = None) -> Works
     mode = mode if mode in WORKSPACE_MODES else "overview"
 
     panel_order = {
-        "market_intelligence": 50,
-        "premarket_gameplan": 50,
-        "radar": 50,
-        "movers": 60,
-        "trade_idea": 70,
-        "target_move": 70,
-        "trade_plan": 70,
-        "visual_explainability": 75,
-        "trade_plan_tracking": 80,
-        "execution_monitor": 90,
-        "trade_review": 95,
-        "strategy_intelligence": 95,
+        "market_context": 5,
+        "visual_explainability": 18,
+        "trade_idea": 20,
+        "target_move": 24,
+        "trade_plan": 28,
+        "market_intelligence": 60,
+        "premarket_gameplan": 62,
+        "radar": 64,
+        "movers": 66,
+        "trade_plan_tracking": 70,
+        "execution_monitor": 74,
+        "strategy_intelligence": 76,
+        "trade_review": 78,
         "timeline": 120,
-        "provider_diagnostics": 120,
+        "provider_diagnostics": 122,
         "raw_debug": 130,
     }
-    collapsed = {"timeline", "provider_diagnostics", "raw_debug"}
+    collapsed = {
+        "market_intelligence",
+        "premarket_gameplan",
+        "radar",
+        "movers",
+        "trade_plan_tracking",
+        "execution_monitor",
+        "strategy_intelligence",
+        "trade_review",
+        "timeline",
+        "provider_diagnostics",
+        "raw_debug",
+    }
     highlighted: list[str] = []
 
     if mode == "market":
-        panel_order.update({"market_intelligence": 1, "premarket_gameplan": 2, "radar": 3, "movers": 4})
-        collapsed.update({"trade_review", "execution_monitor"})
+        panel_order.update({"market_intelligence": 1, "premarket_gameplan": 2, "radar": 3, "movers": 4, "market_context": 5})
+        highlighted.extend(["market_intelligence", "premarket_gameplan", "radar", "movers", "market_context"])
+        collapsed.difference_update({"market_intelligence", "premarket_gameplan", "radar", "movers"})
     elif mode == "trade":
-        panel_order.update({"trade_idea": 1, "target_move": 2, "trade_plan": 3, "visual_explainability": 4})
-        highlighted.extend(["trade_idea", "target_move", "trade_plan", "visual_explainability"])
-        collapsed.update({"trade_review", "timeline"})
+        panel_order.update({"visual_explainability": 1, "trade_idea": 2, "target_move": 3, "trade_plan": 4, "market_context": 5})
+        highlighted.extend(["visual_explainability", "trade_idea", "target_move", "trade_plan", "market_context"])
+        collapsed.update({"market_intelligence", "premarket_gameplan", "radar", "movers", "trade_plan_tracking", "execution_monitor", "strategy_intelligence", "trade_review", "timeline", "provider_diagnostics"})
     elif mode == "tracking":
-        panel_order.update({"trade_plan_tracking": 1, "trade_plan": 2, "visual_explainability": 3, "execution_monitor": 4})
-        highlighted.extend(["trade_plan_tracking", "trade_plan", "visual_explainability", "execution_monitor"])
-        collapsed.update({"market_intelligence", "premarket_gameplan"})
+        panel_order.update({"trade_plan_tracking": 1, "trade_plan": 2, "visual_explainability": 3, "execution_monitor": 4, "market_context": 5})
+        highlighted.extend(["trade_plan_tracking", "trade_plan", "visual_explainability", "execution_monitor", "market_context"])
+        collapsed.difference_update({"trade_plan_tracking", "execution_monitor"})
     elif mode == "review":
-        panel_order.update({"trade_review": 1, "trade_plan_tracking": 2, "strategy_intelligence": 3, "trade_plan": 4})
-        highlighted.extend(["trade_review", "strategy_intelligence"])
-        collapsed.update({"execution_monitor", "radar"})
+        panel_order.update({"trade_review": 1, "trade_plan_tracking": 2, "strategy_intelligence": 3, "trade_plan": 4, "market_context": 5})
+        highlighted.extend(["trade_review", "strategy_intelligence", "trade_plan_tracking", "market_context"])
+        collapsed.difference_update({"trade_review", "strategy_intelligence", "trade_plan_tracking"})
     elif mode == "analysis":
-        panel_order.update({"strategy_intelligence": 1, "trade_review": 2, "market_intelligence": 3, "movers": 4})
-        highlighted.extend(["strategy_intelligence", "market_intelligence"])
-        collapsed.update({"execution_monitor", "trade_plan_tracking"})
+        panel_order.update({"strategy_intelligence": 1, "trade_review": 2, "market_intelligence": 3, "movers": 4, "market_context": 5})
+        highlighted.extend(["strategy_intelligence", "market_intelligence", "trade_review", "market_context"])
+        collapsed.difference_update({"strategy_intelligence", "market_intelligence", "trade_review", "movers"})
 
     if active_symbol:
-        for symbol_panel in ("trade_idea", "target_move", "trade_plan", "visual_explainability", "trade_plan_tracking"):
+        for symbol_panel in ("trade_idea", "target_move", "trade_plan", "visual_explainability", "market_context"):
             if symbol_panel not in highlighted:
                 highlighted.append(symbol_panel)
 

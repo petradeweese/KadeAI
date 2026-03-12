@@ -22,6 +22,8 @@ class OperatorBackend:
             "active_symbol": None,
             "active_view": "overview",
             "last_interpreted_intent": "",
+            "active_direction": None,
+            "active_horizon": None,
             "highlighted_panels": [],
             "collapsed_panels": [],
             "panel_priority_map": {},
@@ -46,7 +48,7 @@ class OperatorBackend:
     def command(self, command: str) -> dict[str, object]:
         result = self._runtime.submit_text_panel_command({"command": command})
         intent = str(result.get("intent", ""))
-        self._update_workspace(intent=intent, symbol=parse_symbol_from_command(command), active_view="command")
+        self._update_workspace(intent=intent, symbol=parse_symbol_from_command(command), direction=None, horizon=None, active_view="command")
         self._remember("user", command)
         self._remember("kade", str(result.get("formatted_response", "Done.")), metadata={"intent": intent, "layout_state": dict(self._layout_state)})
         return {"ok": True, "result": result, "dashboard": self.dashboard(), "layout_state": dict(self._layout_state)}
@@ -54,8 +56,10 @@ class OperatorBackend:
     def chat(self, message: str) -> dict[str, object]:
         response = self._chat.handle_message(message)
         symbol = str(response.interpreted_action.payload.get("symbol", "")).upper() or None
+        direction = str(response.interpreted_action.payload.get("direction", "")).lower() or None
+        horizon = response.interpreted_action.payload.get("horizon_minutes") or response.interpreted_action.payload.get("horizon_label")
         active_view = "visual" if response.interpreted_action.intent == "visual_explain" else "chat"
-        self._update_workspace(intent=response.interpreted_action.intent, symbol=symbol, active_view=active_view)
+        self._update_workspace(intent=response.interpreted_action.intent, symbol=symbol, direction=direction, horizon=horizon, active_view=active_view)
 
         self._remember("user", message)
         self._remember(
@@ -100,13 +104,17 @@ class OperatorBackend:
     def history(self) -> dict[str, object]:
         return {"items": self._history[-80:]}
 
-    def _update_workspace(self, intent: str, symbol: str | None, active_view: str) -> None:
+    def _update_workspace(self, intent: str, symbol: str | None, direction: str | None, horizon: object, active_view: str) -> None:
         mode = intent_to_workspace_mode(intent)
         current_symbol = symbol or self._layout_state.get("active_symbol")
+        current_direction = direction or self._layout_state.get("active_direction")
+        current_horizon = horizon or self._layout_state.get("active_horizon")
         layout = build_workspace_layout(mode, active_symbol=str(current_symbol) if current_symbol else None)
         self._layout_state = {
             **layout.as_dict(),
             "active_symbol": current_symbol,
+            "active_direction": current_direction,
+            "active_horizon": current_horizon,
             "active_view": active_view,
             "last_interpreted_intent": intent,
         }
