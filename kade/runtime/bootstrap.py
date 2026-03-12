@@ -20,6 +20,7 @@ def build_dashboard_state(
     persistence_payload: dict[str, object],
     session_payload: dict[str, object],
     history_payload: dict[str, object],
+    market_intelligence_payload: dict[str, object] | None = None,
 ) -> dict[str, object]:
     return create_app_status(
         states,
@@ -36,6 +37,7 @@ def build_dashboard_state(
         persistence_payload=persistence_payload,
         session_payload=session_payload,
         history_payload=history_payload,
+        market_intelligence_payload=market_intelligence_payload,
     )
 
 
