@@ -1,0 +1,63 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Kade Operator Console</title>
+  <link rel="stylesheet" href="/static/styles.css" />
+</head>
+<body>
+  <header class="topbar">
+    <div>
+      <h1>Kade Operator Console</h1>
+      <p>Deterministic operator workstation</p>
+    </div>
+    <div class="header-controls">
+      <span id="runtime-pill" class="pill">runtime</span>
+      <span id="provider-pill" class="pill muted">provider</span>
+      <button id="refresh-btn">Refresh</button>
+    </div>
+  </header>
+
+  <main class="layout">
+    <section class="chat-column card">
+      <h2>AI Assistant</h2>
+      <div id="transcript" class="transcript"></div>
+      <div id="interpreted" class="interpreted"></div>
+      <form id="chat-form" class="chat-input-row">
+        <input id="chat-input" placeholder="Ask naturally or type explicit command..." />
+        <button type="submit">Send</button>
+      </form>
+    </section>
+
+    <section class="workspace">
+      <div class="section-title">Market Overview</div>
+      <div class="grid two">
+        <article class="card" id="market-card"></article>
+        <article class="card" id="premarket-card"></article>
+      </div>
+
+      <div class="section-title">Trade Workflow</div>
+      <div class="grid two">
+        <article class="card highlightable" id="trade-idea-card"></article>
+        <article class="card highlightable" id="target-move-card"></article>
+        <article class="card highlightable" id="trade-plan-card"></article>
+        <article class="card" id="tracking-card"></article>
+      </div>
+
+      <div class="section-title">Explainability & Strategy</div>
+      <div class="grid two">
+        <article class="card highlightable" id="visual-card"></article>
+        <article class="card" id="strategy-card"></article>
+      </div>
+
+      <details class="card secondary">
+        <summary>Secondary Diagnostics</summary>
+        <pre id="secondary-debug"></pre>
+      </details>
+    </section>
+  </main>
+
+<script src="/static/app.js"></script>
+</body>
+</html>
