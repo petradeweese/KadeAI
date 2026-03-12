@@ -21,6 +21,7 @@ class AlpacaMarketDataProvider(MarketDataProvider):
         self.base_url = str(cfg.get("base_url", "https://paper-api.alpaca.markets"))
         self.data_url = str(cfg.get("data_url", "https://data.alpaca.markets"))
         self.mock_on_unavailable = bool(cfg.get("mock_on_unavailable", True))
+        self.historical_enabled = bool(cfg.get("historical_enabled", True))
         self.client = AlpacaClient(
             AlpacaConfig(
                 api_key=self.api_key,
@@ -40,10 +41,12 @@ class AlpacaMarketDataProvider(MarketDataProvider):
         return self.client.get_bars(symbol, timeframe, limit)
 
     def get_historical_bars(self, symbol: str, timeframe: str, start: datetime, end: datetime) -> list[Bar]:
+        if not self.historical_enabled:
+            return []
         return self.client.get_historical_bars(symbol, timeframe, start, end)
 
     def health_snapshot(self, active: bool) -> ProviderHealth:
-        ready = self.enabled and bool(self.api_key and self.secret_key)
+        ready = self.enabled and self.historical_enabled and bool(self.api_key and self.secret_key)
         state = "ready" if ready else "degraded"
         return ProviderHealth(
             provider_type="market_data",
@@ -60,5 +63,6 @@ class AlpacaMarketDataProvider(MarketDataProvider):
                 "supports_historical_bars": True,
                 "is_real_provider": True,
                 "mock_on_unavailable": self.mock_on_unavailable,
+                "historical_enabled": self.historical_enabled,
             },
         )
