@@ -181,9 +181,23 @@ class InteractionOrchestrator:
 
     def ingest_radar_signals(self, signals: list[dict[str, object]]) -> None:
         trimmed = signals[: self.state.radar_top_signals_limit]
+        previous = {str(item.get("symbol")): item for item in self.state.latest_radar_signals}
         self.state.latest_radar_signals = trimmed
         for signal in trimmed:
-            self.timeline.add_event("radar_signal", str(signal.get("timestamp", utc_now_iso())), signal)
+            timestamp = str(signal.get("timestamp", utc_now_iso()))
+            self.timeline.add_event("radar_signal", timestamp, signal)
+            symbol = str(signal.get("symbol"))
+            prior = previous.get(symbol)
+            if prior is not None:
+                if signal.get("setup_tags") != prior.get("setup_tags"):
+                    self.timeline.add_event("radar_setup_tags_changed", timestamp, {"symbol": symbol, "previous": prior.get("setup_tags"), "current": signal.get("setup_tags")})
+                if signal.get("alignment_label") != prior.get("alignment_label"):
+                    self.timeline.add_event("radar_alignment_changed", timestamp, {"symbol": symbol, "previous": prior.get("alignment_label"), "current": signal.get("alignment_label")})
+                if signal.get("regime_fit") != prior.get("regime_fit"):
+                    self.timeline.add_event("radar_regime_fit_changed", timestamp, {"symbol": symbol, "previous": prior.get("regime_fit"), "current": signal.get("regime_fit")})
+                if isinstance(signal.get("confidence"), (float, int)) and isinstance(prior.get("confidence"), (float, int)):
+                    if abs(float(signal["confidence"]) - float(prior["confidence"])) >= 3:
+                        self.timeline.add_event("radar_score_changed", timestamp, {"symbol": symbol, "previous": prior.get("confidence"), "current": signal.get("confidence")})
             log_event(
                 self.logger,
                 LogCategory.RADAR_EVENT,
@@ -191,6 +205,8 @@ class InteractionOrchestrator:
                 symbol=signal.get("symbol"),
                 setup=signal.get("setup") or signal.get("signal_type"),
                 confidence=signal.get("confidence"),
+                alignment=signal.get("alignment_label"),
+                regime_fit=signal.get("regime_fit"),
             )
 
     def ingest_execution_events(self, events: list[dict[str, object]]) -> None:

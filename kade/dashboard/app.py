@@ -77,6 +77,12 @@ def create_app_status(
     top_radar_signals = voice_payload.get("latest_radar_signals") or radar_payload.get("queue", [])[:5]
     latest_execution = (voice_payload.get("execution_monitor", {}).get("lifecycle_history") or execution_payload.get("orders", []))[-1:]
 
+    radar_quality = {
+        "top_quality": [s for s in top_radar_signals if float(s.get("confidence", 0.0)) >= 70],
+        "weak_or_noisy": [s for s in top_radar_signals if float(s.get("confidence", 0.0)) < 55],
+        "caution_heavy": [s for s in top_radar_signals if len(list(s.get("cautionary_reasons", []))) >= 2 or s.get("trap_risk") == "high"],
+    }
+
     return {
         "status": "running",
         "card_count": len(cards),
@@ -114,7 +120,7 @@ def create_app_status(
                 "tts_provider": {"provider": provider_selection.get("tts"), **dict(provider_map.get("tts", {}))},
                 "wakeword_provider": {"provider": provider_selection.get("wakeword"), **dict(provider_map.get("wakeword", {}))},
             },
-            "radar": {"top_signals": top_radar_signals[:5]},
+            "radar": {"top_signals": top_radar_signals[:5], "quality_buckets": radar_quality},
             "execution": {"latest_lifecycle": latest_execution},
             "session": {
                 "trades_today": session_payload.get("trades_today", 0),
