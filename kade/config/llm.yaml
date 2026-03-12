@@ -1,0 +1,15 @@
+llm:
+  provider: mock
+  providers:
+    mock:
+      enabled: true
+      model: mock-narrative
+    ollama:
+      enabled: false
+      host: http://localhost:11434
+      model: llama3.1
+      timeout_seconds: 30
+      api_key: ""
+  usage:
+    narrative_summaries_enabled: true
+    allow_trade_logic_override: false

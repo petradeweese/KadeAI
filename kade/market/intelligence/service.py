@@ -7,6 +7,7 @@ from datetime import datetime, timedelta, timezone
 from urllib.parse import urlencode
 from urllib.request import Request, urlopen
 
+from kade.integrations.health import ProviderHealth
 from kade.market.intelligence.context import CrossSymbolContextEngine
 from kade.market.intelligence.earnings import EarningsNormalizer
 from kade.market.intelligence.models import MarketCalendarDay, MarketClockSnapshot, MarketContextSnapshot
@@ -31,6 +32,31 @@ class AlpacaMarketIntelligenceSource:
     @property
     def available(self) -> bool:
         return self.enabled and bool(self.api_key and self.secret_key)
+
+    def health_snapshot(self, active: bool) -> ProviderHealth:
+        if not self.enabled:
+            state = "disabled"
+        elif not self.api_key or not self.secret_key:
+            state = "degraded"
+        else:
+            state = "ready"
+        return ProviderHealth(
+            provider_type="market_intelligence",
+            provider_name="alpaca",
+            state=state,
+            active=active,
+            metadata={
+                "enabled": self.enabled,
+                "api_key_present": bool(self.api_key),
+                "secret_key_present": bool(self.secret_key),
+                "base_url": self.base_url,
+                "data_url": self.data_url,
+                "news_supported": True,
+                "movers_supported": True,
+                "calendar_supported": True,
+                "clock_supported": True,
+            },
+        )
 
     def market_clock(self) -> dict[str, object]:
         return self._get_json(f"{self.base_url}/v2/clock")

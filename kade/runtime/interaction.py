@@ -56,6 +56,9 @@ class InteractionRuntimeState:
     visual_explanation_history: list[dict[str, object]] = field(default_factory=list)
     latest_strategy_analysis: dict[str, object] = field(default_factory=dict)
     strategy_analysis_history: list[dict[str, object]] = field(default_factory=list)
+    latest_llm_summary: dict[str, object] = field(default_factory=dict)
+    llm_summaries: dict[str, dict[str, object]] = field(default_factory=dict)
+    llm_summary_history: list[dict[str, object]] = field(default_factory=list)
 
     def retain_history(self) -> None:
         self.recent_commands = self.recent_commands[-self.command_history_limit :]
@@ -64,6 +67,7 @@ class InteractionRuntimeState:
         self.latest_staged_orders = self.latest_staged_orders[-self.execution_history_limit :]
         self.last_execution_results = self.last_execution_results[-self.execution_history_limit :]
         self.latest_radar_signals = self.latest_radar_signals[-self.radar_top_signals_limit :]
+        self.llm_summary_history = self.llm_summary_history[-self.execution_history_limit :]
 
 
 class InteractionOrchestrator:
@@ -85,6 +89,7 @@ class InteractionOrchestrator:
         premarket_gameplan_handler: Callable[[dict[str, object]], dict[str, object]] | None = None,
         visual_explanation_handler: Callable[[dict[str, object]], dict[str, object]] | None = None,
         strategy_analysis_handler: Callable[[dict[str, object]], dict[str, object]] | None = None,
+        narrative_summary_handler: Callable[[str, dict[str, object]], dict[str, object]] | None = None,
     ) -> None:
         self.voice_orchestrator = voice_orchestrator
         self.stt_provider = stt_provider
@@ -102,6 +107,7 @@ class InteractionOrchestrator:
         self.premarket_gameplan_handler = premarket_gameplan_handler
         self.visual_explanation_handler = visual_explanation_handler
         self.strategy_analysis_handler = strategy_analysis_handler
+        self.narrative_summary_handler = narrative_summary_handler
 
     def _provider_mode(self, tts_provider: str = "disabled") -> dict[str, str]:
         return {
@@ -444,6 +450,7 @@ class InteractionOrchestrator:
 
         gameplan = self.premarket_gameplan_handler(request_payload)
         self.state.latest_premarket_gameplan = gameplan
+        self._maybe_capture_narrative_summary("premarket_gameplan", gameplan, now)
         self.timeline.add_event(
             "premarket_gameplan_generated",
             now.isoformat(),
@@ -566,6 +573,7 @@ class InteractionOrchestrator:
         self.state.latest_strategy_analysis = analytics
         self.state.strategy_analysis_history.append(analytics)
         self.state.strategy_analysis_history = self.state.strategy_analysis_history[-self.state.execution_history_limit :]
+        self._maybe_capture_narrative_summary("strategy_intelligence", analytics, now)
         self.timeline.add_event(
             "strategy_analysis_generated",
             now.isoformat(),
@@ -620,6 +628,7 @@ class InteractionOrchestrator:
         self.state.latest_visual_explanation = snapshot
         self.state.visual_explanation_history.append(snapshot)
         self.state.visual_explanation_history = self.state.visual_explanation_history[-20:]
+        self._maybe_capture_narrative_summary("visual_explainability", snapshot, now)
         symbol = str(snapshot.get("symbol") or request_payload.get("symbol") or "")
         view_type = str(snapshot.get("view_type") or request_payload.get("view_type") or "opinion")
         charts = list(snapshot.get("charts", []))
@@ -731,6 +740,13 @@ class InteractionOrchestrator:
                     "history": self.state.visual_explanation_history,
                 },
                 "strategy_intelligence": self.state.latest_strategy_analysis,
+                "llm": {
+                    "latest_summary": self.state.latest_llm_summary,
+                    "summaries": self.state.llm_summaries,
+                    "history": self.state.llm_summary_history,
+                    "narrative_summaries_enabled": True,
+                    "allow_trade_logic_override": False,
+                },
             }
         )
         return payload
@@ -776,6 +792,24 @@ class InteractionOrchestrator:
     def set_provider_diagnostics(self, diagnostics: dict[str, object]) -> None:
         self.state.provider_diagnostics = diagnostics
         self.timeline.add_event("provider_diagnostic", utc_now_iso(), diagnostics)
+
+    def ingest_llm_summary(self, summary: dict[str, object], now: datetime | None = None) -> None:
+        timestamp = (now or utc_now()).isoformat()
+        self.state.latest_llm_summary = summary
+        summary_type = str(summary.get("summary_type", "unknown"))
+        self.state.llm_summaries[summary_type] = summary
+        self.state.llm_summary_history.append(summary)
+        self.state.retain_history()
+        self.timeline.add_event(
+            "llm_summary_generated",
+            timestamp,
+            {
+                "summary_type": summary_type,
+                "source": summary.get("source"),
+                "provider_name": summary.get("provider_name"),
+                "llm_used": summary.get("llm_used"),
+            },
+        )
 
     def ingest_radar_signals(self, signals: list[dict[str, object]]) -> None:
         trimmed = signals[: self.state.radar_top_signals_limit]
@@ -896,3 +930,8 @@ class InteractionOrchestrator:
         self.state.recent_commands.append(record)
         self.replay_runtime.add_record(command=command, result=result, source=source, timestamp=now)
         self.state.retain_history()
+
+    def _maybe_capture_narrative_summary(self, summary_type: str, payload: dict[str, object], now: datetime) -> None:
+        if self.narrative_summary_handler is None:
+            return
+        self.ingest_llm_summary(self.narrative_summary_handler(summary_type, payload), now=now)

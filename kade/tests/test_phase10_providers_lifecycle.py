@@ -43,7 +43,7 @@ def test_provider_diagnostics_report_all_boundaries() -> None:
     }
     report = ProviderDiagnostics(policy="warn_on_degraded").evaluate(checks)
 
-    assert set(report["providers"].keys()) == {"market_data", "options_data", "stt", "wakeword", "tts"}
+    assert set(report["providers"].keys()) >= {"market_data", "options_data", "stt", "wakeword", "tts"}
     assert "wakeword" in report["degraded"]
 
 

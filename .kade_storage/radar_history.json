@@ -1,0 +1,40 @@
+{
+  "events": [
+    {
+      "event_type": "state_change",
+      "previous_score": null,
+      "previous_state": null,
+      "score": 65.5,
+      "state": "trigger_imminent",
+      "symbol": "AMD",
+      "timestamp": "2026-03-12T06:24:34.827386+00:00"
+    },
+    {
+      "event_type": "state_change",
+      "previous_score": null,
+      "previous_state": null,
+      "score": 65.5,
+      "state": "trigger_imminent",
+      "symbol": "META",
+      "timestamp": "2026-03-12T06:24:34.827387+00:00"
+    },
+    {
+      "event_type": "state_change",
+      "previous_score": null,
+      "previous_state": null,
+      "score": 65.5,
+      "state": "trigger_imminent",
+      "symbol": "MSFT",
+      "timestamp": "2026-03-12T06:24:34.827388+00:00"
+    },
+    {
+      "event_type": "state_change",
+      "previous_score": null,
+      "previous_state": null,
+      "score": 65.5,
+      "state": "trigger_imminent",
+      "symbol": "NVDA",
+      "timestamp": "2026-03-12T06:24:34.827389+00:00"
+    }
+  ]
+}

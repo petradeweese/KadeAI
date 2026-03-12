@@ -11,6 +11,7 @@ def test_bootstrap_loads_planning_tracking_review_market_intelligence_gameplan_v
     assert "gameplan.yaml" in cfg
     assert "visuals.yaml" in cfg
     assert "strategy.yaml" in cfg
+    assert "llm.yaml" in cfg
 
 
 def test_tracking_transition_defaults_are_wired() -> None:

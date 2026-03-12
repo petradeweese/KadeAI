@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+from kade.integrations.llm import LLMProvider, MockLLMProvider, OllamaLLMProvider
 from kade.integrations.marketdata import AlpacaMarketDataProvider, MarketDataProvider, MockMarketDataProvider
 from kade.integrations.options_data import AlpacaOptionsDataProvider, MockOptionsDataProvider, OptionsDataProvider
 from kade.integrations.stt import MockSTTProvider, STTProvider, WhisperSTTProvider
@@ -60,3 +61,11 @@ def build_tts_provider(voice_cfg: dict[str, object]) -> TTSProvider:
     if provider_name == "kokoro":
         return KokoroTTSProvider(dict(voice_cfg.get("kokoro", {})))
     return KokoroTTSProvider({"voice": "Puck", "mock_synthesis": True})
+
+
+def build_llm_provider(llm_cfg: dict[str, object]) -> LLMProvider:
+    provider_name = str(llm_cfg.get("provider", "mock"))
+    providers = dict(llm_cfg.get("providers", {}))
+    if provider_name == "ollama":
+        return OllamaLLMProvider(dict(providers.get("ollama", {})))
+    return MockLLMProvider(dict(providers.get("mock", {})))

@@ -23,6 +23,7 @@ def create_app_status(
     market_intelligence_payload: dict[str, object] | None = None,
     premarket_gameplan_payload: dict[str, object] | None = None,
     strategy_intelligence_payload: dict[str, object] | None = None,
+    alpaca_smoke_test_payload: dict[str, object] | None = None,
 ) -> dict:
     ticker_states = ticker_states or {}
     debug_values = debug_values or {}
@@ -41,6 +42,7 @@ def create_app_status(
     market_intelligence_payload = market_intelligence_payload or {}
     premarket_gameplan_payload = premarket_gameplan_payload or {}
     strategy_intelligence_payload = strategy_intelligence_payload or {}
+    alpaca_smoke_test_payload = alpaca_smoke_test_payload or {}
 
     cards: list[dict] = []
     by_symbol = radar_payload.get("by_symbol", {})
@@ -79,6 +81,8 @@ def create_app_status(
     provider_diag = voice_payload.get("provider_diagnostics", {})
     provider_selection = voice_payload.get("provider_selection", {})
     provider_map = dict(provider_diag.get("providers", {}))
+    llm_payload = dict(voice_payload.get("llm", {}))
+    llm_summaries = dict(llm_payload.get("summaries", {}))
 
     top_radar_signals = voice_payload.get("latest_radar_signals") or radar_payload.get("queue", [])[:5]
     latest_execution = (voice_payload.get("execution_monitor", {}).get("lifecycle_history") or execution_payload.get("orders", []))[-1:]
@@ -127,10 +131,16 @@ def create_app_status(
                     **dict(provider_map.get("options_data", {})),
                     "mode": "mock" if "mock" in str(provider_selection.get("options_data", "")) else "real",
                 },
+                "market_intelligence_provider": {
+                    "provider": provider_selection.get("market_intelligence"),
+                    **dict(provider_map.get("market_intelligence", {})),
+                },
                 "stt_provider": {"provider": provider_selection.get("stt"), **dict(provider_map.get("stt", {}))},
                 "tts_provider": {"provider": provider_selection.get("tts"), **dict(provider_map.get("tts", {}))},
                 "wakeword_provider": {"provider": provider_selection.get("wakeword"), **dict(provider_map.get("wakeword", {}))},
+                "llm_provider": {"provider": provider_selection.get("llm"), **dict(provider_map.get("llm", {}))},
             },
+            "alpaca": {"smoke_test": dict(alpaca_smoke_test_payload)},
             "radar": {"top_signals": top_radar_signals[:5], "quality_buckets": radar_quality},
             "execution": {"latest_lifecycle": latest_execution},
             "session": {
@@ -154,6 +164,14 @@ def create_app_status(
                 "side_panels": list(dict(voice_payload.get("visual_explainability", {}).get("latest", {})).get("side_panels", [])),
                 "generated_at": dict(voice_payload.get("visual_explainability", {}).get("latest", {})).get("generated_at"),
                 "history": list(dict(voice_payload.get("visual_explainability", {})).get("history", [])),
+                "narrative_summary": dict(llm_summaries.get("visual_explainability", {})),
+            },
+            "llm": {
+                "provider": provider_selection.get("llm"),
+                "latest_summary": dict(llm_payload.get("latest_summary", {})),
+                "summaries": llm_summaries,
+                "narrative_summaries_enabled": llm_payload.get("narrative_summaries_enabled", False),
+                "allow_trade_logic_override": llm_payload.get("allow_trade_logic_override", False),
             },
 
             "premarket_gameplan": {
@@ -166,6 +184,7 @@ def create_app_status(
                 "risks": list(premarket_gameplan_payload.get("risks", []))[:5],
                 "opportunities": list(premarket_gameplan_payload.get("opportunities", []))[:5],
                 "generated_at": premarket_gameplan_payload.get("generated_at"),
+                "narrative_summary": dict(llm_summaries.get("premarket_gameplan", {})),
             },
             "market_intelligence": {
                 "market_clock": dict(market_intelligence_payload.get("market_clock", {})),
@@ -176,6 +195,7 @@ def create_app_status(
                 "most_active": list(market_intelligence_payload.get("most_active", []))[:5],
                 "cross_symbol_context": dict(market_intelligence_payload.get("cross_symbol_context", {})),
                 "generated_at": market_intelligence_payload.get("generated_at"),
+                "narrative_summary": dict(llm_summaries.get("market_intelligence", {})),
             },
             "strategy_intelligence": {
                 "regime_performance": list(strategy_intelligence_payload.get("regime_performance", [])),
@@ -184,6 +204,7 @@ def create_app_status(
                 "discipline_impact": dict(strategy_intelligence_payload.get("discipline_impact", {})),
                 "calibration": dict(strategy_intelligence_payload.get("plan_calibration_summary", {})),
                 "generated_at": strategy_intelligence_payload.get("generated_at"),
+                "narrative_summary": dict(llm_summaries.get("strategy_intelligence", {})),
             },
         },
         "session": session_payload,

@@ -46,8 +46,14 @@ class AlpacaMarketDataProvider(MarketDataProvider):
         return self.client.get_historical_bars(symbol, timeframe, start, end)
 
     def health_snapshot(self, active: bool) -> ProviderHealth:
-        ready = self.enabled and self.historical_enabled and bool(self.api_key and self.secret_key)
-        state = "ready" if ready else "degraded"
+        if not self.enabled:
+            state = "disabled"
+        elif not self.api_key or not self.secret_key:
+            state = "degraded"
+        elif not self.historical_enabled:
+            state = "degraded"
+        else:
+            state = "ready"
         return ProviderHealth(
             provider_type="market_data",
             provider_name=self.provider_name,

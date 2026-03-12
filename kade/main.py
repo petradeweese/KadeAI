@@ -14,7 +14,10 @@ from kade.data.history import HistoryService
 from kade.execution import PaperExecutionWorkflow
 from kade.execution.models import ExecutionRejection
 from kade.integrations.diagnostics import ProviderDiagnostics
+from kade.integrations.marketdata import AlpacaMarketDataProvider
+from kade.integrations.options_data import AlpacaOptionsDataProvider
 from kade.integrations.providers import (
+    build_llm_provider,
     build_market_data_provider,
     build_options_data_provider,
     build_stt_provider,
@@ -27,8 +30,10 @@ from kade.market.intelligence import MarketIntelligenceService
 from kade.gameplan import PremarketGameplanService
 from kade.options import OptionsSelectionPipeline, TargetMoveScenarioBoard, TargetMoveScenarioRequest, TradeIntent
 from kade.runtime import (
+    AlpacaSmokeTester,
     InteractionOrchestrator,
     InteractionRuntimeState,
+    NarrativeSummaryService,
     ReplayRuntime,
     RuntimePersistence,
     RuntimeTimeline,
@@ -36,6 +41,7 @@ from kade.runtime import (
     build_voice_handlers,
     print_runtime_summary,
 )
+from kade.runtime.configuration import apply_runtime_env_overrides
 from kade.voice.formatter import SpokenResponseFormatter
 from kade.voice.models import VoiceSessionState
 from kade.voice.orchestrator import VoiceOrchestrator
@@ -77,12 +83,13 @@ def bootstrap_config() -> dict[str, dict]:
         "gameplan.yaml",
         "visuals.yaml",
         "strategy.yaml",
+        "llm.yaml",
     ]
     loaded_configs: dict[str, dict] = {}
     for name in config_names:
         loaded_configs[name] = load_yaml(CONFIG_DIR / name)
         log_event(LOGGER, LogCategory.CONFIG_LOAD, "Config loaded", file=name)
-    return loaded_configs
+    return apply_runtime_env_overrides(loaded_configs)
 
 
 def main() -> None:
@@ -107,6 +114,11 @@ def main() -> None:
     provider_runtime = configs["execution.yaml"].get("providers", {})
     market_data_provider = build_market_data_provider(provider_runtime)
     options_data_provider = build_options_data_provider(provider_runtime)
+    alpaca_market_backend = AlpacaMarketDataProvider(dict(dict(provider_runtime.get("market_data_backends", {})).get("alpaca", {})))
+    alpaca_options_backend = AlpacaOptionsDataProvider(dict(dict(provider_runtime.get("options_data_backends", {})).get("alpaca", {})))
+    llm_cfg = dict(configs["llm.yaml"].get("llm", {}))
+    llm_provider = build_llm_provider(llm_cfg)
+    narrative_service = NarrativeSummaryService(llm_provider, dict(llm_cfg.get("usage", {})))
 
     history_service = HistoryService.from_config(
         provider=market_data_provider,
@@ -353,6 +365,7 @@ def main() -> None:
         watchlist=tickers_config.get("watchlist", []),
     )
     market_intelligence_payload = market_intelligence_snapshot.to_payload()
+    market_intelligence_summary = narrative_service.summarize("market_intelligence", market_intelligence_payload)
     session_state["latest_market_intelligence"] = market_intelligence_payload
     retention = int(market_intelligence_cfg.get("history_retention", 25))
     history = list(session_state.get("market_intelligence_history", [])) + [market_intelligence_payload]
@@ -362,6 +375,7 @@ def main() -> None:
         watchlist=list(tickers_config.get("watchlist", [])),
         ticker_states=states,
     )
+    premarket_summary = narrative_service.summarize("premarket_gameplan", gameplan_payload)
     session_state["latest_premarket_gameplan"] = gameplan_payload
     gameplan_retention = int(gameplan_cfg.get("history_retention", 10))
     gameplan_history = list(session_state.get("premarket_gameplan_history", [])) + [gameplan_payload]
@@ -376,6 +390,10 @@ def main() -> None:
     visual_history: list[dict[str, object]] = list(session_state.get("visual_explanation_history", []))
     strategy_runtime = persistence.load_strategy_runtime()
     strategy_history: list[dict[str, object]] = list(strategy_runtime.get("strategy_history", []))
+    latest_strategy_snapshot = dict(strategy_runtime.get("latest_strategy_snapshot", {}))
+    strategy_summary = narrative_service.summarize("strategy_intelligence", latest_strategy_snapshot) if latest_strategy_snapshot else {}
+    latest_visual_snapshot = dict(session_state.get("latest_visual_explanation", {}))
+    visual_summary = narrative_service.summarize("visual_explainability", latest_visual_snapshot) if latest_visual_snapshot else {}
 
 
     def build_trade_idea_opinion(payload: dict[str, object]) -> dict[str, object]:
@@ -753,6 +771,7 @@ def main() -> None:
         ),
         visual_explanation_handler=build_visual_explanation,
         strategy_analysis_handler=build_strategy_analysis,
+        narrative_summary_handler=lambda summary_type, payload: narrative_service.summarize(summary_type, payload),
     )
 
     if session_state.get("latest_target_move_board"):
@@ -775,19 +794,56 @@ def main() -> None:
     interaction.state.latest_visual_explanation = dict(session_state.get("latest_visual_explanation", {}))
     interaction.state.visual_explanation_history = list(session_state.get("visual_explanation_history", []))[-int(visuals_cfg.get("history_retention", 20)) :]
     trade_plan_tracking_history[:] = trade_plan_tracking_history[-int(tracking_cfg.get("history_limit", 40)) :]
+    if market_intelligence_summary:
+        interaction.ingest_llm_summary(market_intelligence_summary)
+    if premarket_summary:
+        interaction.ingest_llm_summary(premarket_summary)
+    if strategy_summary:
+        interaction.ingest_llm_summary(strategy_summary)
+    if visual_summary:
+        interaction.ingest_llm_summary(visual_summary)
 
     diagnostics = ProviderDiagnostics(policy=str(provider_runtime.get("diagnostics_policy", "warn_on_degraded")), logger=LOGGER)
     provider_diagnostics = diagnostics.evaluate(
         {
             "market_data": market_data_provider.health_snapshot(active=True),
             "options_data": options_data_provider.health_snapshot(active=True),
+            "alpaca_market_data": alpaca_market_backend.health_snapshot(active=str(provider_runtime.get("market_data_provider", "mock")) == "alpaca"),
+            "alpaca_options_data": alpaca_options_backend.health_snapshot(active=str(provider_runtime.get("options_data_provider", "mock")) in {"alpaca", "alpaca_options"}),
+            "market_intelligence": market_intelligence_service.source.health_snapshot(active=True),
             "wakeword": voice_orchestrator.wakeword_detector.health_snapshot(active=interaction_state.wakeword_enabled),
             "stt": interaction.stt_provider.health_snapshot(active=interaction_state.stt_enabled),
             "tts": voice_orchestrator.tts_provider.health_snapshot(active=interaction_state.tts_enabled),
+            "llm": llm_provider.health_snapshot(active=bool(dict(llm_cfg.get("usage", {})).get("narrative_summaries_enabled", True))),
         }
     )
     interaction_state.latest_strategy_analysis = dict(strategy_runtime.get("latest_strategy_snapshot", {}))
     interaction.set_provider_diagnostics(provider_diagnostics)
+    interaction.timeline.add_event(
+        "llm_provider_changed",
+        utc_now_iso(),
+        {
+            "provider": llm_provider.provider_name,
+            "state": dict(provider_diagnostics.get("providers", {})).get("llm", {}).get("state"),
+            "model": dict(dict(provider_diagnostics.get("providers", {})).get("llm", {}).get("metadata", {})).get("model"),
+        },
+    )
+
+    alpaca_smoke_test: dict[str, object] = {}
+    if os.getenv("KADE_RUN_ALPACA_SMOKE_TEST", "0") == "1":
+        alpaca_smoke_test = AlpacaSmokeTester(
+            market_data=alpaca_market_backend,
+            intelligence_source=market_intelligence_service.source,
+        ).run(symbol=os.getenv("KADE_ALPACA_SMOKE_SYMBOL", "SPY").upper())
+        interaction.timeline.add_event(
+            "alpaca_smoke_test_completed",
+            utc_now_iso(),
+            {
+                "state": alpaca_smoke_test.get("state"),
+                "passed": dict(alpaca_smoke_test.get("summary", {})).get("passed"),
+                "failed": dict(alpaca_smoke_test.get("summary", {})).get("failed"),
+            },
+        )
 
     radar_signals = [
         {
@@ -936,9 +992,11 @@ def main() -> None:
     session_state["provider_selection"] = {
         "market_data": market_data_provider.provider_name,
         "options_data": options_data_provider.provider_name,
+        "market_intelligence": market_intelligence_service.source.health_snapshot(active=True).provider_name,
         "wakeword": voice_orchestrator.wakeword_detector.provider_name,
         "stt": interaction.stt_provider.provider_name,
         "tts": voice_orchestrator.tts_provider.provider_name,
+        "llm": llm_provider.provider_name,
     }
     session_state["replay_debug"] = interaction.replay_runtime.snapshot()
     session_state["latest_target_move_board"] = interaction_state.latest_target_move_board
@@ -957,6 +1015,10 @@ def main() -> None:
     session_state["latest_strategy_snapshot"] = interaction_state.latest_strategy_analysis
     session_state["strategy_history"] = list(strategy_history)
     session_state["latest_market_regime"] = regime_label
+    session_state["latest_llm_summary"] = interaction_state.latest_llm_summary
+    session_state["llm_summaries"] = interaction_state.llm_summaries
+    session_state["llm_summary_history"] = interaction_state.llm_summary_history
+    session_state["latest_alpaca_smoke_test"] = alpaca_smoke_test
     persistence.retain_recent_voice_events(session_state)
     persistence.retain_recent_commands(session_state)
     persistence.retain_provider_health_history(session_state)
@@ -989,6 +1051,7 @@ def main() -> None:
         market_intelligence_payload=market_intelligence_payload,
         premarket_gameplan_payload=session_state.get("latest_premarket_gameplan", {}),
         strategy_intelligence_payload=session_state.get("latest_strategy_snapshot", {}),
+        alpaca_smoke_test_payload=session_state.get("latest_alpaca_smoke_test", {}),
     )
     print_runtime_summary(dashboard_state, session_state, history_payload)
 

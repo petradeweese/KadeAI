@@ -1,0 +1,106 @@
+{
+  "intents": [
+    {
+      "content": "Watching AMD if VWAP confirms",
+      "created_at": "2026-03-12T06:24:34.827869+00:00",
+      "item_id": "user_intent-1773296674827-29",
+      "item_type": "user_intent",
+      "metadata": {},
+      "symbol": "AMD"
+    }
+  ],
+  "notes": [
+    {
+      "content": "Seeded by radar top setup.",
+      "created_at": "2026-03-12T06:24:34.828018+00:00",
+      "item_id": "structured_note-1773296674828-26",
+      "item_type": "structured_note",
+      "metadata": {
+        "linked_plan_id": "plan-AMD-1773296674827"
+      },
+      "symbol": "AMD"
+    }
+  ],
+  "recent": [
+    {
+      "content": "Confidence is moderate. Trend is bullish on trigger timeframe. Trap risk is high.",
+      "created_at": "2026-03-12T06:24:34.829177+00:00",
+      "item_id": "kade_response-1773296674829-81",
+      "item_type": "kade_response",
+      "metadata": {
+        "stance": "agree"
+      },
+      "symbol": "MSFT"
+    },
+    {
+      "content": "Confidence is moderate. Trend is bullish on trigger timeframe. Trap risk is high.",
+      "created_at": "2026-03-12T06:24:34.828972+00:00",
+      "item_id": "kade_response-1773296674828-81",
+      "item_type": "kade_response",
+      "metadata": {
+        "stance": "agree"
+      },
+      "symbol": "META"
+    },
+    {
+      "content": "Confidence is moderate. Trend is bullish on trigger timeframe. Trap risk is high.",
+      "created_at": "2026-03-12T06:24:34.828735+00:00",
+      "item_id": "kade_response-1773296674828-81",
+      "item_type": "kade_response",
+      "metadata": {
+        "stance": "agree"
+      },
+      "symbol": "AMD"
+    },
+    {
+      "content": "Seeded by radar top setup.",
+      "created_at": "2026-03-12T06:24:34.828018+00:00",
+      "item_id": "structured_note-1773296674828-26",
+      "item_type": "structured_note",
+      "metadata": {
+        "linked_plan_id": "plan-AMD-1773296674827"
+      },
+      "symbol": "AMD"
+    },
+    {
+      "content": "Watching AMD if VWAP confirms",
+      "created_at": "2026-03-12T06:24:34.827869+00:00",
+      "item_id": "user_intent-1773296674827-29",
+      "item_type": "user_intent",
+      "metadata": {},
+      "symbol": "AMD"
+    }
+  ],
+  "responses": [
+    {
+      "content": "Confidence is moderate. Trend is bullish on trigger timeframe. Trap risk is high.",
+      "created_at": "2026-03-12T06:24:34.828735+00:00",
+      "item_id": "kade_response-1773296674828-81",
+      "item_type": "kade_response",
+      "metadata": {
+        "stance": "agree"
+      },
+      "symbol": "AMD"
+    },
+    {
+      "content": "Confidence is moderate. Trend is bullish on trigger timeframe. Trap risk is high.",
+      "created_at": "2026-03-12T06:24:34.828972+00:00",
+      "item_id": "kade_response-1773296674828-81",
+      "item_type": "kade_response",
+      "metadata": {
+        "stance": "agree"
+      },
+      "symbol": "META"
+    },
+    {
+      "content": "Confidence is moderate. Trend is bullish on trigger timeframe. Trap risk is high.",
+      "created_at": "2026-03-12T06:24:34.829177+00:00",
+      "item_id": "kade_response-1773296674829-81",
+      "item_type": "kade_response",
+      "metadata": {
+        "stance": "agree"
+      },
+      "symbol": "MSFT"
+    }
+  ]
+}

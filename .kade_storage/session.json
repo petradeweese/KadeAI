@@ -1,0 +1,1514 @@
+{
+  "advisor_history": [
+    {
+      "debug": {
+        "breadth_bias": "risk_on",
+        "memory_hits": 2,
+        "momentum": "up_bias",
+        "qqq_confirmation": "confirmed_breadth_aligned",
+        "radar_score": 65.5,
+        "regime": "trend",
+        "score": 3,
+        "trap_risk": "high"
+      },
+      "linked_plan_id": "plan-AMD-1773296674827",
+      "stance": "agree",
+      "summary": "Confidence is moderate. Trend is bullish on trigger timeframe. Trap risk is high.",
+      "symbol": "AMD",
+      "timestamp": "2026-03-12T06:24:34.828947+00:00"
+    },
+    {
+      "debug": {
+        "breadth_bias": "risk_on",
+        "memory_hits": 0,
+        "momentum": "up_bias",
+        "qqq_confirmation": "confirmed_breadth_aligned",
+        "radar_score": 65.5,
+        "regime": "trend",
+        "score": 2,
+        "trap_risk": "high"
+      },
+      "linked_plan_id": null,
+      "stance": "agree",
+      "summary": "Confidence is moderate. Trend is bullish on trigger timeframe. Trap risk is high.",
+      "symbol": "META",
+      "timestamp": "2026-03-12T06:24:34.829157+00:00"
+    },
+    {
+      "debug": {
+        "breadth_bias": "risk_on",
+        "memory_hits": 0,
+        "momentum": "up_bias",
+        "qqq_confirmation": "confirmed_breadth_aligned",
+        "radar_score": 65.5,
+        "regime": "trend",
+        "score": 2,
+        "trap_risk": "high"
+      },
+      "linked_plan_id": null,
+      "stance": "agree",
+      "summary": "Confidence is moderate. Trend is bullish on trigger timeframe. Trap risk is high.",
+      "symbol": "MSFT",
+      "timestamp": "2026-03-12T06:24:34.829385+00:00"
+    }
+  ],
+  "command_interface_mode": "text_first",
+  "daily_realized_pnl": 0.0,
+  "day_key": "2026-03-12",
+  "done_for_day": false,
+  "emergency_shutdown": false,
+  "interaction_runtime": {
+    "runtime_mode": "text_first",
+    "text_command_input_enabled": true,
+    "voice_runtime_enabled": false
+  },
+  "last_rollover_at": "2026-03-12T06:24:34.819017+00:00",
+  "latest_backtest_run_summary": {},
+  "latest_historical_data": {},
+  "latest_market_intelligence": {
+    "cross_symbol_context": {
+      "AMD": {
+        "alignment_label": "aligned",
+        "benchmark_symbols": [
+          "QQQ",
+          "SPY"
+        ],
+        "debug": {
+          "benchmark_trends": {
+            "QQQ": 1.3381,
+            "SPY": 1.3381
+          },
+          "breadth_bias": "risk_on",
+          "deltas": {
+            "QQQ": 0.0,
+            "SPY": 0.0
+          },
+          "symbol_trend_pct": 1.3381
+        },
+        "reasons": [
+          "symbol direction agrees with benchmark tape"
+        ],
+        "sector_proxy": "SMH",
+        "source": "cross_symbol_context_engine",
+        "symbol": "AMD",
+        "timestamp": "2026-03-12T06:24:34.829412+00:00"
+      },
+      "META": {
+        "alignment_label": "aligned",
+        "benchmark_symbols": [
+          "QQQ",
+          "SPY"
+        ],
+        "debug": {
+          "benchmark_trends": {
+            "QQQ": 1.3381,
+            "SPY": 1.3381
+          },
+          "breadth_bias": "risk_on",
+          "deltas": {
+            "QQQ": 0.0,
+            "SPY": 0.0
+          },
+          "symbol_trend_pct": 1.3381
+        },
+        "reasons": [
+          "symbol direction agrees with benchmark tape"
+        ],
+        "sector_proxy": "XLC",
+        "source": "cross_symbol_context_engine",
+        "symbol": "META",
+        "timestamp": "2026-03-12T06:24:34.829412+00:00"
+      },
+      "MSFT": {
+        "alignment_label": "aligned",
+        "benchmark_symbols": [
+          "QQQ",
+          "SPY"
+        ],
+        "debug": {
+          "benchmark_trends": {
+            "QQQ": 1.3381,
+            "SPY": 1.3381
+          },
+          "breadth_bias": "risk_on",
+          "deltas": {
+            "QQQ": 0.0,
+            "SPY": 0.0
+          },
+          "symbol_trend_pct": 1.3381
+        },
+        "reasons": [
+          "symbol direction agrees with benchmark tape"
+        ],
+        "sector_proxy": "XLK",
+        "source": "cross_symbol_context_engine",
+        "symbol": "MSFT",
+        "timestamp": "2026-03-12T06:24:34.829412+00:00"
+      },
+      "NVDA": {
+        "alignment_label": "aligned",
+        "benchmark_symbols": [
+          "QQQ",
+          "SPY"
+        ],
+        "debug": {
+          "benchmark_trends": {
+            "QQQ": 1.3381,
+            "SPY": 1.3381
+          },
+          "breadth_bias": "risk_on",
+          "deltas": {
+            "QQQ": 0.0,
+            "SPY": 0.0
+          },
+          "symbol_trend_pct": 1.3381
+        },
+        "reasons": [
+          "symbol direction agrees with benchmark tape"
+        ],
+        "sector_proxy": "SMH",
+        "source": "cross_symbol_context_engine",
+        "symbol": "NVDA",
+        "timestamp": "2026-03-12T06:24:34.829412+00:00"
+      }
+    },
+    "debug": {
+      "news_summary": {
+        "catalyst_breakdown": {},
+        "headline_count": 0,
+        "key_items": [],
+        "source": "alpaca_or_fallback",
+        "timestamp": "2026-03-12T06:24:34.829412+00:00"
+      },
+      "source_available": false
+    },
+    "earnings": [],
+    "generated_at": "2026-03-12T06:24:34.829412+00:00",
+    "key_news": [],
+    "market_calendar": [],
+    "market_clock": {
+      "debug": {
+        "timestamp": null
+      },
+      "is_open": false,
+      "next_close": null,
+      "next_open": null,
+      "session_label": "unknown",
+      "source": "alpaca",
+      "timestamp": "2026-03-12T06:24:34.829412+00:00"
+    },
+    "most_active": [
+      {
+        "last_price": 103.0,
+        "source": "alpaca_or_derived",
+        "symbol": "QQQ",
+        "timestamp": "2026-03-12T06:24:34.829412+00:00",
+        "trade_count": null,
+        "volume": 350000.0
+      },
+      {
+        "last_price": 103.0,
+        "source": "alpaca_or_derived",
+        "symbol": "NVDA",
+        "timestamp": "2026-03-12T06:24:34.829412+00:00",
+        "trade_count": null,
+        "volume": 350000.0
+      },
+      {
+        "last_price": 103.0,
+        "source": "alpaca_or_derived",
+        "symbol": "MSFT",
+        "timestamp": "2026-03-12T06:24:34.829412+00:00",
+        "trade_count": null,
+        "volume": 350000.0
+      },
+      {
+        "last_price": 103.0,
+        "source": "alpaca_or_derived",
+        "symbol": "SPY",
+        "timestamp": "2026-03-12T06:24:34.829412+00:00",
+        "trade_count": null,
+        "volume": 350000.0
+      },
+      {
+        "last_price": 103.0,
+        "source": "alpaca_or_derived",
+        "symbol": "META",
+        "timestamp": "2026-03-12T06:24:34.829412+00:00",
+        "trade_count": null,
+        "volume": 350000.0
+      },
+      {
+        "last_price": 103.0,
+        "source": "alpaca_or_derived",
+        "symbol": "AMD",
+        "timestamp": "2026-03-12T06:24:34.829412+00:00",
+        "trade_count": null,
+        "volume": 350000.0
+      }
+    ],
+    "regime": {
+      "debug": {
+        "breadth_bias": "risk_on",
+        "evaluated_at": "2026-03-12T06:24:34.829412+00:00",
+        "has_major_news": false,
+        "intraday_range_state": "expanded",
+        "qqq_trend_pct": 1.3381,
+        "spy_trend_pct": 1.3381,
+        "volume_bias": "normal"
+      },
+      "reasons": [
+        "index trend magnitude elevated (1.34%)",
+        "breadth is risk_on",
+        "market is not in regular session"
+      ],
+      "regime_confidence": 0.78,
+      "regime_label": "volatile",
+      "source": "market_regime_engine",
+      "timestamp": "2026-03-12T06:24:34.829412+00:00"
+    },
+    "source": "market_intelligence_service",
+    "top_movers": [
+      {
+        "debug": {
+          "raw": {
+            "change_pct": 0.45,
+            "mover_type": "derived",
+            "price": 103.0,
+            "symbol": "QQQ",
+            "volume": 350000.0
+          }
+        },
+        "direction": "up",
+        "last_price": 103.0,
+        "move_pct": 0.45,
+        "mover_type": "derived",
+        "source": "alpaca_or_derived",
+        "symbol": "QQQ",
+        "timestamp": "2026-03-12T06:24:34.829412+00:00",
+        "volume": 350000.0
+      },
+      {
+        "debug": {
+          "raw": {
+            "change_pct": 0.45,
+            "mover_type": "derived",
+            "price": 103.0,
+            "symbol": "NVDA",
+            "volume": 350000.0
+          }
+        },
+        "direction": "up",
+        "last_price": 103.0,
+        "move_pct": 0.45,
+        "mover_type": "derived",
+        "source": "alpaca_or_derived",
+        "symbol": "NVDA",
+        "timestamp": "2026-03-12T06:24:34.829412+00:00",
+        "volume": 350000.0
+      },
+      {
+        "debug": {
+          "raw": {
+            "change_pct": 0.45,
+            "mover_type": "derived",
+            "price": 103.0,
+            "symbol": "MSFT",
+            "volume": 350000.0
+          }
+        },
+        "direction": "up",
+        "last_price": 103.0,
+        "move_pct": 0.45,
+        "mover_type": "derived",
+        "source": "alpaca_or_derived",
+        "symbol": "MSFT",
+        "timestamp": "2026-03-12T06:24:34.829412+00:00",
+        "volume": 350000.0
+      },
+      {
+        "debug": {
+          "raw": {
+            "change_pct": 0.45,
+            "mover_type": "derived",
+            "price": 103.0,
+            "symbol": "SPY",
+            "volume": 350000.0
+          }
+        },
+        "direction": "up",
+        "last_price": 103.0,
+        "move_pct": 0.45,
+        "mover_type": "derived",
+        "source": "alpaca_or_derived",
+        "symbol": "SPY",
+        "timestamp": "2026-03-12T06:24:34.829412+00:00",
+        "volume": 350000.0
+      },
+      {
+        "debug": {
+          "raw": {
+            "change_pct": 0.45,
+            "mover_type": "derived",
+            "price": 103.0,
+            "symbol": "META",
+            "volume": 350000.0
+          }
+        },
+        "direction": "up",
+        "last_price": 103.0,
+        "move_pct": 0.45,
+        "mover_type": "derived",
+        "source": "alpaca_or_derived",
+        "symbol": "META",
+        "timestamp": "2026-03-12T06:24:34.829412+00:00",
+        "volume": 350000.0
+      },
+      {
+        "debug": {
+          "raw": {
+            "change_pct": 0.45,
+            "mover_type": "derived",
+            "price": 103.0,
+            "symbol": "AMD",
+            "volume": 350000.0
+          }
+        },
+        "direction": "up",
+        "last_price": 103.0,
+        "move_pct": 0.45,
+        "mover_type": "derived",
+        "source": "alpaca_or_derived",
+        "symbol": "AMD",
+        "timestamp": "2026-03-12T06:24:34.829412+00:00",
+        "volume": 350000.0
+      }
+    ]
+  },
+  "latest_market_regime": "volatile",
+  "latest_premarket_gameplan": {
+    "agenda_notes": [
+      "Market posture is mixed. Regime is volatile (0.78).",
+      "Top watchlist focus: NVDA, MSFT, META."
+    ],
+    "debug": {
+      "ticker_state_count": 6,
+      "watchlist_size": 6
+    },
+    "earnings_today": [],
+    "futures_or_index_context": {
+      "is_open": false,
+      "regime_confidence": 0.78,
+      "regime_label": "volatile",
+      "session_label": "unknown"
+    },
+    "generated_at": "2026-03-12T06:24:34.829412+00:00",
+    "key_catalysts": [],
+    "market_posture": {
+      "debug": {
+        "earnings_density": 0,
+        "macro_count": 0,
+        "mover_concentration": 4
+      },
+      "posture_label": "mixed",
+      "reasons": [
+        "Regime is volatile at confidence 0.78.",
+        "Session is outside normal premarket/open windows."
+      ],
+      "regime_confidence": 0.78,
+      "regime_label": "volatile",
+      "session_label": "unknown"
+    },
+    "most_active_context": [
+      {
+        "last_price": 103.0,
+        "source": "alpaca_or_derived",
+        "symbol": "QQQ",
+        "timestamp": "2026-03-12T06:24:34.829412+00:00",
+        "trade_count": null,
+        "volume": 350000.0
+      },
+      {
+        "last_price": 103.0,
+        "source": "alpaca_or_derived",
+        "symbol": "NVDA",
+        "timestamp": "2026-03-12T06:24:34.829412+00:00",
+        "trade_count": null,
+        "volume": 350000.0
+      },
+      {
+        "last_price": 103.0,
+        "source": "alpaca_or_derived",
+        "symbol": "MSFT",
+        "timestamp": "2026-03-12T06:24:34.829412+00:00",
+        "trade_count": null,
+        "volume": 350000.0
+      },
+      {
+        "last_price": 103.0,
+        "source": "alpaca_or_derived",
+        "symbol": "SPY",
+        "timestamp": "2026-03-12T06:24:34.829412+00:00",
+        "trade_count": null,
+        "volume": 350000.0
+      },
+      {
+        "last_price": 103.0,
+        "source": "alpaca_or_derived",
+        "symbol": "META",
+        "timestamp": "2026-03-12T06:24:34.829412+00:00",
+        "trade_count": null,
+        "volume": 350000.0
+      },
+      {
+        "last_price": 103.0,
+        "source": "alpaca_or_derived",
+        "symbol": "AMD",
+        "timestamp": "2026-03-12T06:24:34.829412+00:00",
+        "trade_count": null,
+        "volume": 350000.0
+      }
+    ],
+    "movers_to_watch": [
+      {
+        "debug": {
+          "raw": {
+            "change_pct": 0.45,
+            "mover_type": "derived",
+            "price": 103.0,
+            "symbol": "QQQ",
+            "volume": 350000.0
+          }
+        },
+        "direction": "up",
+        "last_price": 103.0,
+        "move_pct": 0.45,
+        "mover_type": "derived",
+        "source": "alpaca_or_derived",
+        "symbol": "QQQ",
+        "timestamp": "2026-03-12T06:24:34.829412+00:00",
+        "volume": 350000.0
+      },
+      {
+        "debug": {
+          "raw": {
+            "change_pct": 0.45,
+            "mover_type": "derived",
+            "price": 103.0,
+            "symbol": "NVDA",
+            "volume": 350000.0
+          }
+        },
+        "direction": "up",
+        "last_price": 103.0,
+        "move_pct": 0.45,
+        "mover_type": "derived",
+        "source": "alpaca_or_derived",
+        "symbol": "NVDA",
+        "timestamp": "2026-03-12T06:24:34.829412+00:00",
+        "volume": 350000.0
+      },
+      {
+        "debug": {
+          "raw": {
+            "change_pct": 0.45,
+            "mover_type": "derived",
+            "price": 103.0,
+            "symbol": "MSFT",
+            "volume": 350000.0
+          }
+        },
+        "direction": "up",
+        "last_price": 103.0,
+        "move_pct": 0.45,
+        "mover_type": "derived",
+        "source": "alpaca_or_derived",
+        "symbol": "MSFT",
+        "timestamp": "2026-03-12T06:24:34.829412+00:00",
+        "volume": 350000.0
+      },
+      {
+        "debug": {
+          "raw": {
+            "change_pct": 0.45,
+            "mover_type": "derived",
+            "price": 103.0,
+            "symbol": "SPY",
+            "volume": 350000.0
+          }
+        },
+        "direction": "up",
+        "last_price": 103.0,
+        "move_pct": 0.45,
+        "mover_type": "derived",
+        "source": "alpaca_or_derived",
+        "symbol": "SPY",
+        "timestamp": "2026-03-12T06:24:34.829412+00:00",
+        "volume": 350000.0
+      },
+      {
+        "debug": {
+          "raw": {
+            "change_pct": 0.45,
+            "mover_type": "derived",
+            "price": 103.0,
+            "symbol": "META",
+            "volume": 350000.0
+          }
+        },
+        "direction": "up",
+        "last_price": 103.0,
+        "move_pct": 0.45,
+        "mover_type": "derived",
+        "source": "alpaca_or_derived",
+        "symbol": "META",
+        "timestamp": "2026-03-12T06:24:34.829412+00:00",
+        "volume": 350000.0
+      },
+      {
+        "debug": {
+          "raw": {
+            "change_pct": 0.45,
+            "mover_type": "derived",
+            "price": 103.0,
+            "symbol": "AMD",
+            "volume": 350000.0
+          }
+        },
+        "direction": "up",
+        "last_price": 103.0,
+        "move_pct": 0.45,
+        "mover_type": "derived",
+        "source": "alpaca_or_derived",
+        "symbol": "AMD",
+        "timestamp": "2026-03-12T06:24:34.829412+00:00",
+        "volume": 350000.0
+      }
+    ],
+    "opportunities": [
+      "High-priority watchlist names: NVDA, MSFT, META."
+    ],
+    "regime_confidence": 0.78,
+    "regime_label": "volatile",
+    "risks": [],
+    "summary": {
+      "catalyst_count": 0,
+      "headline": "Market posture is mixed. Regime is volatile (0.78).",
+      "opportunity_count": 1,
+      "posture": "mixed",
+      "risk_count": 0,
+      "top_symbols": [
+        "NVDA",
+        "MSFT",
+        "META"
+      ]
+    },
+    "watchlist_priorities": [
+      {
+        "debug": {
+          "has_activity": true,
+          "has_mover": true,
+          "news_count": 0
+        },
+        "priority": "priority_high",
+        "reasons": [
+          "Aligned with broad market context.",
+          "Appears in top movers.",
+          "Shows elevated activity."
+        ],
+        "score": 4.0,
+        "symbol": "NVDA"
+      },
+      {
+        "debug": {
+          "has_activity": true,
+          "has_mover": true,
+          "news_count": 0
+        },
+        "priority": "priority_high",
+        "reasons": [
+          "Aligned with broad market context.",
+          "Appears in top movers.",
+          "Shows elevated activity."
+        ],
+        "score": 4.0,
+        "symbol": "MSFT"
+      },
+      {
+        "debug": {
+          "has_activity": true,
+          "has_mover": true,
+          "news_count": 0
+        },
+        "priority": "priority_high",
+        "reasons": [
+          "Aligned with broad market context.",
+          "Appears in top movers.",
+          "Shows elevated activity."
+        ],
+        "score": 4.0,
+        "symbol": "META"
+      },
+      {
+        "debug": {
+          "has_activity": true,
+          "has_mover": true,
+          "news_count": 0
+        },
+        "priority": "priority_high",
+        "reasons": [
+          "Aligned with broad market context.",
+          "Appears in top movers.",
+          "Shows elevated activity."
+        ],
+        "score": 4.0,
+        "symbol": "AMD"
+      },
+      {
+        "debug": {
+          "has_activity": true,
+          "has_mover": true,
+          "news_count": 0
+        },
+        "priority": "priority_medium",
+        "reasons": [
+          "Appears in top movers.",
+          "Shows elevated activity."
+        ],
+        "score": 2.0,
+        "symbol": "SPY"
+      },
+      {
+        "debug": {
+          "has_activity": true,
+          "has_mover": true,
+          "news_count": 0
+        },
+        "priority": "priority_medium",
+        "reasons": [
+          "Appears in top movers.",
+          "Shows elevated activity."
+        ],
+        "score": 2.0,
+        "symbol": "QQQ"
+      }
+    ]
+  },
+  "latest_strategy_snapshot": {},
+  "latest_target_move_board": {},
+  "latest_trade_idea_opinion": {},
+  "latest_trade_plan": {},
+  "latest_trade_plan_tracking": {},
+  "latest_trade_review": {},
+  "latest_visual_explanation": {},
+  "market_intelligence_history": [
+    {
+      "cross_symbol_context": {
+        "AMD": {
+          "alignment_label": "aligned",
+          "benchmark_symbols": [
+            "QQQ",
+            "SPY"
+          ],
+          "debug": {
+            "benchmark_trends": {
+              "QQQ": 1.3381,
+              "SPY": 1.3381
+            },
+            "breadth_bias": "risk_on",
+            "deltas": {
+              "QQQ": 0.0,
+              "SPY": 0.0
+            },
+            "symbol_trend_pct": 1.3381
+          },
+          "reasons": [
+            "symbol direction agrees with benchmark tape"
+          ],
+          "sector_proxy": "SMH",
+          "source": "cross_symbol_context_engine",
+          "symbol": "AMD",
+          "timestamp": "2026-03-12T06:24:34.829412+00:00"
+        },
+        "META": {
+          "alignment_label": "aligned",
+          "benchmark_symbols": [
+            "QQQ",
+            "SPY"
+          ],
+          "debug": {
+            "benchmark_trends": {
+              "QQQ": 1.3381,
+              "SPY": 1.3381
+            },
+            "breadth_bias": "risk_on",
+            "deltas": {
+              "QQQ": 0.0,
+              "SPY": 0.0
+            },
+            "symbol_trend_pct": 1.3381
+          },
+          "reasons": [
+            "symbol direction agrees with benchmark tape"
+          ],
+          "sector_proxy": "XLC",
+          "source": "cross_symbol_context_engine",
+          "symbol": "META",
+          "timestamp": "2026-03-12T06:24:34.829412+00:00"
+        },
+        "MSFT": {
+          "alignment_label": "aligned",
+          "benchmark_symbols": [
+            "QQQ",
+            "SPY"
+          ],
+          "debug": {
+            "benchmark_trends": {
+              "QQQ": 1.3381,
+              "SPY": 1.3381
+            },
+            "breadth_bias": "risk_on",
+            "deltas": {
+              "QQQ": 0.0,
+              "SPY": 0.0
+            },
+            "symbol_trend_pct": 1.3381
+          },
+          "reasons": [
+            "symbol direction agrees with benchmark tape"
+          ],
+          "sector_proxy": "XLK",
+          "source": "cross_symbol_context_engine",
+          "symbol": "MSFT",
+          "timestamp": "2026-03-12T06:24:34.829412+00:00"
+        },
+        "NVDA": {
+          "alignment_label": "aligned",
+          "benchmark_symbols": [
+            "QQQ",
+            "SPY"
+          ],
+          "debug": {
+            "benchmark_trends": {
+              "QQQ": 1.3381,
+              "SPY": 1.3381
+            },
+            "breadth_bias": "risk_on",
+            "deltas": {
+              "QQQ": 0.0,
+              "SPY": 0.0
+            },
+            "symbol_trend_pct": 1.3381
+          },
+          "reasons": [
+            "symbol direction agrees with benchmark tape"
+          ],
+          "sector_proxy": "SMH",
+          "source": "cross_symbol_context_engine",
+          "symbol": "NVDA",
+          "timestamp": "2026-03-12T06:24:34.829412+00:00"
+        }
+      },
+      "debug": {
+        "news_summary": {
+          "catalyst_breakdown": {},
+          "headline_count": 0,
+          "key_items": [],
+          "source": "alpaca_or_fallback",
+          "timestamp": "2026-03-12T06:24:34.829412+00:00"
+        },
+        "source_available": false
+      },
+      "earnings": [],
+      "generated_at": "2026-03-12T06:24:34.829412+00:00",
+      "key_news": [],
+      "market_calendar": [],
+      "market_clock": {
+        "debug": {
+          "timestamp": null
+        },
+        "is_open": false,
+        "next_close": null,
+        "next_open": null,
+        "session_label": "unknown",
+        "source": "alpaca",
+        "timestamp": "2026-03-12T06:24:34.829412+00:00"
+      },
+      "most_active": [
+        {
+          "last_price": 103.0,
+          "source": "alpaca_or_derived",
+          "symbol": "QQQ",
+          "timestamp": "2026-03-12T06:24:34.829412+00:00",
+          "trade_count": null,
+          "volume": 350000.0
+        },
+        {
+          "last_price": 103.0,
+          "source": "alpaca_or_derived",
+          "symbol": "NVDA",
+          "timestamp": "2026-03-12T06:24:34.829412+00:00",
+          "trade_count": null,
+          "volume": 350000.0
+        },
+        {
+          "last_price": 103.0,
+          "source": "alpaca_or_derived",
+          "symbol": "MSFT",
+          "timestamp": "2026-03-12T06:24:34.829412+00:00",
+          "trade_count": null,
+          "volume": 350000.0
+        },
+        {
+          "last_price": 103.0,
+          "source": "alpaca_or_derived",
+          "symbol": "SPY",
+          "timestamp": "2026-03-12T06:24:34.829412+00:00",
+          "trade_count": null,
+          "volume": 350000.0
+        },
+        {
+          "last_price": 103.0,
+          "source": "alpaca_or_derived",
+          "symbol": "META",
+          "timestamp": "2026-03-12T06:24:34.829412+00:00",
+          "trade_count": null,
+          "volume": 350000.0
+        },
+        {
+          "last_price": 103.0,
+          "source": "alpaca_or_derived",
+          "symbol": "AMD",
+          "timestamp": "2026-03-12T06:24:34.829412+00:00",
+          "trade_count": null,
+          "volume": 350000.0
+        }
+      ],
+      "regime": {
+        "debug": {
+          "breadth_bias": "risk_on",
+          "evaluated_at": "2026-03-12T06:24:34.829412+00:00",
+          "has_major_news": false,
+          "intraday_range_state": "expanded",
+          "qqq_trend_pct": 1.3381,
+          "spy_trend_pct": 1.3381,
+          "volume_bias": "normal"
+        },
+        "reasons": [
+          "index trend magnitude elevated (1.34%)",
+          "breadth is risk_on",
+          "market is not in regular session"
+        ],
+        "regime_confidence": 0.78,
+        "regime_label": "volatile",
+        "source": "market_regime_engine",
+        "timestamp": "2026-03-12T06:24:34.829412+00:00"
+      },
+      "source": "market_intelligence_service",
+      "top_movers": [
+        {
+          "debug": {
+            "raw": {
+              "change_pct": 0.45,
+              "mover_type": "derived",
+              "price": 103.0,
+              "symbol": "QQQ",
+              "volume": 350000.0
+            }
+          },
+          "direction": "up",
+          "last_price": 103.0,
+          "move_pct": 0.45,
+          "mover_type": "derived",
+          "source": "alpaca_or_derived",
+          "symbol": "QQQ",
+          "timestamp": "2026-03-12T06:24:34.829412+00:00",
+          "volume": 350000.0
+        },
+        {
+          "debug": {
+            "raw": {
+              "change_pct": 0.45,
+              "mover_type": "derived",
+              "price": 103.0,
+              "symbol": "NVDA",
+              "volume": 350000.0
+            }
+          },
+          "direction": "up",
+          "last_price": 103.0,
+          "move_pct": 0.45,
+          "mover_type": "derived",
+          "source": "alpaca_or_derived",
+          "symbol": "NVDA",
+          "timestamp": "2026-03-12T06:24:34.829412+00:00",
+          "volume": 350000.0
+        },
+        {
+          "debug": {
+            "raw": {
+              "change_pct": 0.45,
+              "mover_type": "derived",
+              "price": 103.0,
+              "symbol": "MSFT",
+              "volume": 350000.0
+            }
+          },
+          "direction": "up",
+          "last_price": 103.0,
+          "move_pct": 0.45,
+          "mover_type": "derived",
+          "source": "alpaca_or_derived",
+          "symbol": "MSFT",
+          "timestamp": "2026-03-12T06:24:34.829412+00:00",
+          "volume": 350000.0
+        },
+        {
+          "debug": {
+            "raw": {
+              "change_pct": 0.45,
+              "mover_type": "derived",
+              "price": 103.0,
+              "symbol": "SPY",
+              "volume": 350000.0
+            }
+          },
+          "direction": "up",
+          "last_price": 103.0,
+          "move_pct": 0.45,
+          "mover_type": "derived",
+          "source": "alpaca_or_derived",
+          "symbol": "SPY",
+          "timestamp": "2026-03-12T06:24:34.829412+00:00",
+          "volume": 350000.0
+        },
+        {
+          "debug": {
+            "raw": {
+              "change_pct": 0.45,
+              "mover_type": "derived",
+              "price": 103.0,
+              "symbol": "META",
+              "volume": 350000.0
+            }
+          },
+          "direction": "up",
+          "last_price": 103.0,
+          "move_pct": 0.45,
+          "mover_type": "derived",
+          "source": "alpaca_or_derived",
+          "symbol": "META",
+          "timestamp": "2026-03-12T06:24:34.829412+00:00",
+          "volume": 350000.0
+        },
+        {
+          "debug": {
+            "raw": {
+              "change_pct": 0.45,
+              "mover_type": "derived",
+              "price": 103.0,
+              "symbol": "AMD",
+              "volume": 350000.0
+            }
+          },
+          "direction": "up",
+          "last_price": 103.0,
+          "move_pct": 0.45,
+          "mover_type": "derived",
+          "source": "alpaca_or_derived",
+          "symbol": "AMD",
+          "timestamp": "2026-03-12T06:24:34.829412+00:00",
+          "volume": 350000.0
+        }
+      ]
+    }
+  ],
+  "premarket_gameplan_history": [
+    {
+      "agenda_notes": [
+        "Market posture is mixed. Regime is volatile (0.78).",
+        "Top watchlist focus: NVDA, MSFT, META."
+      ],
+      "debug": {
+        "ticker_state_count": 6,
+        "watchlist_size": 6
+      },
+      "earnings_today": [],
+      "futures_or_index_context": {
+        "is_open": false,
+        "regime_confidence": 0.78,
+        "regime_label": "volatile",
+        "session_label": "unknown"
+      },
+      "generated_at": "2026-03-12T06:24:34.829412+00:00",
+      "key_catalysts": [],
+      "market_posture": {
+        "debug": {
+          "earnings_density": 0,
+          "macro_count": 0,
+          "mover_concentration": 4
+        },
+        "posture_label": "mixed",
+        "reasons": [
+          "Regime is volatile at confidence 0.78.",
+          "Session is outside normal premarket/open windows."
+        ],
+        "regime_confidence": 0.78,
+        "regime_label": "volatile",
+        "session_label": "unknown"
+      },
+      "most_active_context": [
+        {
+          "last_price": 103.0,
+          "source": "alpaca_or_derived",
+          "symbol": "QQQ",
+          "timestamp": "2026-03-12T06:24:34.829412+00:00",
+          "trade_count": null,
+          "volume": 350000.0
+        },
+        {
+          "last_price": 103.0,
+          "source": "alpaca_or_derived",
+          "symbol": "NVDA",
+          "timestamp": "2026-03-12T06:24:34.829412+00:00",
+          "trade_count": null,
+          "volume": 350000.0
+        },
+        {
+          "last_price": 103.0,
+          "source": "alpaca_or_derived",
+          "symbol": "MSFT",
+          "timestamp": "2026-03-12T06:24:34.829412+00:00",
+          "trade_count": null,
+          "volume": 350000.0
+        },
+        {
+          "last_price": 103.0,
+          "source": "alpaca_or_derived",
+          "symbol": "SPY",
+          "timestamp": "2026-03-12T06:24:34.829412+00:00",
+          "trade_count": null,
+          "volume": 350000.0
+        },
+        {
+          "last_price": 103.0,
+          "source": "alpaca_or_derived",
+          "symbol": "META",
+          "timestamp": "2026-03-12T06:24:34.829412+00:00",
+          "trade_count": null,
+          "volume": 350000.0
+        },
+        {
+          "last_price": 103.0,
+          "source": "alpaca_or_derived",
+          "symbol": "AMD",
+          "timestamp": "2026-03-12T06:24:34.829412+00:00",
+          "trade_count": null,
+          "volume": 350000.0
+        }
+      ],
+      "movers_to_watch": [
+        {
+          "debug": {
+            "raw": {
+              "change_pct": 0.45,
+              "mover_type": "derived",
+              "price": 103.0,
+              "symbol": "QQQ",
+              "volume": 350000.0
+            }
+          },
+          "direction": "up",
+          "last_price": 103.0,
+          "move_pct": 0.45,
+          "mover_type": "derived",
+          "source": "alpaca_or_derived",
+          "symbol": "QQQ",
+          "timestamp": "2026-03-12T06:24:34.829412+00:00",
+          "volume": 350000.0
+        },
+        {
+          "debug": {
+            "raw": {
+              "change_pct": 0.45,
+              "mover_type": "derived",
+              "price": 103.0,
+              "symbol": "NVDA",
+              "volume": 350000.0
+            }
+          },
+          "direction": "up",
+          "last_price": 103.0,
+          "move_pct": 0.45,
+          "mover_type": "derived",
+          "source": "alpaca_or_derived",
+          "symbol": "NVDA",
+          "timestamp": "2026-03-12T06:24:34.829412+00:00",
+          "volume": 350000.0
+        },
+        {
+          "debug": {
+            "raw": {
+              "change_pct": 0.45,
+              "mover_type": "derived",
+              "price": 103.0,
+              "symbol": "MSFT",
+              "volume": 350000.0
+            }
+          },
+          "direction": "up",
+          "last_price": 103.0,
+          "move_pct": 0.45,
+          "mover_type": "derived",
+          "source": "alpaca_or_derived",
+          "symbol": "MSFT",
+          "timestamp": "2026-03-12T06:24:34.829412+00:00",
+          "volume": 350000.0
+        },
+        {
+          "debug": {
+            "raw": {
+              "change_pct": 0.45,
+              "mover_type": "derived",
+              "price": 103.0,
+              "symbol": "SPY",
+              "volume": 350000.0
+            }
+          },
+          "direction": "up",
+          "last_price": 103.0,
+          "move_pct": 0.45,
+          "mover_type": "derived",
+          "source": "alpaca_or_derived",
+          "symbol": "SPY",
+          "timestamp": "2026-03-12T06:24:34.829412+00:00",
+          "volume": 350000.0
+        },
+        {
+          "debug": {
+            "raw": {
+              "change_pct": 0.45,
+              "mover_type": "derived",
+              "price": 103.0,
+              "symbol": "META",
+              "volume": 350000.0
+            }
+          },
+          "direction": "up",
+          "last_price": 103.0,
+          "move_pct": 0.45,
+          "mover_type": "derived",
+          "source": "alpaca_or_derived",
+          "symbol": "META",
+          "timestamp": "2026-03-12T06:24:34.829412+00:00",
+          "volume": 350000.0
+        },
+        {
+          "debug": {
+            "raw": {
+              "change_pct": 0.45,
+              "mover_type": "derived",
+              "price": 103.0,
+              "symbol": "AMD",
+              "volume": 350000.0
+            }
+          },
+          "direction": "up",
+          "last_price": 103.0,
+          "move_pct": 0.45,
+          "mover_type": "derived",
+          "source": "alpaca_or_derived",
+          "symbol": "AMD",
+          "timestamp": "2026-03-12T06:24:34.829412+00:00",
+          "volume": 350000.0
+        }
+      ],
+      "opportunities": [
+        "High-priority watchlist names: NVDA, MSFT, META."
+      ],
+      "regime_confidence": 0.78,
+      "regime_label": "volatile",
+      "risks": [],
+      "summary": {
+        "catalyst_count": 0,
+        "headline": "Market posture is mixed. Regime is volatile (0.78).",
+        "opportunity_count": 1,
+        "posture": "mixed",
+        "risk_count": 0,
+        "top_symbols": [
+          "NVDA",
+          "MSFT",
+          "META"
+        ]
+      },
+      "watchlist_priorities": [
+        {
+          "debug": {
+            "has_activity": true,
+            "has_mover": true,
+            "news_count": 0
+          },
+          "priority": "priority_high",
+          "reasons": [
+            "Aligned with broad market context.",
+            "Appears in top movers.",
+            "Shows elevated activity."
+          ],
+          "score": 4.0,
+          "symbol": "NVDA"
+        },
+        {
+          "debug": {
+            "has_activity": true,
+            "has_mover": true,
+            "news_count": 0
+          },
+          "priority": "priority_high",
+          "reasons": [
+            "Aligned with broad market context.",
+            "Appears in top movers.",
+            "Shows elevated activity."
+          ],
+          "score": 4.0,
+          "symbol": "MSFT"
+        },
+        {
+          "debug": {
+            "has_activity": true,
+            "has_mover": true,
+            "news_count": 0
+          },
+          "priority": "priority_high",
+          "reasons": [
+            "Aligned with broad market context.",
+            "Appears in top movers.",
+            "Shows elevated activity."
+          ],
+          "score": 4.0,
+          "symbol": "META"
+        },
+        {
+          "debug": {
+            "has_activity": true,
+            "has_mover": true,
+            "news_count": 0
+          },
+          "priority": "priority_high",
+          "reasons": [
+            "Aligned with broad market context.",
+            "Appears in top movers.",
+            "Shows elevated activity."
+          ],
+          "score": 4.0,
+          "symbol": "AMD"
+        },
+        {
+          "debug": {
+            "has_activity": true,
+            "has_mover": true,
+            "news_count": 0
+          },
+          "priority": "priority_medium",
+          "reasons": [
+            "Appears in top movers.",
+            "Shows elevated activity."
+          ],
+          "score": 2.0,
+          "symbol": "SPY"
+        },
+        {
+          "debug": {
+            "has_activity": true,
+            "has_mover": true,
+            "news_count": 0
+          },
+          "priority": "priority_medium",
+          "reasons": [
+            "Appears in top movers.",
+            "Shows elevated activity."
+          ],
+          "score": 2.0,
+          "symbol": "QQQ"
+        }
+      ]
+    }
+  ],
+  "provider_diagnostics": {
+    "degraded": [],
+    "policy": "warn_on_degraded",
+    "providers": {
+      "market_data": {
+        "active": true,
+        "metadata": {
+          "backend": "deterministic",
+          "is_real_provider": false,
+          "supports_historical_bars": true,
+          "supports_streaming": false
+        },
+        "provider_name": "mock_alpaca",
+        "provider_type": "market_data",
+        "state": "mock"
+      },
+      "options_data": {
+        "active": true,
+        "metadata": {
+          "backend": "deterministic",
+          "is_real_provider": false,
+          "supports_expiration_filter": true,
+          "supports_greeks": true
+        },
+        "provider_name": "mock_chain",
+        "provider_type": "options_data",
+        "state": "mock"
+      },
+      "stt": {
+        "active": false,
+        "metadata": {
+          "deterministic": true,
+          "seeded_transcripts": 0
+        },
+        "provider_name": "mock",
+        "provider_type": "stt",
+        "state": "mock"
+      },
+      "tts": {
+        "active": false,
+        "metadata": {
+          "artifact_dir": ".kade_storage/tts",
+          "mock_synthesis": true,
+          "model": "kokoro-v1",
+          "output_mode": "artifact_uri",
+          "voice": "Puck"
+        },
+        "provider_name": "kokoro",
+        "provider_type": "tts",
+        "state": "mock"
+      },
+      "wakeword": {
+        "active": false,
+        "metadata": {
+          "deterministic": true,
+          "wake_word": "Kade"
+        },
+        "provider_name": "mock",
+        "provider_type": "wakeword",
+        "state": "mock"
+      }
+    },
+    "ready": true,
+    "unavailable": []
+  },
+  "provider_health": {
+    "stt": {
+      "active": false,
+      "metadata": {
+        "deterministic": true,
+        "seeded_transcripts": 0
+      },
+      "provider_name": "mock",
+      "provider_type": "stt",
+      "state": "mock"
+    },
+    "tts": {
+      "active": false,
+      "metadata": {
+        "artifact_dir": ".kade_storage/tts",
+        "mock_synthesis": true,
+        "model": "kokoro-v1",
+        "output_mode": "artifact_uri",
+        "voice": "Puck"
+      },
+      "provider_name": "kokoro",
+      "provider_type": "tts",
+      "state": "mock"
+    },
+    "wakeword": {
+      "active": false,
+      "metadata": {
+        "deterministic": true,
+        "wake_word": "Kade"
+      },
+      "provider_name": "mock",
+      "provider_type": "wakeword",
+      "state": "mock"
+    }
+  },
+  "provider_health_history": [
+    {
+      "providers": {
+        "stt": {
+          "active": false,
+          "metadata": {
+            "deterministic": true,
+            "seeded_transcripts": 0
+          },
+          "provider_name": "mock",
+          "provider_type": "stt",
+          "state": "mock"
+        },
+        "tts": {
+          "active": false,
+          "metadata": {
+            "artifact_dir": ".kade_storage/tts",
+            "mock_synthesis": true,
+            "model": "kokoro-v1",
+            "output_mode": "artifact_uri",
+            "voice": "Puck"
+          },
+          "provider_name": "kokoro",
+          "provider_type": "tts",
+          "state": "mock"
+        },
+        "wakeword": {
+          "active": false,
+          "metadata": {
+            "deterministic": true,
+            "wake_word": "Kade"
+          },
+          "provider_name": "mock",
+          "provider_type": "wakeword",
+          "state": "mock"
+        }
+      },
+      "timestamp": "2026-03-12T06:24:34.829969+00:00"
+    }
+  ],
+  "provider_selection": {
+    "market_data": "mock_alpaca",
+    "options_data": "mock_chain",
+    "stt": "mock",
+    "tts": "kokoro",
+    "wakeword": "mock"
+  },
+  "recent_backtest_evaluations": {},
+  "recent_command_history": [
+    {
+      "command": "status",
+      "intent": "status",
+      "provider_mode": "disabled",
+      "source": "text",
+      "spoken_text": "Tracking 6 symbols with 1 active plans.",
+      "timestamp": "2026-03-12T06:24:34.829894+00:00"
+    }
+  ],
+  "recent_voice_events": [],
+  "replay_debug": {
+    "last_replay": {},
+    "records": [
+      {
+        "command": "status",
+        "intent": "status",
+        "provider_mode": "disabled",
+        "source": "text",
+        "spoken_text": "Tracking 6 symbols with 1 active plans.",
+        "timestamp": "2026-03-12T06:24:34.829894+00:00"
+      }
+    ],
+    "retention_limit": 40
+  },
+  "strategy_history": [],
+  "trade_review_history": [],
+  "trade_review_metrics": {},
+  "trades_today": 2,
+  "visual_explanation_history": []
+}
