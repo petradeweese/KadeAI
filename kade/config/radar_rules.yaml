@@ -1,10 +1,10 @@
 radar:
-  base_score: 35
+  base_score: 32
 
   state_thresholds:
-    heads_up_min: 45
-    trigger_imminent_min: 58
-    trigger_fired_min: 72
+    heads_up_min: 48
+    trigger_imminent_min: 60
+    trigger_fired_min: 74
 
   deduplication:
     meaningful_score_delta: 6
@@ -17,13 +17,17 @@ radar:
     - SPY
 
   weights:
-    confidence: 12
-    trend_alignment: 10
-    volume_expansion: 8
-    qqq_confirmation: 7
-    breadth_alignment: 6
+    confidence: 10
+    trend_alignment: 8
+    volume_expansion: 6
+    qqq_confirmation: 6
+    breadth_alignment: 5
     trap_risk: 10
-    regime_suitability: 6
+    regime_suitability: 8
+    timeframe_alignment: 7
+    setup_tags: 5
+    momentum_quality: 6
+    structure_quality: 6
 
   confidence_scores:
     high: 1.0
@@ -33,8 +37,11 @@ radar:
 
   qqq_confirmation_scores:
     confirmed: 1.0
+    confirmed_breadth_aligned: 1.1
     mixed: 0.4
+    mixed_breadth: 0.1
     divergent: -0.7
+    divergent_risk_off: -0.4
     unknown: 0.0
 
   trap_risk_penalty:
@@ -43,12 +50,84 @@ radar:
     high: -1.0
     unknown: -0.2
 
-  regime_bonus:
-    momentum: 1.0
-    trend: 0.6
-    range: -0.5
-    uncertain: -0.2
-    unknown: 0.0
+  alignment:
+    scores:
+      fully_aligned: 1.0
+      partially_aligned: 0.4
+      conflicting: -0.8
+      weak_context: -0.2
+
+  setup_classification:
+    extension_distance_min: 0.0025
+
+  setup_tag_effects:
+    breakout_continuation: 0.9
+    vwap_reclaim: 0.6
+    trend_pullback: 0.45
+    failed_breakout_risk: -0.9
+    range_chop: -0.7
+    momentum_extension: -0.4
+
+  momentum_quality_scores:
+    strong_up: 1.0
+    up_bias: 0.4
+    mixed: -0.2
+    down_bias: -0.6
+    strong_down: -1.0
+    unknown: -0.3
+
+  structure_quality_scores:
+    breakout_up: 1.0
+    trend_continuation_up: 0.5
+    range_or_mixed: -0.5
+    trend_continuation_down: -0.3
+    breakout_down: -0.7
+    unknown: -0.3
+
+  regime_setup_fit:
+    breakout_continuation:
+      momentum: 1.0
+      trend: 0.7
+      range: -0.8
+      slow: -0.9
+      unknown: -0.2
+    vwap_reclaim:
+      momentum: 0.8
+      trend: 0.6
+      range: -0.4
+      slow: -0.5
+      unknown: -0.1
+    trend_pullback:
+      trend: 1.0
+      momentum: 0.5
+      range: -0.3
+      slow: -0.4
+      unknown: -0.1
+    failed_breakout_risk:
+      momentum: -0.8
+      trend: -0.6
+      range: -0.2
+      slow: 0.2
+      unknown: -0.2
+    range_chop:
+      range: 0.9
+      slow: 0.4
+      trend: -0.6
+      momentum: -0.7
+      unknown: 0.0
+    momentum_extension:
+      momentum: -0.2
+      trend: 0.3
+      range: -0.6
+      slow: -0.8
+      unknown: -0.2
+
+  regime_fit_thresholds:
+    aligned_min: 0.4
+    conflict_max: -0.2
+
+  explanations:
+    max_reasons: 3
 
 states:
   - no_setup

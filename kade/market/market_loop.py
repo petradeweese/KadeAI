@@ -173,6 +173,10 @@ class MarketStateLoop:
             "score": round(item.score, 2),
             "rank": item.rank,
             "reasons": item.reasons,
+            "setup_tags": item.setup_tags,
+            "alignment_label": item.alignment_label,
+            "regime_fit_label": item.regime_fit_label,
+            "explanation": item.explanation,
             "debug": item.debug,
         }
 

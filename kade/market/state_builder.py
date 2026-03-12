@@ -52,7 +52,9 @@ class MentalModelBuilder:
 
         last_price = trigger_closes[-1] if trigger_closes else None
         trigger_vwap = vwap(bars_trigger)
+        trigger_slope = regression_trend_slope(trigger_closes)
         slope = regression_trend_slope(bias_closes)
+        context_slope = regression_trend_slope(context_closes)
         rsi_value = rsi(trigger_closes)
         macd_value = macd(trigger_closes)
         macd_hist = macd_value[2] if macd_value else None
@@ -60,7 +62,9 @@ class MentalModelBuilder:
         structure_breakout = consolidation_breakout(context_closes)
         swing_structure = higher_highs_lower_highs(context_highs)
 
+        trigger_trend = self._trend_label(trigger_slope)
         trend = self._trend_label(slope)
+        context_trend = self._trend_label(context_slope)
         structure = self._structure_label(structure_breakout, swing_structure)
         momentum = self._momentum_label(rsi_value, macd_hist)
         volume_state = self._volume_label(volume_accel)
@@ -91,7 +95,12 @@ class MentalModelBuilder:
         )
 
         debug = {
+            "trigger_trend_slope": trigger_slope,
             "trend_slope": slope,
+            "context_trend_slope": context_slope,
+            "trigger_trend_label": trigger_trend,
+            "bias_trend_label": trend,
+            "context_trend_label": context_trend,
             "rsi": rsi_value,
             "macd_hist": macd_hist,
             "volume_acceleration": volume_accel,

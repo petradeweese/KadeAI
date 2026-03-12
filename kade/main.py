@@ -349,13 +349,20 @@ def main() -> None:
     radar_signals = [
         {
             "symbol": item.get("symbol"),
-            "setup": item.get("setup") or item.get("state"),
+            "setup": item.get("state"),
             "signal_type": item.get("state"),
-            "confidence": item.get("confidence"),
+            "confidence": item.get("score"),
             "timeframe": item.get("timeframe", "intraday"),
-            "notes": item.get("why") or item.get("notes"),
-            "supporting_indicators": item.get("indicators", []),
-            "timestamp": utc_now_iso(),
+            "notes": "; ".join(item.get("reasons", [])),
+            "supporting_indicators": item.get("reasons", []),
+            "setup_tags": item.get("setup_tags", []),
+            "alignment_label": item.get("alignment_label"),
+            "regime_fit": item.get("regime_fit_label"),
+            "supporting_reasons": dict(item.get("explanation", {})).get("supporting_reasons", []),
+            "cautionary_reasons": dict(item.get("explanation", {})).get("cautionary_reasons", []),
+            "trap_risk": dict(item.get("explanation", {})).get("trap_risk"),
+            "summary": dict(item.get("explanation", {})).get("summary"),
+            "timestamp": dict(item.get("explanation", {})).get("timestamp") or utc_now_iso(),
         }
         for item in market_loop.latest_radar.get("queue", [])
     ]
