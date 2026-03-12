@@ -24,6 +24,7 @@ from kade.integrations.providers import (
 from kade.logging_utils import LogCategory, get_logger, log_event, setup_logging
 from kade.market.market_loop import MarketStateLoop
 from kade.market.intelligence import MarketIntelligenceService
+from kade.gameplan import PremarketGameplanService
 from kade.options import OptionsSelectionPipeline, TargetMoveScenarioBoard, TargetMoveScenarioRequest, TradeIntent
 from kade.runtime import (
     InteractionOrchestrator,
@@ -71,6 +72,7 @@ def bootstrap_config() -> dict[str, dict]:
         "tracking.yaml",
         "review.yaml",
         "market_intelligence.yaml",
+        "gameplan.yaml",
     ]
     loaded_configs: dict[str, dict] = {}
     for name in config_names:
@@ -334,7 +336,9 @@ def main() -> None:
     tracking_cfg = dict(configs["tracking.yaml"].get("tracking", {}))
     review_cfg = dict(configs["review.yaml"].get("review", {}))
     market_intelligence_cfg = dict(configs["market_intelligence.yaml"].get("market_intelligence", {}))
+    gameplan_cfg = dict(configs["gameplan.yaml"].get("gameplan", {}))
     market_intelligence_service = MarketIntelligenceService(market_intelligence_cfg)
+    gameplan_service = PremarketGameplanService(gameplan_cfg)
     market_intelligence_snapshot = market_intelligence_service.build_snapshot(
         ticker_states=states,
         latest_breadth=market_loop.latest_breadth,
@@ -345,6 +349,15 @@ def main() -> None:
     retention = int(market_intelligence_cfg.get("history_retention", 25))
     history = list(session_state.get("market_intelligence_history", [])) + [market_intelligence_payload]
     session_state["market_intelligence_history"] = history[-retention:] if retention > 0 else []
+    gameplan_payload = gameplan_service.refresh_daily_gameplan(
+        snapshot=market_intelligence_snapshot,
+        watchlist=list(tickers_config.get("watchlist", [])),
+        ticker_states=states,
+    )
+    session_state["latest_premarket_gameplan"] = gameplan_payload
+    gameplan_retention = int(gameplan_cfg.get("history_retention", 10))
+    gameplan_history = list(session_state.get("premarket_gameplan_history", [])) + [gameplan_payload]
+    session_state["premarket_gameplan_history"] = gameplan_history[-gameplan_retention:] if gameplan_retention > 0 else []
 
     trade_plan_builder = TradePlanBuilder(planning_cfg)
     trade_plan_monitor = TradePlanMonitor(plan_tracker, tracking_cfg)
@@ -652,6 +665,12 @@ def main() -> None:
         trade_plan_tracking_handler=evaluate_trade_plan_tracking,
         trade_review_handler=review_trade_plan,
         latest_trade_review_handler=review_latest_trade_plan_payload,
+        premarket_gameplan_handler=lambda payload: gameplan_service.refresh_daily_gameplan(
+            snapshot=market_intelligence_snapshot,
+            watchlist=list(payload.get("watchlist") or tickers_config.get("watchlist", [])),
+            ticker_states=states,
+            explicit_symbols=list(payload.get("symbols") or []),
+        ),
     )
 
     if session_state.get("latest_target_move_board"):
@@ -670,6 +689,7 @@ def main() -> None:
         interaction.state.latest_backtest_run_summary = dict(session_state.get("latest_backtest_run_summary", {}))
     interaction.state.recent_backtest_evaluations = dict(session_state.get("recent_backtest_evaluations", {}))
     interaction.state.latest_historical_data = dict(session_state.get("latest_historical_data", {}))
+    interaction.state.latest_premarket_gameplan = dict(session_state.get("latest_premarket_gameplan", gameplan_payload))
     trade_plan_tracking_history[:] = trade_plan_tracking_history[-int(tracking_cfg.get("history_limit", 40)) :]
 
     diagnostics = ProviderDiagnostics(policy=str(provider_runtime.get("diagnostics_policy", "warn_on_degraded")), logger=LOGGER)
@@ -759,6 +779,33 @@ def main() -> None:
                 "catalysts": [str(item.get("catalyst_type", "unknown")) for item in major_catalysts[:3]],
             },
         )
+    interaction.timeline.add_event(
+        "premarket_gameplan_generated",
+        utc_now_iso(),
+        {
+            "posture": dict(gameplan_payload.get("market_posture", {})).get("posture_label"),
+            "regime_label": gameplan_payload.get("regime_label"),
+            "top_watchlist_symbols": [item.get("symbol") for item in list(gameplan_payload.get("watchlist_priorities", []))[:3]],
+            "catalyst_count": len(list(gameplan_payload.get("key_catalysts", []))),
+        },
+    )
+    interaction.timeline.add_event(
+        "watchlist_priorities_updated",
+        utc_now_iso(),
+        {
+            "top_watchlist_symbols": [item.get("symbol") for item in list(gameplan_payload.get("watchlist_priorities", []))[:5]],
+            "high_priority_count": len([item for item in list(gameplan_payload.get("watchlist_priorities", [])) if item.get("priority") == "priority_high"]),
+        },
+    )
+    interaction.timeline.add_event(
+        "market_posture_changed",
+        utc_now_iso(),
+        {
+            "posture": dict(gameplan_payload.get("market_posture", {})).get("posture_label"),
+            "regime_label": gameplan_payload.get("regime_label"),
+            "regime_confidence": gameplan_payload.get("regime_confidence"),
+        },
+    )
 
     log_event(
         LOGGER,
@@ -819,6 +866,7 @@ def main() -> None:
     session_state["latest_backtest_run_summary"] = interaction_state.latest_backtest_run_summary
     session_state["recent_backtest_evaluations"] = interaction_state.recent_backtest_evaluations
     session_state["latest_historical_data"] = interaction_state.latest_historical_data
+    session_state["latest_premarket_gameplan"] = interaction_state.latest_premarket_gameplan or gameplan_payload
     session_state["latest_market_regime"] = regime_label
     persistence.retain_recent_voice_events(session_state)
     persistence.retain_recent_commands(session_state)
@@ -850,6 +898,7 @@ def main() -> None:
         session_payload=session_state,
         history_payload=history_payload,
         market_intelligence_payload=market_intelligence_payload,
+        premarket_gameplan_payload=session_state.get("latest_premarket_gameplan", {}),
     )
     print_runtime_summary(dashboard_state, session_state, history_payload)
 

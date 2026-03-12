@@ -1,0 +1,24 @@
+gameplan:
+  posture_thresholds:
+    trend_favorable_confidence: 0.75
+    volatile_event_macro_count: 2
+    catalyst_heavy_earnings_count: 5
+  catalyst_priorities:
+    market_wide: 3
+    sector: 2
+    symbol: 2
+  watchlist_weights:
+    alignment: 2.0
+    conflict_penalty: 2.0
+    symbol_catalyst: 1.5
+    mover: 1.0
+    activity: 1.0
+    regime_alignment_bonus: 1.0
+    chop_mover_penalty: 1.0
+  output_limits:
+    key_catalysts: 8
+    earnings_today: 8
+    movers_to_watch: 8
+    most_active: 8
+    watchlist_priorities: 12
+  history_retention: 10

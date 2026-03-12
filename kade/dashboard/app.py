@@ -21,6 +21,7 @@ def create_app_status(
     session_payload: dict[str, object] | None = None,
     history_payload: dict[str, object] | None = None,
     market_intelligence_payload: dict[str, object] | None = None,
+    premarket_gameplan_payload: dict[str, object] | None = None,
 ) -> dict:
     ticker_states = ticker_states or {}
     debug_values = debug_values or {}
@@ -37,6 +38,7 @@ def create_app_status(
     session_payload = session_payload or {}
     history_payload = history_payload or {"radar": [], "advisor": [], "execution": []}
     market_intelligence_payload = market_intelligence_payload or {}
+    premarket_gameplan_payload = premarket_gameplan_payload or {}
 
     cards: list[dict] = []
     by_symbol = radar_payload.get("by_symbol", {})
@@ -143,6 +145,18 @@ def create_app_status(
             "trade_review": _panel(voice_payload.get("trade_review"), {"latest_review": {}, "metrics_summary": {}, "history": []}),
             "backtesting": _panel(voice_payload.get("backtesting"), {"latest_run_summary": {}, "recent_evaluations": {}}),
             "historical_data": _panel(voice_payload.get("historical_data"), {"last_download": {}, "cache_status": {}, "recent_downloads": [], "index_status": {}}),
+
+            "premarket_gameplan": {
+                "summary": dict(premarket_gameplan_payload.get("summary", {})),
+                "market_posture": dict(premarket_gameplan_payload.get("market_posture", {})),
+                "key_catalysts": list(premarket_gameplan_payload.get("key_catalysts", []))[:5],
+                "earnings_today": list(premarket_gameplan_payload.get("earnings_today", []))[:5],
+                "movers_to_watch": list(premarket_gameplan_payload.get("movers_to_watch", []))[:5],
+                "watchlist_priorities": list(premarket_gameplan_payload.get("watchlist_priorities", []))[:8],
+                "risks": list(premarket_gameplan_payload.get("risks", []))[:5],
+                "opportunities": list(premarket_gameplan_payload.get("opportunities", []))[:5],
+                "generated_at": premarket_gameplan_payload.get("generated_at"),
+            },
             "market_intelligence": {
                 "market_clock": dict(market_intelligence_payload.get("market_clock", {})),
                 "market_calendar": list(market_intelligence_payload.get("market_calendar", [])),

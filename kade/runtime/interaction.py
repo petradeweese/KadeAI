@@ -51,6 +51,7 @@ class InteractionRuntimeState:
     latest_backtest_run_summary: dict[str, object] = field(default_factory=dict)
     recent_backtest_evaluations: dict[str, list[dict[str, object]]] = field(default_factory=dict)
     latest_historical_data: dict[str, object] = field(default_factory=dict)
+    latest_premarket_gameplan: dict[str, object] = field(default_factory=dict)
 
     def retain_history(self) -> None:
         self.recent_commands = self.recent_commands[-self.command_history_limit :]
@@ -77,6 +78,7 @@ class InteractionOrchestrator:
         trade_plan_tracking_handler: Callable[[dict[str, object]], dict[str, object]] | None = None,
         trade_review_handler: Callable[[dict[str, object]], dict[str, object]] | None = None,
         latest_trade_review_handler: Callable[[dict[str, object]], dict[str, object]] | None = None,
+        premarket_gameplan_handler: Callable[[dict[str, object]], dict[str, object]] | None = None,
     ) -> None:
         self.voice_orchestrator = voice_orchestrator
         self.stt_provider = stt_provider
@@ -91,6 +93,7 @@ class InteractionOrchestrator:
         self.trade_plan_tracking_handler = trade_plan_tracking_handler
         self.trade_review_handler = trade_review_handler
         self.latest_trade_review_handler = latest_trade_review_handler
+        self.premarket_gameplan_handler = premarket_gameplan_handler
 
     def _provider_mode(self, tts_provider: str = "disabled") -> dict[str, str]:
         return {
@@ -151,6 +154,8 @@ class InteractionOrchestrator:
             return self.submit_trade_plan_status_request(dict(panel_payload["trade_plan_status_request"]), now=now)
         if panel_payload.get("trade_plan_tracking_request"):
             return self.submit_trade_plan_tracking_request(dict(panel_payload["trade_plan_tracking_request"]), now=now)
+        if panel_payload.get("premarket_gameplan_request"):
+            return self.submit_premarket_gameplan_request(dict(panel_payload["premarket_gameplan_request"]), now=now)
 
         command = str(panel_payload.get("command", "")).strip()
         include_debug = bool(panel_payload.get("include_debug", True))
@@ -178,6 +183,9 @@ class InteractionOrchestrator:
         if command.lower().startswith("trade_plan"):
             parsed = self._parse_trade_idea_command(command)
             return self.submit_trade_plan_request(parsed, now=now)
+        if command.lower().startswith("premarket_gameplan"):
+            parsed = self._parse_trade_idea_command(command)
+            return self.submit_premarket_gameplan_request(parsed, now=now)
         return self.submit_text_command(command=command, now=now, include_debug=include_debug)
 
     def submit_target_move_request(self, request_payload: dict[str, object], now: datetime | None = None) -> dict[str, object]:
@@ -406,6 +414,46 @@ class InteractionOrchestrator:
     def update_trade_plan_status_from_context(self, request_payload: dict[str, object], now: datetime | None = None) -> dict[str, object]:
         return self.submit_trade_plan_tracking_request(request_payload, now=now)
 
+
+    def submit_premarket_gameplan_request(self, request_payload: dict[str, object], now: datetime | None = None) -> dict[str, object]:
+        now = now or utc_now()
+        if self.premarket_gameplan_handler is None:
+            return self._panel_response(
+                intent="premarket_gameplan",
+                formatted_response="Premarket gameplan handler is not configured.",
+                now=now,
+                raw_result={"intent": "premarket_gameplan", "premarket_gameplan": {}},
+                provider_mode=self._provider_mode("disabled"),
+            )
+
+        gameplan = self.premarket_gameplan_handler(request_payload)
+        self.state.latest_premarket_gameplan = gameplan
+        self.timeline.add_event(
+            "premarket_gameplan_generated",
+            now.isoformat(),
+            {
+                "posture": dict(gameplan.get("market_posture", {})).get("posture_label"),
+                "regime_label": gameplan.get("regime_label"),
+                "top_watchlist_symbols": [item.get("symbol") for item in list(gameplan.get("watchlist_priorities", []))[:3]],
+                "catalyst_count": len(list(gameplan.get("key_catalysts", []))),
+            },
+        )
+        response = self._panel_response(
+            intent="premarket_gameplan",
+            formatted_response=str(dict(gameplan.get("summary", {})).get("headline", "Premarket gameplan generated.")),
+            now=now,
+            raw_result={"intent": "premarket_gameplan", "premarket_gameplan": gameplan},
+            provider_mode=self._provider_mode("disabled"),
+        )
+        self._record(
+            command=f"premarket_gameplan {request_payload}",
+            result={"intent": "premarket_gameplan", "spoken_text": response["formatted_response"], "premarket_gameplan": gameplan},
+            source="text_panel",
+            now=now,
+        )
+        self._refresh_provider_health()
+        return response
+
     def submit_trade_review_request(self, request_payload: dict[str, object], now: datetime | None = None) -> dict[str, object]:
         now = now or utc_now()
         if self.trade_review_handler is None:
@@ -536,7 +584,7 @@ class InteractionOrchestrator:
                 "provider_health": self.state.provider_health,
                 "provider_health_history": self.state.provider_health_history,
                 "replay_debug": self.replay_runtime.snapshot(),
-                "text_panel_commands": ["status", "radar", "what do you think about NVDA", "what is NVDA doing", "what was I watching", "trade_plan symbol=NVDA direction=put target=184.3 minutes=60", "trade_plan_check plan_id=plan-NVDA-1 symbol=NVDA"],
+                "text_panel_commands": ["status", "radar", "premarket_gameplan", "what do you think about NVDA", "what is NVDA doing", "what was I watching", "trade_plan symbol=NVDA direction=put target=184.3 minutes=60", "trade_plan_check plan_id=plan-NVDA-1 symbol=NVDA"],
                 "timeline": self.timeline.snapshot(),
                 "provider_diagnostics": self.state.provider_diagnostics,
                 "latest_radar_signals": self.state.latest_radar_signals,
@@ -559,6 +607,7 @@ class InteractionOrchestrator:
                     "recent_evaluations": self.state.recent_backtest_evaluations,
                 },
                 "historical_data": self.state.latest_historical_data,
+                "premarket_gameplan": self.state.latest_premarket_gameplan,
             }
         )
         return payload
