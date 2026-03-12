@@ -26,6 +26,7 @@ from kade.runtime import (
     InteractionRuntimeState,
     ReplayRuntime,
     RuntimePersistence,
+    RuntimeTimeline,
     build_dashboard_state,
     build_voice_handlers,
     print_runtime_summary,
@@ -57,6 +58,7 @@ def bootstrap_config() -> dict[str, dict]:
         "market_state.yaml",
         "brain.yaml",
         "storage.yaml",
+        "dashboard.yaml",
     ]
     loaded_configs: dict[str, dict] = {}
     for name in config_names:
@@ -281,6 +283,7 @@ def main() -> None:
     advisor_history = persistence.persist_advisor_history(advisor_history, session_state)
 
     voice_config = configs["voice.yaml"].get("voice", {})
+    dashboard_cfg = configs["dashboard.yaml"].get("dashboard", {})
     voice_state = VoiceSessionState(
         listening_mode=str(voice_config.get("listening_mode", "always_on")),
         wake_word=str(voice_config.get("wake_word", "Kade")),
@@ -297,7 +300,9 @@ def main() -> None:
         wakeword_enabled=bool(voice_config.get("wakeword_enabled", False)),
         stt_enabled=bool(voice_config.get("stt_enabled", False)),
         tts_enabled=bool(voice_config.get("tts_enabled", False)),
-        command_history_limit=int(dict(voice_config.get("text_panel", {})).get("max_command_history", 25)),
+        command_history_limit=int(dict(dashboard_cfg.get("command_panel", {})).get("history_limit", 50)),
+        execution_history_limit=int(dict(dashboard_cfg.get("execution_monitor", {})).get("retention", 50)),
+        radar_top_signals_limit=int(dict(dashboard_cfg.get("radar_panel", {})).get("top_signals", 5)),
         provider_health_history_limit=int(dict(voice_config.get("provider_health", {})).get("history_limit", 20)),
     )
     voice_orchestrator = VoiceOrchestrator(
@@ -326,6 +331,7 @@ def main() -> None:
         state=interaction_state,
         logger=LOGGER,
         replay_runtime=ReplayRuntime(retention_limit=int(dict(voice_config.get("replay_debug", {})).get("retention_limit", 40))),
+        timeline=RuntimeTimeline(retention=int(dict(dashboard_cfg.get("timeline", {})).get("retention", 200))),
     )
 
     diagnostics = ProviderDiagnostics(policy=str(provider_runtime.get("diagnostics_policy", "warn_on_degraded")), logger=LOGGER)
@@ -338,6 +344,38 @@ def main() -> None:
             "tts": voice_orchestrator.tts_provider.health_snapshot(active=interaction_state.tts_enabled),
         }
     )
+    interaction.set_provider_diagnostics(provider_diagnostics)
+
+    radar_signals = [
+        {
+            "symbol": item.get("symbol"),
+            "setup": item.get("setup") or item.get("state"),
+            "signal_type": item.get("state"),
+            "confidence": item.get("confidence"),
+            "timeframe": item.get("timeframe", "intraday"),
+            "notes": item.get("why") or item.get("notes"),
+            "supporting_indicators": item.get("indicators", []),
+            "timestamp": utc_now_iso(),
+        }
+        for item in market_loop.latest_radar.get("queue", [])
+    ]
+    interaction.ingest_radar_signals(radar_signals)
+
+    execution_events = [
+        {
+            "symbol": order.get("symbol"),
+            "option_symbol": order.get("option_symbol"),
+            "status": order.get("status"),
+            "lifecycle_state": dict(order.get("lifecycle", {})).get("state"),
+            "contracts": (order.get("filled_contracts", 0) or 0) + (order.get("remaining_contracts", 0) or 0),
+            "filled_contracts": order.get("filled_contracts"),
+            "avg_fill_price": order.get("avg_fill_price"),
+            "timestamp": order.get("timestamp"),
+            "fill_price": order.get("avg_fill_price"),
+        }
+        for order in execution_payload.get("orders", [])
+    ]
+    interaction.ingest_execution_events(execution_events)
 
     log_event(
         LOGGER,

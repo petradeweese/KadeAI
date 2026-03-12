@@ -69,6 +69,14 @@ def create_app_status(
             }
         )
 
+    voice_payload = voice_payload or {}
+    provider_diag = voice_payload.get("provider_diagnostics", {})
+    provider_selection = voice_payload.get("provider_selection", {})
+    provider_map = dict(provider_diag.get("providers", {}))
+
+    top_radar_signals = voice_payload.get("latest_radar_signals") or radar_payload.get("queue", [])[:5]
+    latest_execution = (voice_payload.get("execution_monitor", {}).get("lifecycle_history") or execution_payload.get("orders", []))[-1:]
+
     return {
         "status": "running",
         "card_count": len(cards),
@@ -84,6 +92,38 @@ def create_app_status(
         },
         "execution": execution_payload,
         "voice": voice_payload,
+        "operator_console": {
+            "runtime": {
+                "runtime_mode": voice_payload.get("runtime_mode"),
+                "interaction_mode": voice_payload.get("runtime_mode"),
+                "command_input_mode": voice_payload.get("command_input_mode"),
+            },
+            "providers": {
+                "provider_diagnostics": provider_diag,
+                "market_data_provider": {
+                    "provider": provider_selection.get("market_data"),
+                    **dict(provider_map.get("market_data", {})),
+                    "mode": "mock" if "mock" in str(provider_selection.get("market_data", "")) else "real",
+                },
+                "options_data_provider": {
+                    "provider": provider_selection.get("options_data"),
+                    **dict(provider_map.get("options_data", {})),
+                    "mode": "mock" if "mock" in str(provider_selection.get("options_data", "")) else "real",
+                },
+                "stt_provider": {"provider": provider_selection.get("stt"), **dict(provider_map.get("stt", {}))},
+                "tts_provider": {"provider": provider_selection.get("tts"), **dict(provider_map.get("tts", {}))},
+                "wakeword_provider": {"provider": provider_selection.get("wakeword"), **dict(provider_map.get("wakeword", {}))},
+            },
+            "radar": {"top_signals": top_radar_signals[:5]},
+            "execution": {"latest_lifecycle": latest_execution},
+            "session": {
+                "trades_today": session_payload.get("trades_today", 0),
+                "daily_realized_pnl": session_payload.get("daily_realized_pnl", 0.0),
+                "done_for_day": session_payload.get("done_for_day", False),
+                "emergency_shutdown": session_payload.get("emergency_shutdown", False),
+            },
+            "timeline": voice_payload.get("timeline", {"retention": 0, "events": []}),
+        },
         "session": session_payload,
         "history": history_payload,
         "persistence": persistence_payload,
