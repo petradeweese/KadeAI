@@ -2,7 +2,8 @@ const transcriptEl = document.getElementById('transcript');
 const chatForm = document.getElementById('chat-form');
 const chatInput = document.getElementById('chat-input');
 const interpretedEl = document.getElementById('interpreted');
-const chartState = { symbol: null, timeframe: '5m', chart: null, series: null, overlaySeries: [] };
+const chatMetaEl = document.getElementById('chat-meta');
+const chartState = { symbol: null, timeframe: '5m' };
 
 const MODE_TITLES = {
   overview: 'Overview Workspace',
@@ -21,7 +22,7 @@ async function loadDashboard() {
 
 function renderCard(id, title, rows, raw) {
   const el = document.getElementById(id);
-  const list = rows.map(r => `<div class="metric">${r}</div>`).join('');
+  const list = rows.map((r) => `<div class="metric">${r}</div>`).join('');
   el.innerHTML = `<h3>${title}</h3>${list}<details><summary>Show raw</summary><pre>${escapeHtml(JSON.stringify(raw || {}, null, 2))}</pre></details>`;
 }
 
@@ -29,9 +30,15 @@ function renderVisualCard(id, visual, layoutState) {
   const el = document.getElementById(id);
   const firstChart = (visual.charts || [])[0] || {};
   const chartSummary = firstChart.summary || visual.summary || {};
+  const overlays = firstChart.overlays || [];
   const symbol = visual.active_symbol || layoutState.active_symbol || firstChart.symbol || 'SPY';
   const timeframe = chartState.timeframe || layoutState.active_timeframe || firstChart.timeframe || '5m';
   const fallback = visual.fallback || { available: true };
+  const disconnected = !fallback.available && fallback.reason === 'provider_unavailable';
+  const entry = overlayValue(overlays, 'entry');
+  const invalidation = overlayValue(overlays, 'invalidation');
+  const target = overlayValue(overlays, 'target');
+  const vwap = overlayValue(overlays, 'vwap');
 
   el.innerHTML = `
     <h3>Visual Explainability</h3>
@@ -40,21 +47,24 @@ function renderVisualCard(id, visual, layoutState) {
       <div>${timeframe} • ${(visual.active_view || layoutState.active_workspace_mode || 'trade')}</div>
     </div>
     <div class="tf-controls">
-      ${['1m','5m','15m'].map(tf => `<button class="tf-btn ${tf === timeframe ? 'active' : ''}" data-timeframe="${tf}">${tf}</button>`).join('')}
+      ${['1m', '5m', '15m'].map((tf) => `<button class="tf-btn ${tf === timeframe ? 'active' : ''}" data-timeframe="${tf}">${tf}</button>`).join('')}
     </div>
+    <div class="chart-status ${fallback.available ? 'ready' : 'warn'}">${fallback.available ? 'Live chart feed connected' : (disconnected ? 'Chart feed disconnected — showing deterministic levels only' : 'Waiting for bars from data feed')}</div>
     <div id="chart-surface" class="chart-surface"></div>
     <div class="levels-grid">
-      <div>Entry: ${overlayValue(firstChart.overlays || [], 'entry')}</div>
-      <div>Invalidation: ${overlayValue(firstChart.overlays || [], 'invalidation')}</div>
-      <div>Target: ${overlayValue(firstChart.overlays || [], 'target')}</div>
-      <div>VWAP: ${overlayValue(firstChart.overlays || [], 'vwap')}</div>
+      <div class="level-chip">Entry <span>${entry}</span></div>
+      <div class="level-chip">Invalidation <span>${invalidation}</span></div>
+      <div class="level-chip">Target <span>${target}</span></div>
+      <div class="level-chip">VWAP <span>${vwap}</span></div>
     </div>
-    <div class="metric">Thesis: ${escapeHtml(chartSummary.thesis || 'Context aligned for deterministic setup review.')}</div>
-    <div class="metric">Reasoning: ${escapeHtml(chartSummary.reasoning || '')}</div>
+    <div class="chart-summary">
+      <div class="metric"><strong>Thesis:</strong> ${escapeHtml(chartSummary.thesis || 'Context aligned for deterministic setup review.')}</div>
+      <div class="metric"><strong>Path:</strong> ${escapeHtml(chartSummary.reasoning || '')}</div>
+    </div>
     <div class="visual-empty ${fallback.available ? 'hidden' : ''}">
       <strong>${symbol}</strong>
       <p>${fallback.message || `Chart data unavailable for ${symbol} right now.`}</p>
-      <p>Kade is ready to show entry, invalidation, target, and VWAP once market data is available.</p>
+      <p>Kade is ready to map entry, invalidation, target, and VWAP once market data is available.</p>
     </div>
     <details><summary>Show raw</summary><pre>${escapeHtml(JSON.stringify(visual || {}, null, 2))}</pre></details>
   `;
@@ -62,7 +72,7 @@ function renderVisualCard(id, visual, layoutState) {
   chartState.symbol = symbol;
   chartState.timeframe = timeframe;
   bindTimeframeControls();
-  renderCandles(firstChart);
+  renderCandles({ bars: firstChart.bars || [], overlays, timeframe, fallback });
 }
 
 async function fetchChart(symbol, timeframe) {
@@ -76,6 +86,8 @@ function bindTimeframeControls() {
     btn.onclick = async () => {
       const timeframe = btn.dataset.timeframe;
       const symbol = chartState.symbol || 'SPY';
+      const surface = document.getElementById('chart-surface');
+      if (surface) surface.classList.add('loading');
       const payload = await fetchChart(symbol, timeframe);
       const syntheticVisual = {
         active_symbol: payload.symbol,
@@ -94,26 +106,46 @@ function renderCandles(chartData) {
   if (!container) return;
   const bars = chartData.bars || [];
   const overlays = chartData.overlays || [];
-  if (!window.LightweightCharts || !bars.length) {
-    container.innerHTML = `<div class="chart-stage">Bars: ${bars.length} • Overlays: ${overlays.length}</div>`;
+
+  if (!window.LightweightCharts) {
+    container.innerHTML = '<div class="chart-stage">Chart library unavailable.</div>';
     return;
   }
+
+  if (!bars.length) {
+    container.innerHTML = `<div class="chart-stage chart-empty"><strong>No bars yet</strong><span>${escapeHtml(chartData.fallback?.message || 'Waiting for market data...')}</span></div>`;
+    return;
+  }
+
   container.innerHTML = '';
   const chart = window.LightweightCharts.createChart(container, {
     autoSize: true,
     layout: { background: { color: '#ffffff' }, textColor: '#334155' },
-    grid: { vertLines: { color: '#eef2ff' }, horzLines: { color: '#eef2ff' } },
+    grid: { vertLines: { color: '#e2e8f0' }, horzLines: { color: '#e2e8f0' } },
     rightPriceScale: { borderColor: '#cbd5e1' },
-    timeScale: { borderColor: '#cbd5e1' },
+    timeScale: { borderColor: '#cbd5e1', timeVisible: true, secondsVisible: false },
+    crosshair: { mode: 0 },
   });
+
   const series = chart.addCandlestickSeries({
-    upColor: '#16a34a', downColor: '#dc2626', borderVisible: false, wickUpColor: '#16a34a', wickDownColor: '#dc2626',
+    upColor: '#16a34a',
+    downColor: '#dc2626',
+    borderVisible: false,
+    wickUpColor: '#16a34a',
+    wickDownColor: '#dc2626',
   });
   series.setData(bars.map((b) => ({ time: Math.floor(new Date(b.timestamp).getTime() / 1000), open: b.open, high: b.high, low: b.low, close: b.close })));
 
   overlays.forEach((overlay) => {
     if (typeof overlay.price !== 'number') return;
-    const line = chart.addLineSeries({ color: overlay.color || '#2563eb', lineWidth: 2, lastValueVisible: false, priceLineVisible: true, title: overlay.label || overlay.type });
+    const line = chart.addLineSeries({
+      color: overlay.color || '#2563eb',
+      lineWidth: overlay.type === 'vwap' ? 1 : 2,
+      lineStyle: overlay.type === 'vwap' ? 2 : 0,
+      lastValueVisible: true,
+      priceLineVisible: true,
+      title: overlay.label || overlay.type,
+    });
     line.setData(bars.map((b) => ({ time: Math.floor(new Date(b.timestamp).getTime() / 1000), value: overlay.price })));
   });
 
@@ -123,7 +155,9 @@ function renderCandles(chartData) {
 function overlayValue(overlays, type) {
   const item = overlays.find((o) => o.type === type || o.overlay_type === type);
   if (!item) return 'n/a';
-  return item.price ?? item.value ?? 'n/a';
+  const value = item.price ?? item.value;
+  if (typeof value === 'number') return value.toFixed(2);
+  return value ?? 'n/a';
 }
 
 function renderDashboard(payload) {
@@ -138,8 +172,20 @@ function renderDashboard(payload) {
   const strategy = oc.strategy_intelligence || {};
   const layoutState = payload.ui_state || {};
 
-  document.getElementById('runtime-pill').textContent = `Runtime: ${oc.runtime?.runtime_mode || 'text_first'}`;
-  document.getElementById('provider-pill').textContent = `LLM: ${oc.llm?.provider || 'mock'}`;
+  const runtimeMode = oc.runtime?.runtime_mode || 'text_first';
+  const llmProvider = oc.providers?.llm_provider || {};
+  const marketProvider = oc.providers?.market_data_provider || {};
+  const llmName = llmProvider.provider_name || oc.llm?.provider || 'mock';
+  const llmState = llmProvider.state || 'unknown';
+
+  document.getElementById('runtime-pill').textContent = `Runtime: ${runtimeMode}`;
+  document.getElementById('provider-pill').textContent = `LLM: ${llmName} (${llmState})`;
+  const marketPill = document.getElementById('market-pill');
+  if (marketPill) {
+    const marketName = marketProvider.provider || 'unconfigured';
+    const marketMode = marketProvider.mode || 'unknown';
+    marketPill.textContent = `Market: ${marketName} (${marketMode})`;
+  }
 
   document.getElementById('workspace-mode').textContent = layoutState.active_workspace_mode || 'overview';
   document.getElementById('active-symbol').textContent = layoutState.active_symbol || '-';
@@ -153,7 +199,7 @@ function renderDashboard(payload) {
     `Direction: ${layoutState.active_direction || trade.direction || 'n/a'}`,
     `Regime: ${market.regime?.label || 'unknown'}`,
     `Breadth/Posture: ${premarket.market_posture?.posture_label || 'mixed'}`,
-  ], {layoutState, market: market.regime, posture: premarket.market_posture});
+  ], { layoutState, market: market.regime, posture: premarket.market_posture });
 
   renderCard('trade-idea-card', 'Trade Idea', [
     `Symbol: ${trade.symbol || layoutState.active_symbol || 'n/a'}`,
@@ -187,8 +233,8 @@ function renderDashboard(payload) {
 
   renderCard('premarket-card', 'Premarket Gameplan', [
     `Posture: ${premarket.market_posture?.posture_label || 'mixed'}`,
-    `Catalysts: ${(premarket.key_catalysts || []).slice(0,2).join(', ') || 'n/a'}`,
-    `Risks: ${(premarket.risks || []).slice(0,2).join(', ') || 'n/a'}`,
+    `Catalysts: ${(premarket.key_catalysts || []).slice(0, 2).join(', ') || 'n/a'}`,
+    `Risks: ${(premarket.risks || []).slice(0, 2).join(', ') || 'n/a'}`,
   ], premarket);
 
   renderCard('radar-card', 'Radar Watchlist', [
@@ -199,7 +245,7 @@ function renderDashboard(payload) {
   renderCard('movers-card', 'Movers & Watchlist', [
     `Top movers: ${(market.top_movers || []).length}`,
     `Most active: ${(market.most_active || []).length}`,
-    `Watchlist: ${(premarket.watchlist_priorities || []).slice(0,3).join(', ') || 'n/a'}`,
+    `Watchlist: ${(premarket.watchlist_priorities || []).slice(0, 3).join(', ') || 'n/a'}`,
   ], { movers: market.top_movers, active: market.most_active, watchlist: premarket.watchlist_priorities });
 
   renderCard('tracking-card', 'Trade Plan Tracking', [
@@ -231,6 +277,8 @@ function renderDashboard(payload) {
   renderCard('diagnostics-card', 'Provider Diagnostics', [
     `Providers: ${Object.keys(oc.providers || {}).length}`,
     `LLM summaries enabled: ${oc.llm?.narrative_summaries_enabled ? 'yes' : 'no'}`,
+    `Latest summary type: ${oc.llm?.latest_summary?.summary_type || 'none'}`,
+    `Latest summary provider: ${oc.llm?.latest_summary?.provider_name || llmName}` ,
   ], { providers: oc.providers, llm: oc.llm });
 
   document.getElementById('secondary-debug').textContent = JSON.stringify({
@@ -255,8 +303,7 @@ function applyLayoutState(layoutState) {
     el.style.order = String(order);
     el.classList.toggle('collapsed', collapsed.has(key));
     el.classList.toggle('highlight', highlighted.has(key));
-    const deEmphasized = !highlighted.has(key) && order > 50;
-    el.classList.toggle('deemphasized', deEmphasized);
+    el.classList.toggle('deemphasized', !highlighted.has(key) && order > 50);
 
     if (el.tagName.toLowerCase() === 'details') {
       el.open = !collapsed.has(key);
@@ -265,14 +312,14 @@ function applyLayoutState(layoutState) {
 }
 
 async function postJson(path, payload) {
-  const res = await fetch(path, { method: 'POST', headers: {'Content-Type': 'application/json'}, body: JSON.stringify(payload) });
+  const res = await fetch(path, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(payload) });
   return res.json();
 }
 
 function addMessage(role, text) {
   const el = document.createElement('div');
   el.className = `msg ${role}`;
-  el.innerHTML = `<span class="speaker">${role === 'user' ? 'You' : 'Kade'}</span><span>${escapeHtml(text)}</span>`;
+  el.innerHTML = `<span class="speaker">${role === 'user' ? 'You' : 'Kade'}</span><span class="message-text">${escapeHtml(text)}</span>`;
   transcriptEl.appendChild(el);
   transcriptEl.scrollTop = transcriptEl.scrollHeight;
 }
@@ -286,14 +333,20 @@ chatForm.addEventListener('submit', async (e) => {
 
   const path = /^\w+(\s+\w+=\S+)?$/.test(text) || text.startsWith('trade_') ? '/api/command' : '/api/chat';
   const key = path === '/api/command' ? 'command' : 'message';
-  const data = await postJson(path, {[key]: text});
+  const data = await postJson(path, { [key]: text });
 
   if (path === '/api/chat') {
-    interpretedEl.textContent = `Action: ${data.interpreted_action?.intent || 'n/a'} (${data.interpreted_action?.source || 'heuristic'})`;
+    interpretedEl.textContent = `${data.interpreted_action?.intent || 'n/a'}`;
+    if (chatMetaEl) {
+      chatMetaEl.textContent = `${data.interpreted_action?.source || 'heuristic'} · confidence ${data.interpreted_action?.confidence ?? 'n/a'}`;
+    }
     addMessage('kade', data.reply || 'Done');
     renderDashboard(data.dashboard);
   } else {
-    interpretedEl.textContent = `Command intent: ${data.result?.intent || 'n/a'}`;
+    interpretedEl.textContent = `command:${data.result?.intent || 'n/a'}`;
+    if (chatMetaEl) {
+      chatMetaEl.textContent = 'Explicit deterministic command';
+    }
     addMessage('kade', data.result?.formatted_response || 'Done');
     renderDashboard(data.dashboard);
   }
@@ -302,7 +355,7 @@ chatForm.addEventListener('submit', async (e) => {
 document.getElementById('refresh-btn').addEventListener('click', loadDashboard);
 
 function escapeHtml(str) {
-  return str.replace(/[&<>"']/g, m => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#039;'}[m]));
+  return String(str).replace(/[&<>"']/g, (m) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#039;' }[m]));
 }
 
 loadDashboard();

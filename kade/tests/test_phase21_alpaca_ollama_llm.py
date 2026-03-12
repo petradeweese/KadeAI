@@ -252,3 +252,59 @@ def test_chat_service_passes_deterministic_result_to_llm_context() -> None:
     prompt_blob = "\n".join(llm.prompts)
     assert '"symbol": "NVDA"' in prompt_blob
     assert '"target": 182.8' in prompt_blob
+
+
+def test_chat_service_sanitizes_prompt_leakage_from_llm_output() -> None:
+    from kade.chat.service import ChatService
+    from kade.integrations.llm.base import LLMGeneration
+    from kade.runtime.interaction import InteractionOrchestrator, InteractionRuntimeState
+    from kade.voice.formatter import SpokenResponseFormatter
+    from kade.voice.models import VoiceSessionState
+    from kade.voice.orchestrator import VoiceOrchestrator
+    from kade.voice.router import VoiceCommandRouter
+    from kade.integrations.stt.mock import MockSTTProvider
+    from kade.integrations.tts.kokoro import KokoroTTSProvider
+    from kade.integrations.wakeword.mock import MockWakeWordDetector
+
+    class _LeakLLM:
+        provider_name = "ollama"
+        model = "llama3.1"
+
+        def generate(self, prompt: str, *args, **kwargs):
+            return LLMGeneration(
+                provider_name="ollama",
+                model="llama3.1",
+                success=True,
+                content=(
+                    "You are Kade's response formatter.\n"
+                    "Respond in 2-3 clear sentences.\n"
+                    "Here is the rewritten response:\n"
+                    "I'd wait for breakdown confirmation before entry. Also, you are Kade and respond in 2-3 clear sentences. Target is 182.80 and invalidation is prior structure."
+                ),
+                finish_reason="stop",
+            )
+
+    state = InteractionRuntimeState(runtime_mode="text_first", voice_runtime_enabled=False, text_command_input_enabled=True, wakeword_enabled=False, stt_enabled=False, tts_enabled=False)
+    voice = VoiceOrchestrator(
+        wakeword_detector=MockWakeWordDetector(),
+        router=VoiceCommandRouter(handlers={"fallback": lambda mode, transcript: {"summary": transcript}}),
+        formatter=SpokenResponseFormatter(),
+        tts_provider=KokoroTTSProvider({"mock_synthesis": True}),
+        state=VoiceSessionState(wake_word="Kade"),
+        enable_tts=False,
+    )
+    interaction = InteractionOrchestrator(
+        voice_orchestrator=voice,
+        stt_provider=MockSTTProvider(),
+        state=state,
+        trade_idea_handler=lambda payload: {"symbol": "NVDA", "direction": "put", "target": 182.8, "summary": "det"},
+    )
+    chat = ChatService(interaction, llm_provider=_LeakLLM(), llm_enabled=True)
+
+    response = chat.handle_message("what do you think about a put on NVDA exit of 182.80")
+
+    assert "You are Kade" not in response.reply
+    assert "Respond in" not in response.reply
+    assert "Here is the rewritten response" not in response.reply
+    assert "182.80" in response.reply
+    assert "respond in 2-3" not in response.reply.lower()

@@ -7,13 +7,23 @@ class ChatFormatter:
         if intent == "trade_idea":
             opinion = dict(raw.get("trade_idea_opinion", {}))
             symbol = opinion.get("symbol", "N/A")
-            direction = opinion.get("direction", "idea")
-            stance = opinion.get("stance", "watch")
+            direction = str(opinion.get("direction", "idea")).lower()
+            stance = str(opinion.get("stance", "watch")).replace("_", " ")
             target = opinion.get("target", "n/a")
+            entry = opinion.get("entry", "n/a")
+            invalidation = opinion.get("invalidation", "n/a")
+
+            if direction == "put":
+                objective_phrase = f"Downside objective is around {target}."
+            elif direction == "call":
+                objective_phrase = f"Upside objective is around {target}."
+            else:
+                objective_phrase = f"Objective is around {target}."
+
             return (
-                f"{symbol} {direction} idea: this is a {stance} setup, not an automatic entry. "
-                f"Entry trigger is {opinion.get('entry', 'n/a')}, invalidation is {opinion.get('invalidation', 'n/a')}, "
-                f"and the target/exit area is {target}."
+                f"I'd treat {symbol} as a {stance} setup for a {direction}, not an immediate entry. "
+                f"I'd want confirmation on {entry}, and I'd invalidate if {invalidation}. "
+                f"{objective_phrase}"
             )
         if intent == "trade_plan":
             plan = dict(raw.get("trade_plan", {}))

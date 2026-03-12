@@ -15,6 +15,7 @@
     <div class="header-controls">
       <span id="runtime-pill" class="pill">runtime</span>
       <span id="provider-pill" class="pill muted">provider</span>
+      <span id="market-pill" class="pill muted">market data</span>
       <button id="refresh-btn">Refresh</button>
     </div>
   </header>
@@ -23,7 +24,7 @@
     <section class="chat-column card">
       <h2>AI Assistant</h2>
       <div id="transcript" class="transcript"></div>
-      <div id="interpreted" class="interpreted"></div>
+      <div class="chat-status"><div id="interpreted" class="interpreted"></div><div id="chat-meta" class="chat-meta"></div></div>
       <form id="chat-form" class="chat-input-row">
         <input id="chat-input" placeholder="Ask naturally or type explicit command..." />
         <button type="submit">Send</button>
