@@ -1,10 +1,14 @@
 from __future__ import annotations
 
 from datetime import datetime
+from pathlib import Path
+
+import yaml
 
 from kade.chat.service import ChatService
 from kade.dashboard.app import create_app_status
-from kade.integrations.providers import build_llm_provider, build_stt_provider, build_tts_provider, build_wakeword_provider
+from kade.integrations.providers import build_llm_provider, build_market_data_provider, build_stt_provider, build_tts_provider, build_wakeword_provider
+from kade.visuals.levels import parse_first_level
 from kade.runtime.interaction import InteractionOrchestrator, InteractionRuntimeState
 from kade.ui.workspace import build_workspace_layout, intent_to_workspace_mode, parse_symbol_from_command
 from kade.voice.formatter import SpokenResponseFormatter
@@ -24,10 +28,13 @@ class OperatorBackend:
             "last_interpreted_intent": "",
             "active_direction": None,
             "active_horizon": None,
+            "active_timeframe": "5m",
             "highlighted_panels": [],
             "collapsed_panels": [],
             "panel_priority_map": {},
         }
+        runtime_cfg = self._load_provider_runtime_config()
+        self._historical_provider = build_market_data_provider(runtime_cfg, route_key="historical_data_provider")
         llm_provider = build_llm_provider({"provider": "mock", "providers": {"mock": {"enabled": llm_enabled}}})
         self._chat = ChatService(self._runtime, llm_provider=llm_provider, llm_enabled=llm_enabled)
 
@@ -43,7 +50,74 @@ class OperatorBackend:
             "chat_history_size": len(self._history),
             **self._layout_state,
         }
+        chart_timeframe = str(self._layout_state.get("active_timeframe") or "5m")
+        chart_payload = self.chart_data(symbol=str(self._layout_state.get("active_symbol") or "SPY"), timeframe=chart_timeframe)
+        payload["operator_console"]["visual_explainability"] = {
+            **dict(payload["operator_console"].get("visual_explainability", {})),
+            "active_symbol": chart_payload["symbol"],
+            "active_view": chart_payload["active_view"]["mode"],
+            "charts": [{"timeframe": chart_payload["timeframe"], "bars": chart_payload["bars"], "overlays": chart_payload["overlays"], "summary": chart_payload["summary"]}],
+            "chart_unavailable": not bool(chart_payload["bars"]),
+            "fallback": chart_payload["fallback"],
+            "summary": chart_payload["summary"],
+        }
         return payload
+
+    def chart_data(self, symbol: str | None = None, timeframe: str | None = None) -> dict[str, object]:
+        active_symbol = str(symbol or self._layout_state.get("active_symbol") or "SPY").upper()
+        requested_timeframe = str(timeframe or self._layout_state.get("active_timeframe") or "5m")
+        normalized_timeframe = requested_timeframe if requested_timeframe in {"1m", "5m", "15m", "1h"} else "5m"
+        bars: list[dict[str, object]] = []
+        fallback = {"available": True, "reason": "", "message": ""}
+        try:
+            provider_bars = self._historical_provider.get_bars(active_symbol, normalized_timeframe, limit=180)
+            bars = [
+                {
+                    "timestamp": bar.timestamp.isoformat(),
+                    "open": float(bar.open),
+                    "high": float(bar.high),
+                    "low": float(bar.low),
+                    "close": float(bar.close),
+                    "volume": float(bar.volume),
+                }
+                for bar in provider_bars
+            ]
+        except Exception as exc:  # pragma: no cover - defensive fallback
+            fallback = {
+                "available": False,
+                "reason": "provider_unavailable",
+                "message": f"Chart data unavailable for {active_symbol} right now.",
+                "error": str(exc),
+            }
+
+        if not bars:
+            fallback = {
+                "available": False,
+                "reason": "bars_unavailable",
+                "message": f"Chart data unavailable for {active_symbol} right now.",
+            }
+
+        overlays = self._build_chart_overlays(active_symbol, bars)
+        return {
+            "symbol": active_symbol,
+            "timeframe": normalized_timeframe,
+            "bars": bars,
+            "overlays": overlays,
+            "summary": self._chart_summary(active_symbol, normalized_timeframe, overlays),
+            "active_view": {
+                "mode": str(self._layout_state.get("active_workspace_mode") or "overview"),
+                "symbol": active_symbol,
+                "timeframe": normalized_timeframe,
+                "direction": self._layout_state.get("active_direction"),
+                "horizon": self._layout_state.get("active_horizon"),
+            },
+            "fallback": fallback,
+            "meta": {
+                "provider": self._historical_provider.provider_name,
+                "requested_timeframe": requested_timeframe,
+                "timeframe_supported": requested_timeframe in {"1m", "5m", "15m", "1h"},
+            },
+        }
 
     def command(self, command: str) -> dict[str, object]:
         result = self._runtime.submit_text_panel_command({"command": command})
@@ -109,15 +183,66 @@ class OperatorBackend:
         current_symbol = symbol or self._layout_state.get("active_symbol")
         current_direction = direction or self._layout_state.get("active_direction")
         current_horizon = horizon or self._layout_state.get("active_horizon")
+        current_timeframe = self._infer_timeframe(current_horizon)
         layout = build_workspace_layout(mode, active_symbol=str(current_symbol) if current_symbol else None)
         self._layout_state = {
             **layout.as_dict(),
             "active_symbol": current_symbol,
             "active_direction": current_direction,
             "active_horizon": current_horizon,
+            "active_timeframe": current_timeframe,
             "active_view": active_view,
             "last_interpreted_intent": intent,
         }
+
+    @staticmethod
+    def _infer_timeframe(horizon: object) -> str:
+        if isinstance(horizon, (int, float)):
+            minutes = int(horizon)
+            if minutes <= 30:
+                return "1m"
+            if minutes <= 120:
+                return "5m"
+            return "15m"
+        return "5m"
+
+    def _build_chart_overlays(self, symbol: str, bars: list[dict[str, object]]) -> list[dict[str, object]]:
+        overlays: list[dict[str, object]] = []
+        closes = [float(item["close"]) for item in bars]
+        if closes:
+            vwap = sum(float(item["close"]) * float(item["volume"]) for item in bars) / max(sum(float(item["volume"]) for item in bars), 1.0)
+            overlays.append({"type": "vwap", "label": "VWAP", "price": round(vwap, 4), "color": "#2563eb", "reason": "Session VWAP from chart bars.", "source": "chart_bars", "priority": 4})
+
+        plan = dict(self._runtime.state.latest_trade_plan or {})
+        levels = [
+            ("entry", "Entry", parse_first_level(dict(plan.get("entry_plan", {})).get("trigger_condition")) or parse_first_level(plan.get("trigger")), "#16a34a", "trade_plan.entry"),
+            ("invalidation", "Invalidation", parse_first_level(dict(plan.get("invalidation_plan", {})).get("invalidation_condition")) or parse_first_level(plan.get("invalidation")), "#dc2626", "trade_plan.invalidation"),
+            ("target", "Target", parse_first_level(dict(plan.get("target_plan", {})).get("primary_target")) or parse_first_level(plan.get("target")), "#9333ea", "trade_plan.target"),
+        ]
+        for overlay_type, label, value, color, source in levels:
+            if value is None:
+                continue
+            overlays.append({"type": overlay_type, "label": label, "price": float(value), "color": color, "reason": f"Deterministic {label.lower()} from trade plan.", "source": source, "priority": 1 if overlay_type == "invalidation" else 2})
+
+        return sorted(overlays, key=lambda item: int(item.get("priority", 9)))
+
+    def _chart_summary(self, symbol: str, timeframe: str, overlays: list[dict[str, object]]) -> dict[str, object]:
+        thesis = str(dict(self._runtime.state.latest_trade_idea_opinion or {}).get("summary") or f"Monitoring deterministic setup for {symbol}.")
+        return {
+            "symbol": symbol,
+            "timeframe": timeframe,
+            "thesis": thesis,
+            "key_levels": [f"{item['label']}: {item.get('price', 'n/a')}" for item in overlays if item.get("type") in {"entry", "invalidation", "target", "vwap"}],
+            "reasoning": "Levels are sourced from deterministic trade plan and computed chart VWAP.",
+        }
+
+    @staticmethod
+    def _load_provider_runtime_config() -> dict[str, object]:
+        path = Path(__file__).resolve().parents[1] / "config" / "execution.yaml"
+        if not path.exists():
+            return {}
+        payload = yaml.safe_load(path.read_text(encoding="utf-8")) or {}
+        return dict(payload.get("execution", {}).get("providers", {}))
 
     def _remember(self, role: str, text: str, metadata: dict[str, object] | None = None) -> None:
         self._history.append({"role": role, "text": text, "timestamp": datetime.utcnow().isoformat(), "metadata": metadata or {}})
@@ -157,6 +282,9 @@ class OperatorBackend:
                 "trigger": "break and hold",
                 "invalidation": "failed retest",
                 "target": "measured move",
+                "entry_plan": {"trigger_condition": "Break above 101.2"},
+                "invalidation_plan": {"invalidation_condition": "Lose 99.4"},
+                "target_plan": {"primary_target": "103.1"},
                 "checklist": ["regime aligned", "volume confirmation"],
             }
 

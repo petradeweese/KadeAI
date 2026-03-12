@@ -170,11 +170,36 @@ def test_ui_template_includes_secondary_collapsible_section() -> None:
     assert "market-context-card" in html
 
 
+
+
+def test_chart_endpoint_and_timeframe_switching_shape() -> None:
+    server = create_server(host="127.0.0.1", port=0, llm_enabled=False)
+    thread = threading.Thread(target=server.serve_forever, daemon=True)
+    thread.start()
+    host, port = server.server_address
+    conn = HTTPConnection(host, port, timeout=3)
+
+    conn.request("GET", "/api/chart?symbol=NVDA&timeframe=1m")
+    payload_1m = json.loads(conn.getresponse().read().decode("utf-8"))
+    assert payload_1m["symbol"] == "NVDA"
+    assert payload_1m["timeframe"] == "1m"
+    assert isinstance(payload_1m["bars"], list)
+    assert isinstance(payload_1m["overlays"], list)
+
+    conn.request("GET", "/api/chart?symbol=NVDA&timeframe=15m")
+    payload_15m = json.loads(conn.getresponse().read().decode("utf-8"))
+    assert payload_15m["timeframe"] == "15m"
+    assert payload_15m["meta"]["provider"] in {"mock_alpaca", "alpaca"}
+
+    conn.close()
+    server.shutdown()
+    server.server_close()
+
+
 def test_visual_explainability_panel_has_polished_sparse_fallback() -> None:
     with open("kade/ui/static/app.js", encoding="utf-8") as handle:
         js = handle.read()
 
-    assert "No chart bars are available yet" in js
-    assert "Entry:" in js
-    assert "Invalidation:" in js
-    assert "Target:" in js
+    assert "Chart data unavailable for" in js
+    assert "entry, invalidation, target, and VWAP" in js
+    assert "tf-btn" in js
