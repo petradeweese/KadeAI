@@ -1,0 +1,20 @@
+tracking:
+  history_limit: 40
+  evaluation:
+    stale_ratio_of_hold: 0.65
+    default_stale_minutes: 20
+    aging_minutes: 10
+    reason_limit: 8
+    action_limit: 5
+  transitions:
+    auto_triggered_to_active: true
+    auto_cancel_stale_watch: false
+    allow_cancel_active_on_hard_invalidation: false
+    active_execution_states:
+      - active
+      - filled
+      - in_position
+    exit_execution_states:
+      - exited
+      - closed
+      - flat
