@@ -156,3 +156,44 @@ def test_runtime_visual_request_emits_timeline_and_updates_payload() -> None:
     assert "visual_explanation_generated" in timeline_events
     assert "chart_context_changed" in timeline_events
     assert payload["visual_explainability"]["latest"]["symbol"] == "NVDA"
+
+
+def test_operator_backend_chart_overlays_use_stable_shape() -> None:
+    from kade.ui.api import OperatorBackend
+
+    backend = OperatorBackend(llm_enabled=False)
+    backend.chat("Should I consider a put on NVDA within an hour?")
+    backend.command("trade_plan symbol=NVDA")
+    chart = backend.chart_data(symbol="NVDA", timeframe="5m")
+
+    assert chart["symbol"] == "NVDA"
+    assert chart["timeframe"] == "5m"
+    assert all("type" in overlay and "label" in overlay and "source" in overlay for overlay in chart["overlays"])
+    assert {item["type"] for item in chart["overlays"]}.issuperset({"entry", "invalidation", "target", "vwap"})
+
+
+def test_operator_backend_chart_fallback_when_provider_unavailable() -> None:
+    from kade.ui.api import OperatorBackend
+
+    class _BrokenProvider:
+        provider_name = "broken"
+
+        def get_bars(self, symbol: str, timeframe: str, limit: int = 200):
+            return []
+
+    backend = OperatorBackend(llm_enabled=False)
+    backend._historical_provider = _BrokenProvider()
+    payload = backend.chart_data(symbol="NVDA", timeframe="5m")
+
+    assert payload["fallback"]["available"] is False
+    assert payload["fallback"]["reason"] == "bars_unavailable"
+    assert payload["bars"] == []
+
+
+def test_horizon_minutes_biases_initial_chart_timeframe() -> None:
+    from kade.ui.api import OperatorBackend
+
+    backend = OperatorBackend(llm_enabled=False)
+    result = backend.chat("Should I consider a put on NVDA within an hour?")
+
+    assert result["layout_state"]["active_timeframe"] == "5m"

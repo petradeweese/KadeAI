@@ -4,7 +4,7 @@ import json
 from http import HTTPStatus
 from http.server import BaseHTTPRequestHandler
 from pathlib import Path
-from urllib.parse import urlparse
+from urllib.parse import parse_qs, urlparse
 
 from kade.ui.api import OperatorBackend
 
@@ -65,6 +65,12 @@ class OperatorRequestHandler(BaseHTTPRequestHandler):
             return
         if parsed.path == "/api/history":
             self._json(self.backend.history())
+            return
+        if parsed.path == "/api/chart":
+            query = parse_qs(parsed.query)
+            symbol = str((query.get("symbol") or [""])[0] or "").strip() or None
+            timeframe = str((query.get("timeframe") or [""])[0] or "").strip() or None
+            self._json(self.backend.chart_data(symbol=symbol, timeframe=timeframe))
             return
         if parsed.path.startswith("/static/"):
             self._serve_static(parsed.path.replace("/static/", "", 1))

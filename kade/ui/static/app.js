@@ -2,6 +2,7 @@ const transcriptEl = document.getElementById('transcript');
 const chatForm = document.getElementById('chat-form');
 const chatInput = document.getElementById('chat-input');
 const interpretedEl = document.getElementById('interpreted');
+const chartState = { symbol: null, timeframe: '5m', chart: null, series: null, overlaySeries: [] };
 
 const MODE_TITLES = {
   overview: 'Overview Workspace',
@@ -26,46 +27,103 @@ function renderCard(id, title, rows, raw) {
 
 function renderVisualCard(id, visual, layoutState) {
   const el = document.getElementById(id);
-  const charts = visual.charts || [];
-  const firstChart = charts[0] || {};
-  const levels = (firstChart.overlays || []).filter(o => String(o.overlay_type || '').includes('line'));
-  const hasBars = Array.isArray(firstChart.bars) && firstChart.bars.length > 0;
-  const sideReasons = ((visual.side_panels || [])[0] || {}).items || [];
+  const firstChart = (visual.charts || [])[0] || {};
+  const chartSummary = firstChart.summary || visual.summary || {};
+  const symbol = visual.active_symbol || layoutState.active_symbol || firstChart.symbol || 'SPY';
+  const timeframe = chartState.timeframe || layoutState.active_timeframe || firstChart.timeframe || '5m';
+  const fallback = visual.fallback || { available: true };
 
-  let body = '';
-  if (hasBars || levels.length > 0) {
-    body = `
-      <div class="visual-head">
-        <div><strong>${visual.active_symbol || layoutState.active_symbol || 'n/a'}</strong></div>
-        <div>${firstChart.timeframe || 'n/a'} • ${visual.active_view || layoutState.active_view || 'plan'}</div>
-      </div>
-      <div class="chart-stage">
-        <div>Bars: ${firstChart.bars?.length || 0}</div>
-        <div>Overlays: ${(firstChart.overlays || []).length}</div>
-      </div>
-      <div class="levels-grid">
-        <div>Entry: ${levelValue(levels, ['trigger_line', 'entry'])}</div>
-        <div>Invalidation: ${levelValue(levels, ['invalidation_line'])}</div>
-        <div>Target: ${levelValue(levels, ['target_line'])}</div>
-        <div>VWAP: ${levelValue(levels, ['vwap_line'])}</div>
-      </div>
-      <div class="metric">Summary: ${sideReasons.slice(0, 3).join(', ') || 'Context aligned for deterministic setup review.'}</div>
-    `;
-  } else {
-    body = `
-      <div class="visual-empty">
-        <strong>${visual.active_symbol || layoutState.active_symbol || 'Symbol not set'}</strong>
-        <p>No chart bars are available yet. Kade is ready to show entry, invalidation, target and VWAP levels when data arrives.</p>
-      </div>
-    `;
-  }
+  el.innerHTML = `
+    <h3>Visual Explainability</h3>
+    <div class="visual-head">
+      <div><strong>${symbol}</strong></div>
+      <div>${timeframe} • ${(visual.active_view || layoutState.active_workspace_mode || 'trade')}</div>
+    </div>
+    <div class="tf-controls">
+      ${['1m','5m','15m'].map(tf => `<button class="tf-btn ${tf === timeframe ? 'active' : ''}" data-timeframe="${tf}">${tf}</button>`).join('')}
+    </div>
+    <div id="chart-surface" class="chart-surface"></div>
+    <div class="levels-grid">
+      <div>Entry: ${overlayValue(firstChart.overlays || [], 'entry')}</div>
+      <div>Invalidation: ${overlayValue(firstChart.overlays || [], 'invalidation')}</div>
+      <div>Target: ${overlayValue(firstChart.overlays || [], 'target')}</div>
+      <div>VWAP: ${overlayValue(firstChart.overlays || [], 'vwap')}</div>
+    </div>
+    <div class="metric">Thesis: ${escapeHtml(chartSummary.thesis || 'Context aligned for deterministic setup review.')}</div>
+    <div class="metric">Reasoning: ${escapeHtml(chartSummary.reasoning || '')}</div>
+    <div class="visual-empty ${fallback.available ? 'hidden' : ''}">
+      <strong>${symbol}</strong>
+      <p>${fallback.message || `Chart data unavailable for ${symbol} right now.`}</p>
+      <p>Kade is ready to show entry, invalidation, target, and VWAP once market data is available.</p>
+    </div>
+    <details><summary>Show raw</summary><pre>${escapeHtml(JSON.stringify(visual || {}, null, 2))}</pre></details>
+  `;
 
-  el.innerHTML = `<h3>Visual Explainability</h3>${body}<details><summary>Show raw</summary><pre>${escapeHtml(JSON.stringify(visual || {}, null, 2))}</pre></details>`;
+  chartState.symbol = symbol;
+  chartState.timeframe = timeframe;
+  bindTimeframeControls();
+  renderCandles(firstChart);
 }
 
-function levelValue(levels, types) {
-  const item = levels.find(l => types.includes(l.overlay_type));
-  return item?.value ?? 'n/a';
+async function fetchChart(symbol, timeframe) {
+  const params = new URLSearchParams({ symbol, timeframe });
+  const res = await fetch(`/api/chart?${params.toString()}`);
+  return res.json();
+}
+
+function bindTimeframeControls() {
+  document.querySelectorAll('.tf-btn').forEach((btn) => {
+    btn.onclick = async () => {
+      const timeframe = btn.dataset.timeframe;
+      const symbol = chartState.symbol || 'SPY';
+      const payload = await fetchChart(symbol, timeframe);
+      const syntheticVisual = {
+        active_symbol: payload.symbol,
+        active_view: payload.active_view?.mode,
+        charts: [{ symbol: payload.symbol, timeframe: payload.timeframe, bars: payload.bars, overlays: payload.overlays, summary: payload.summary }],
+        fallback: payload.fallback,
+        summary: payload.summary,
+      };
+      renderVisualCard('visual-card', syntheticVisual, { active_workspace_mode: payload.active_view?.mode || 'trade', active_symbol: payload.symbol, active_timeframe: payload.timeframe });
+    };
+  });
+}
+
+function renderCandles(chartData) {
+  const container = document.getElementById('chart-surface');
+  if (!container) return;
+  const bars = chartData.bars || [];
+  const overlays = chartData.overlays || [];
+  if (!window.LightweightCharts || !bars.length) {
+    container.innerHTML = `<div class="chart-stage">Bars: ${bars.length} • Overlays: ${overlays.length}</div>`;
+    return;
+  }
+  container.innerHTML = '';
+  const chart = window.LightweightCharts.createChart(container, {
+    autoSize: true,
+    layout: { background: { color: '#ffffff' }, textColor: '#334155' },
+    grid: { vertLines: { color: '#eef2ff' }, horzLines: { color: '#eef2ff' } },
+    rightPriceScale: { borderColor: '#cbd5e1' },
+    timeScale: { borderColor: '#cbd5e1' },
+  });
+  const series = chart.addCandlestickSeries({
+    upColor: '#16a34a', downColor: '#dc2626', borderVisible: false, wickUpColor: '#16a34a', wickDownColor: '#dc2626',
+  });
+  series.setData(bars.map((b) => ({ time: Math.floor(new Date(b.timestamp).getTime() / 1000), open: b.open, high: b.high, low: b.low, close: b.close })));
+
+  overlays.forEach((overlay) => {
+    if (typeof overlay.price !== 'number') return;
+    const line = chart.addLineSeries({ color: overlay.color || '#2563eb', lineWidth: 2, lastValueVisible: false, priceLineVisible: true, title: overlay.label || overlay.type });
+    line.setData(bars.map((b) => ({ time: Math.floor(new Date(b.timestamp).getTime() / 1000), value: overlay.price })));
+  });
+
+  chart.timeScale().fitContent();
+}
+
+function overlayValue(overlays, type) {
+  const item = overlays.find((o) => o.type === type || o.overlay_type === type);
+  if (!item) return 'n/a';
+  return item.price ?? item.value ?? 'n/a';
 }
 
 function renderDashboard(payload) {
