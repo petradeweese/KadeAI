@@ -202,7 +202,7 @@ def test_visual_explainability_panel_has_polished_sparse_fallback() -> None:
         js = handle.read()
 
     assert "Chart data unavailable for" in js
-    assert "map entry, invalidation, target, and VWAP" in js
+    assert "map entry, invalidation, target, and VWAP once real market data is available." in js
     assert "tf-btn" in js
     assert "chart-empty" in js
 
@@ -267,6 +267,22 @@ def test_chart_summary_reasoning_reflects_overlay_levels() -> None:
     backend.chat("what do you think about a put on NVDA exit of 182.80")
     backend.command("trade_plan symbol=NVDA")
 
+    class _Provider:
+        provider_name = "alpaca"
+
+        def health_snapshot(self, active: bool):
+            class _Health:
+                state = "ready"
+
+            return _Health()
+
+        def get_bars(self, symbol: str, timeframe: str, limit: int = 180):
+            return [
+                {"timestamp": "2026-01-01T14:30:00+00:00", "open": 182.1, "high": 183.2, "low": 181.8, "close": 182.9, "volume": 12345},
+                {"timestamp": "2026-01-01T14:35:00+00:00", "open": 182.9, "high": 183.4, "low": 182.5, "close": 183.1, "volume": 11321},
+            ]
+
+    backend._historical_provider = _Provider()
     chart = backend.chart_data(symbol="NVDA", timeframe="5m")
     reasoning = str(chart["summary"]["reasoning"])
     overlay_types = {item["type"] for item in chart["overlays"]}
@@ -274,6 +290,27 @@ def test_chart_summary_reasoning_reflects_overlay_levels() -> None:
     assert "target around" in reasoning
     assert "invalidation near" in reasoning
     assert {"entry", "invalidation", "target", "vwap"}.issubset(overlay_types)
+
+
+
+
+def test_chart_endpoint_reports_real_provider_unavailable_without_synthetic_fallback() -> None:
+    backend = OperatorBackend(llm_enabled=False)
+
+    payload = backend.chart_data(symbol="NVDA", timeframe="5m")
+
+    assert payload["meta"]["provider"] == "alpaca"
+    assert payload["meta"]["is_mock_provider"] is False
+    assert payload["fallback"]["available"] is False
+    assert payload["fallback"]["reason"] in {"provider_unavailable", "bars_unavailable"}
+    assert payload["bars"] == []
+
+def test_provider_runtime_config_loads_top_level_provider_block() -> None:
+    backend = OperatorBackend(llm_enabled=False)
+    cfg = backend._load_provider_runtime_config()
+
+    assert cfg["historical_data_provider"] == "alpaca"
+    assert "market_data_backends" in cfg
 
 
 def test_chart_endpoint_normalizes_alpaca_shorthand_fields() -> None:
@@ -299,8 +336,27 @@ def test_chart_endpoint_normalizes_alpaca_shorthand_fields() -> None:
 
 def test_dashboard_visual_chart_bars_are_non_empty_when_provider_has_data() -> None:
     backend = OperatorBackend(llm_enabled=False)
+
+    class _Provider:
+        provider_name = "alpaca"
+
+        def health_snapshot(self, active: bool):
+            class _Health:
+                state = "ready"
+
+            return _Health()
+
+        def get_bars(self, symbol: str, timeframe: str, limit: int = 180):
+            return [
+                {"timestamp": "2026-01-01T14:30:00+00:00", "open": 182.1, "high": 183.2, "low": 181.8, "close": 182.9, "volume": 12345},
+                {"timestamp": "2026-01-01T14:35:00+00:00", "open": 182.9, "high": 183.4, "low": 182.5, "close": 183.1, "volume": 11321},
+            ]
+
+    backend._historical_provider = _Provider()
     dashboard = backend.dashboard()
-    bars = dashboard["operator_console"]["visual_explainability"]["charts"][0]["bars"]
+    visual = dashboard["operator_console"]["visual_explainability"]
+    bars = visual["charts"][0]["bars"]
 
     assert isinstance(bars, list)
     assert len(bars) > 0
+    assert visual["fallback"]["available"] is True
