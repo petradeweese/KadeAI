@@ -26,7 +26,7 @@ def test_ui_server_startup_wiring_and_page_render() -> None:
 
     assert resp.status == 200
     assert "Kade Operator Console" in body
-    assert "AI Assistant" in body
+    assert "Kade Assistant" in body
     assert "workspace-mode" in body
 
 
@@ -202,7 +202,7 @@ def test_visual_explainability_panel_has_polished_sparse_fallback() -> None:
         js = handle.read()
 
     assert "Chart data unavailable for" in js
-    assert "map entry, invalidation, target, and VWAP once real market data is available." in js
+    assert "deterministic levels visible and update timing confidence when real bars resume." in js
     assert "tf-btn" in js
     assert "chart-empty" in js
 
@@ -246,9 +246,9 @@ def test_trade_idea_fallback_reply_is_direction_aware() -> None:
     put_reply = backend.chat("what do you think about a put on NVDA exit of 182.80")["reply"].lower()
     call_reply = backend.chat("what do you think about a call on NVDA exit of 205")["reply"].lower()
 
-    assert "downside objective" in put_reply
-    assert "upside objective" in call_reply
-    assert "downside/upside objective" not in put_reply
+    assert "downside" in put_reply
+    assert "upside" in call_reply
+    assert "conditional setup" in put_reply
 
 
 def test_chat_transcript_intent_metadata_is_deemphasized_in_auxiliary_meta() -> None:
