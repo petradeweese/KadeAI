@@ -313,6 +313,25 @@ def test_provider_runtime_config_loads_top_level_provider_block() -> None:
     assert "market_data_backends" in cfg
 
 
+def test_provider_runtime_config_applies_alpaca_env_credentials(monkeypatch) -> None:
+    monkeypatch.setenv("APCA_API_KEY_ID", "env-key")
+    monkeypatch.setenv("APCA_API_SECRET_KEY", "env-secret")
+
+    backend = OperatorBackend(llm_enabled=False)
+    cfg = backend._load_provider_runtime_config()
+    alpaca_cfg = dict(dict(cfg.get("market_data_backends", {})).get("alpaca", {}))
+
+    assert alpaca_cfg["api_key"] == "env-key"
+    assert alpaca_cfg["secret_key"] == "env-secret"
+
+    provider = backend._historical_provider
+    assert provider.provider_name == "alpaca"
+    assert provider.api_key == "env-key"
+    assert provider.secret_key == "env-secret"
+    assert provider.client.config.api_key == "env-key"
+    assert provider.client.config.secret_key == "env-secret"
+
+
 def test_chart_endpoint_normalizes_alpaca_shorthand_fields() -> None:
     backend = OperatorBackend(llm_enabled=False)
 
