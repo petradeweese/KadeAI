@@ -20,10 +20,11 @@ async function loadDashboard() {
   renderDashboard(data);
 }
 
-function renderCard(id, title, rows, raw) {
+function renderCard(id, title, rows, raw, summary = '') {
   const el = document.getElementById(id);
   const list = rows.map((r) => `<div class="metric">${r}</div>`).join('');
-  el.innerHTML = `<h3>${title}</h3>${list}<details><summary>Show raw</summary><pre>${escapeHtml(JSON.stringify(raw || {}, null, 2))}</pre></details>`;
+  const summaryBlock = summary ? `<p class="panel-summary">${escapeHtml(summary)}</p>` : '';
+  el.innerHTML = `<h3>${title}</h3>${summaryBlock}${list}<details><summary>Show raw</summary><pre>${escapeHtml(JSON.stringify(raw || {}, null, 2))}</pre></details>`;
 }
 
 function renderVisualCard(id, visual, layoutState) {
@@ -58,13 +59,13 @@ function renderVisualCard(id, visual, layoutState) {
       <div class="level-chip">VWAP <span>${vwap}</span></div>
     </div>
     <div class="chart-summary">
-      <div class="metric"><strong>Thesis:</strong> ${escapeHtml(chartSummary.thesis || 'Context aligned for deterministic setup review.')}</div>
-      <div class="metric"><strong>Path:</strong> ${escapeHtml(chartSummary.reasoning || '')}</div>
+      <div class="metric"><strong>Read:</strong> ${escapeHtml(chartSummary.thesis || 'Context aligned for deterministic setup review.')}</div>
+      <div class="metric"><strong>Execution path:</strong> ${escapeHtml(chartSummary.reasoning || '')}</div>
     </div>
     <div class="visual-empty ${fallback.available ? 'hidden' : ''}">
       <strong>${symbol}</strong>
       <p>${fallback.message || `Chart data unavailable for ${symbol} right now.`}</p>
-      <p>Kade is ready to map entry, invalidation, target, and VWAP once real market data is available.</p>
+      <p>Kade will keep deterministic levels visible and update timing confidence when real bars resume.</p>
     </div>
     <details><summary>Show raw</summary><pre>${escapeHtml(JSON.stringify(visual || {}, null, 2))}</pre></details>
   `;
@@ -201,6 +202,14 @@ function overlayValue(overlays, type) {
   return value ?? 'n/a';
 }
 
+
+function describeConfidence(value) {
+  if (typeof value !== 'number') return 'measured';
+  if (value >= 0.78) return 'strong';
+  if (value >= 0.58) return 'moderate';
+  return 'measured';
+}
+
 function renderDashboard(payload) {
   const oc = payload.operator_console || {};
   const market = oc.market_intelligence || {};
@@ -236,40 +245,52 @@ function renderDashboard(payload) {
   document.getElementById('workspace-title').textContent = MODE_TITLES[layoutState.active_workspace_mode] || MODE_TITLES.overview;
 
   renderCard('market-context-card', 'Market Context Strip', [
-    `Symbol: ${layoutState.active_symbol || trade.symbol || 'n/a'}`,
-    `Direction: ${layoutState.active_direction || trade.direction || 'n/a'}`,
-    `Regime: ${market.regime?.label || 'unknown'}`,
-    `Breadth/Posture: ${premarket.market_posture?.posture_label || 'mixed'}`,
-  ], { layoutState, market: market.regime, posture: premarket.market_posture });
+    `Symbol in focus: ${layoutState.active_symbol || trade.symbol || 'n/a'}`,
+    `Trade direction: ${layoutState.active_direction || trade.direction || 'n/a'}`,
+    `Market regime: ${market.regime?.label || 'unknown'}`,
+    `Desk posture: ${premarket.market_posture?.posture_label || 'mixed'}`,
+  ], { layoutState, market: market.regime, posture: premarket.market_posture }, 'Fast read on how current market state and desk posture frame this setup.');
+
+  const tradeConfidence = describeConfidence(trade.confidence);
+  const tradeSummary = trade.summary && !String(trade.summary).toLowerCase().startsWith('deterministic setup')
+    ? String(trade.summary)
+    : `The setup exists because ${layoutState.active_symbol || trade.symbol || 'this symbol'} is showing a directional idea that still needs confirmation before it is actionable.`;
 
   renderCard('trade-idea-card', 'Trade Idea', [
     `Symbol: ${trade.symbol || layoutState.active_symbol || 'n/a'}`,
-    `Stance: ${trade.stance || trade.direction || layoutState.active_direction || 'n/a'}`,
-    `Trigger: ${trade.entry || 'n/a'}`,
-    `Invalidation: ${trade.invalidation || 'n/a'}`,
-    `Target: ${trade.target || 'n/a'}`,
-  ], trade);
+    `Current read: ${String(trade.stance || trade.direction || layoutState.active_direction || 'n/a').replaceAll('_', ' ')}`,
+    `What confirms it: ${trade.entry || 'wait for downside/upside confirmation before activating the setup'}`,
+    `What breaks it: ${trade.invalidation || 'if structure holds against the idea, edge fades quickly'}`,
+    `How target fits: move toward ${trade.target || 'target pending'} only makes sense with post-trigger follow-through`,
+    `Conviction / risk posture: ${tradeConfidence} / ${String(trade.risk_posture || 'normal').replaceAll('_', ' ')}`,
+  ], trade, tradeSummary);
 
+  const leadScenario = target.candidates?.[0]?.scenario || 'n/a';
   renderCard('target-move-card', 'Target Move Board', [
-    `Candidates: ${(target.candidates || []).length}`,
-    `Best candidate: ${target.candidates?.[0]?.symbol || 'n/a'}`,
-    `Symbol: ${(target.request || {}).symbol || layoutState.active_symbol || 'n/a'}`,
-  ], target);
+    `Candidates surfaced: ${(target.candidates || []).length}`,
+    `Symbol under evaluation: ${(target.request || {}).symbol || layoutState.active_symbol || 'n/a'}`,
+    `Most likely path right now: ${leadScenario}`,
+    `Target fit check: ${trade.target || plan.target || 'n/a'} requires continuation after trigger, not drift`,
+    `Early failure signal: ${trade.invalidation || plan.invalidation || 'if structure resists the move, target odds decay quickly'}`,
+  ], target, 'Use this board to judge whether the target is realistic for the current setup path, not just mathematically reachable.');
 
+  const triggerText = plan.trigger || plan.entry_plan?.trigger_condition || trade.entry || 'wait for confirmation before activating risk';
+  const invalidationText = plan.invalidation || plan.invalidation_plan?.invalidation_condition || trade.invalidation || 'idea loses edge if structure holds against the direction';
+  const targetText = plan.target || plan.target_plan?.primary_target || trade.target || 'target pending';
   renderCard('trade-plan-card', 'Trade Plan', [
     `Symbol: ${plan.symbol || layoutState.active_symbol || 'n/a'}`,
-    `Entry/Trigger: ${plan.trigger || 'n/a'}`,
-    `Stop/Invalidation: ${plan.invalidation || 'n/a'}`,
-    `Target: ${plan.target || 'n/a'}`,
-    `Checklist: ${(plan.checklist || []).slice(0, 2).join(', ') || 'n/a'}`,
-  ], plan);
+    `Trigger path: ${triggerText}`,
+    `Risk boundary: ${invalidationText}`,
+    `Target path: ${targetText}`,
+    `Execution checklist: ${(plan.checklist || []).slice(0, 3).join(' • ') || 'use confirmation, structure, and momentum checks before entry'}`,
+  ], plan, `This plan is conditional: wait for ${triggerText}, then work toward ${targetText}, and stand down if ${invalidationText}.`);
 
   renderVisualCard('visual-card', visual, layoutState);
 
   renderCard('market-card', 'Market Intelligence', [
     `Regime: ${market.regime?.label || 'unknown'}`,
-    `News: ${(market.key_news || []).length}`,
-    `Movers: ${(market.top_movers || []).length}`,
+    `News in scope: ${(market.key_news || []).length}`,
+    `Top movers tracked: ${(market.top_movers || []).length}`,
   ], market);
 
   renderCard('premarket-card', 'Premarket Gameplan', [
@@ -319,7 +340,7 @@ function renderDashboard(payload) {
     `Providers: ${Object.keys(oc.providers || {}).length}`,
     `LLM summaries enabled: ${oc.llm?.narrative_summaries_enabled ? 'yes' : 'no'}`,
     `Latest summary type: ${oc.llm?.latest_summary?.summary_type || 'none'}`,
-    `Latest summary provider: ${oc.llm?.latest_summary?.provider_name || llmName}` ,
+    `Latest summary provider: ${oc.llm?.latest_summary?.provider_name || llmName}`,
   ], { providers: oc.providers, llm: oc.llm });
 
   document.getElementById('secondary-debug').textContent = JSON.stringify({
