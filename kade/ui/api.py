@@ -35,7 +35,7 @@ class OperatorBackend:
             "panel_priority_map": {},
         }
         runtime_cfg = self._load_provider_runtime_config()
-        self._historical_provider = build_market_data_provider(runtime_cfg, route_key="historical_data_provider")
+        self._historical_provider = build_market_data_provider(runtime_cfg, route_key="historical_data_provider", allow_mock_fallback=False)
         llm_cfg = self._load_llm_config()
         if not llm_enabled:
             llm_cfg = {"provider": "mock", "providers": {"mock": {"enabled": False}}}
@@ -88,6 +88,11 @@ class OperatorBackend:
         normalized_timeframe = requested_timeframe if requested_timeframe in {"1m", "5m", "15m", "1h"} else "5m"
         bars: list[dict[str, object]] = []
         fallback = {"available": True, "reason": "", "message": ""}
+        provider_name = str(getattr(self._historical_provider, "provider_name", "unknown"))
+        is_mock_provider = provider_name.startswith("mock")
+        provider_health = None
+        if hasattr(self._historical_provider, "health_snapshot"):
+            provider_health = self._historical_provider.health_snapshot(active=True)
         try:
             provider_bars = self._historical_provider.get_bars(active_symbol, normalized_timeframe, limit=180)
             bars = [normalized for item in provider_bars if (normalized := self._normalize_chart_bar(item)) is not None]
@@ -99,12 +104,20 @@ class OperatorBackend:
                 "error": str(exc),
             }
 
-        if not bars:
+        if not bars and fallback["available"]:
             fallback = {
                 "available": False,
                 "reason": "bars_unavailable",
                 "message": f"Chart data unavailable for {active_symbol} right now.",
             }
+
+        if is_mock_provider:
+            fallback = {
+                "available": False,
+                "reason": "mock_provider",
+                "message": f"Chart feed is disconnected from real provider for {active_symbol}; deterministic overlays remain available.",
+            }
+            bars = []
 
         overlays = self._build_chart_overlays(active_symbol, bars)
         return {
@@ -122,7 +135,9 @@ class OperatorBackend:
             },
             "fallback": fallback,
             "meta": {
-                "provider": self._historical_provider.provider_name,
+                "provider": provider_name,
+                "provider_state": getattr(provider_health, "state", "unknown"),
+                "is_mock_provider": is_mock_provider,
                 "requested_timeframe": requested_timeframe,
                 "timeframe_supported": requested_timeframe in {"1m", "5m", "15m", "1h"},
             },
@@ -335,8 +350,15 @@ class OperatorBackend:
         path = Path(__file__).resolve().parents[1] / "config" / "execution.yaml"
         if not path.exists():
             return {}
+
         payload = yaml.safe_load(path.read_text(encoding="utf-8")) or {}
-        return dict(payload.get("execution", {}).get("providers", {}))
+        provider_block = payload.get("providers")
+        if not isinstance(provider_block, dict):
+            provider_block = dict(payload.get("execution", {}).get("providers", {}))
+
+        cfg = {"execution.yaml": {"execution": {"providers": dict(provider_block)}}}
+        merged = apply_runtime_env_overrides(cfg)
+        return dict(merged.get("execution.yaml", {}).get("execution", {}).get("providers", {}))
 
     def _remember(self, role: str, text: str, metadata: dict[str, object] | None = None) -> None:
         self._history.append({"role": role, "text": text, "timestamp": datetime.utcnow().isoformat(), "metadata": metadata or {}})

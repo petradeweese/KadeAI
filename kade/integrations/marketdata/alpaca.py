@@ -10,14 +10,21 @@ from kade.market.alpaca_client import AlpacaClient, AlpacaConfig
 from kade.market.structure import Bar, Quote, Trade
 
 
+def _clean_credential(value: object) -> str:
+    raw = str(value or "").strip()
+    if raw.startswith("${") and raw.endswith("}"):
+        return ""
+    return raw
+
+
 class AlpacaMarketDataProvider(MarketDataProvider):
     provider_name = "alpaca"
 
     def __init__(self, config: dict[str, object] | None = None) -> None:
         cfg = config or {}
         self.enabled = bool(cfg.get("enabled", False))
-        self.api_key = str(cfg.get("api_key", "")).strip()
-        self.secret_key = str(cfg.get("secret_key", "")).strip()
+        self.api_key = _clean_credential(cfg.get("api_key", ""))
+        self.secret_key = _clean_credential(cfg.get("secret_key", ""))
         self.base_url = str(cfg.get("base_url", "https://paper-api.alpaca.markets"))
         self.data_url = str(cfg.get("data_url", "https://data.alpaca.markets"))
         self.mock_on_unavailable = bool(cfg.get("mock_on_unavailable", True))

@@ -26,13 +26,15 @@ def resolve_runtime_provider_routes(runtime_cfg: dict[str, object]) -> dict[str,
     }
 
 
-def build_market_data_provider(runtime_cfg: dict[str, object], route_key: str = "runtime_market_loop_provider") -> MarketDataProvider:
+def build_market_data_provider(
+    runtime_cfg: dict[str, object], route_key: str = "runtime_market_loop_provider", allow_mock_fallback: bool = True
+) -> MarketDataProvider:
     routes = resolve_runtime_provider_routes(runtime_cfg)
     provider_name = str(routes.get(route_key, "mock"))
     backends = dict(runtime_cfg.get("market_data_backends", {}))
     if provider_name == "alpaca":
         provider = AlpacaMarketDataProvider(dict(backends.get("alpaca", {})))
-        if provider.health_snapshot(active=True).state != "ready" and provider.mock_on_unavailable:
+        if allow_mock_fallback and provider.health_snapshot(active=True).state != "ready" and provider.mock_on_unavailable:
             return MockMarketDataProvider()
         return provider
     return MockMarketDataProvider()

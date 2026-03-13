@@ -68,3 +68,15 @@ def test_text_first_defaults_preserved() -> None:
     cfg = yaml.safe_load(open("kade/config/voice.yaml", "r", encoding="utf-8"))["voice"]
     assert cfg["runtime_mode"] == "text_first"
     assert cfg["voice_runtime_enabled"] is False
+
+
+def test_alpaca_placeholder_credentials_are_treated_as_missing() -> None:
+    cfg = {"enabled": True, "api_key": "${APCA_API_KEY_ID}", "secret_key": "${APCA_API_SECRET_KEY}"}
+    from kade.integrations.marketdata.alpaca import AlpacaMarketDataProvider
+
+    provider = AlpacaMarketDataProvider(cfg)
+    health = provider.health_snapshot(active=True)
+
+    assert provider.api_key == ""
+    assert provider.secret_key == ""
+    assert health.state == "degraded"

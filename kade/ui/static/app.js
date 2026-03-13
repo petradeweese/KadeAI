@@ -34,7 +34,7 @@ function renderVisualCard(id, visual, layoutState) {
   const symbol = visual.active_symbol || layoutState.active_symbol || firstChart.symbol || 'SPY';
   const timeframe = chartState.timeframe || layoutState.active_timeframe || firstChart.timeframe || '5m';
   const fallback = visual.fallback || { available: true };
-  const disconnected = !fallback.available && fallback.reason === 'provider_unavailable';
+  const disconnected = !fallback.available && ['provider_unavailable', 'mock_provider'].includes(fallback.reason);
   const entry = overlayValue(overlays, 'entry');
   const invalidation = overlayValue(overlays, 'invalidation');
   const target = overlayValue(overlays, 'target');
@@ -49,7 +49,7 @@ function renderVisualCard(id, visual, layoutState) {
     <div class="tf-controls">
       ${['1m', '5m', '15m'].map((tf) => `<button class="tf-btn ${tf === timeframe ? 'active' : ''}" data-timeframe="${tf}">${tf}</button>`).join('')}
     </div>
-    <div class="chart-status ${fallback.available ? 'ready' : 'warn'}">${fallback.available ? 'Live chart feed connected' : (disconnected ? 'Chart feed disconnected — showing deterministic levels only' : 'Waiting for bars from data feed')}</div>
+    <div class="chart-status ${fallback.available ? 'ready' : 'warn'}">${fallback.available ? 'Live chart feed connected' : (disconnected ? 'Chart feed disconnected — real candlesticks unavailable' : 'Waiting for bars from data feed')}</div>
     <div id="chart-surface" class="chart-surface"></div>
     <div class="levels-grid">
       <div class="level-chip">Entry <span>${entry}</span></div>
@@ -64,7 +64,7 @@ function renderVisualCard(id, visual, layoutState) {
     <div class="visual-empty ${fallback.available ? 'hidden' : ''}">
       <strong>${symbol}</strong>
       <p>${fallback.message || `Chart data unavailable for ${symbol} right now.`}</p>
-      <p>Kade is ready to map entry, invalidation, target, and VWAP once market data is available.</p>
+      <p>Kade is ready to map entry, invalidation, target, and VWAP once real market data is available.</p>
     </div>
     <details><summary>Show raw</summary><pre>${escapeHtml(JSON.stringify(visual || {}, null, 2))}</pre></details>
   `;
@@ -131,17 +131,21 @@ function renderCandles(chartData) {
     autoSize: true,
     layout: { background: { color: '#ffffff' }, textColor: '#334155' },
     grid: { vertLines: { color: '#e2e8f0' }, horzLines: { color: '#e2e8f0' } },
-    rightPriceScale: { borderColor: '#cbd5e1' },
-    timeScale: { borderColor: '#cbd5e1', timeVisible: true, secondsVisible: false },
+    rightPriceScale: { borderColor: '#cbd5e1', scaleMargins: { top: 0.1, bottom: 0.12 } },
+    timeScale: { borderColor: '#cbd5e1', timeVisible: true, secondsVisible: false, rightOffset: 6, barSpacing: 9 },
     crosshair: { mode: 0 },
   });
 
   const series = addSeriesCompat(chart, 'candlestick', {
     upColor: '#16a34a',
     downColor: '#dc2626',
-    borderVisible: false,
+    borderUpColor: '#16a34a',
+    borderDownColor: '#dc2626',
+    borderVisible: true,
     wickUpColor: '#16a34a',
     wickDownColor: '#dc2626',
+    wickVisible: true,
+    priceLineVisible: false,
   });
   if (!series) {
     container.innerHTML = '<div class="chart-stage">Chart series API unavailable.</div>';
@@ -164,6 +168,7 @@ function renderCandles(chartData) {
   });
 
   chart.timeScale().fitContent();
+  series.priceScale().applyOptions({ autoScale: true });
 }
 
 function addSeriesCompat(chart, type, options) {

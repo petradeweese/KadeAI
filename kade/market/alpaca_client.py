@@ -35,7 +35,14 @@ class AlpacaClient:
         raise NotImplementedError("Alpaca API integration will be added in Phase 2.")
 
     def get_bars(self, symbol: str, timeframe: str, limit: int = 200) -> list[Bar]:
-        raise NotImplementedError("Alpaca API integration will be added in Phase 2.")
+        interval = self._interval_minutes(timeframe)
+        lookback = max(int(limit), 1) * interval
+        end_utc = datetime.now(timezone.utc)
+        start_utc = end_utc - timedelta(minutes=lookback * 2)
+        one_minute_bars = self.get_historical_bars(symbol=symbol, timeframe="1m", start=start_utc, end=end_utc)
+        if interval == 1:
+            return one_minute_bars[-limit:]
+        return self._resample_bars(symbol=symbol.upper(), bars_1m=one_minute_bars, interval=interval)[-limit:]
 
     def get_historical_bars(self, symbol: str, timeframe: str, start: datetime, end: datetime) -> list[Bar]:
         if timeframe != "1m":
@@ -88,6 +95,34 @@ class AlpacaClient:
             if not page_token:
                 break
         return sorted(bars, key=lambda item: item.timestamp)
+
+
+    @staticmethod
+    def _interval_minutes(timeframe: str) -> int:
+        mapping = {"1m": 1, "5m": 5, "15m": 15, "1h": 60}
+        if timeframe not in mapping:
+            raise ValueError(f"Unsupported timeframe: {timeframe}")
+        return mapping[timeframe]
+
+    @staticmethod
+    def _resample_bars(symbol: str, bars_1m: list[Bar], interval: int) -> list[Bar]:
+        resampled: list[Bar] = []
+        for idx in range(0, len(bars_1m), interval):
+            chunk = bars_1m[idx : idx + interval]
+            if len(chunk) < interval:
+                continue
+            resampled.append(
+                Bar(
+                    symbol=symbol,
+                    timestamp=chunk[0].timestamp,
+                    open=chunk[0].open,
+                    high=max(bar.high for bar in chunk),
+                    low=min(bar.low for bar in chunk),
+                    close=chunk[-1].close,
+                    volume=sum(bar.volume for bar in chunk),
+                )
+            )
+        return resampled
 
     @staticmethod
     def _utc(ts: datetime) -> datetime:

@@ -164,6 +164,23 @@ def test_operator_backend_chart_overlays_use_stable_shape() -> None:
     backend = OperatorBackend(llm_enabled=False)
     backend.chat("Should I consider a put on NVDA within an hour?")
     backend.command("trade_plan symbol=NVDA")
+
+    class _Provider:
+        provider_name = "alpaca"
+
+        def health_snapshot(self, active: bool):
+            class _Health:
+                state = "ready"
+
+            return _Health()
+
+        def get_bars(self, symbol: str, timeframe: str, limit: int = 180):
+            return [
+                {"timestamp": "2026-01-01T14:30:00+00:00", "open": 182.1, "high": 183.2, "low": 181.8, "close": 182.9, "volume": 12345},
+                {"timestamp": "2026-01-01T14:35:00+00:00", "open": 182.9, "high": 183.4, "low": 182.5, "close": 183.1, "volume": 11321},
+            ]
+
+    backend._historical_provider = _Provider()
     chart = backend.chart_data(symbol="NVDA", timeframe="5m")
 
     assert chart["symbol"] == "NVDA"
