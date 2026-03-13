@@ -118,6 +118,15 @@ function renderCandles(chartData) {
   }
 
   container.innerHTML = '';
+  const toEpoch = (timestamp) => Math.floor(new Date(timestamp).getTime() / 1000);
+  const candleData = bars.map((b) => ({
+    time: toEpoch(b.timestamp),
+    open: b.open,
+    high: b.high,
+    low: b.low,
+    close: b.close,
+  }));
+
   const chart = window.LightweightCharts.createChart(container, {
     autoSize: true,
     layout: { background: { color: '#ffffff' }, textColor: '#334155' },
@@ -127,18 +136,22 @@ function renderCandles(chartData) {
     crosshair: { mode: 0 },
   });
 
-  const series = chart.addCandlestickSeries({
+  const series = addSeriesCompat(chart, 'candlestick', {
     upColor: '#16a34a',
     downColor: '#dc2626',
     borderVisible: false,
     wickUpColor: '#16a34a',
     wickDownColor: '#dc2626',
   });
-  series.setData(bars.map((b) => ({ time: Math.floor(new Date(b.timestamp).getTime() / 1000), open: b.open, high: b.high, low: b.low, close: b.close })));
+  if (!series) {
+    container.innerHTML = '<div class="chart-stage">Chart series API unavailable.</div>';
+    return;
+  }
+  series.setData(candleData);
 
   overlays.forEach((overlay) => {
     if (typeof overlay.price !== 'number') return;
-    const line = chart.addLineSeries({
+    const line = addSeriesCompat(chart, 'line', {
       color: overlay.color || '#2563eb',
       lineWidth: overlay.type === 'vwap' ? 1 : 2,
       lineStyle: overlay.type === 'vwap' ? 2 : 0,
@@ -146,10 +159,33 @@ function renderCandles(chartData) {
       priceLineVisible: true,
       title: overlay.label || overlay.type,
     });
-    line.setData(bars.map((b) => ({ time: Math.floor(new Date(b.timestamp).getTime() / 1000), value: overlay.price })));
+    if (!line) return;
+    line.setData(candleData.map((bar) => ({ time: bar.time, value: overlay.price })));
   });
 
   chart.timeScale().fitContent();
+}
+
+function addSeriesCompat(chart, type, options) {
+  const lwc = window.LightweightCharts || {};
+  const legacyMethod = type === 'candlestick' ? 'addCandlestickSeries' : 'addLineSeries';
+  if (typeof chart[legacyMethod] === 'function') {
+    return chart[legacyMethod](options);
+  }
+
+  if (typeof chart.addSeries !== 'function') {
+    return null;
+  }
+
+  const ctorByType = {
+    candlestick: lwc.CandlestickSeries || lwc.SeriesType?.Candlestick,
+    line: lwc.LineSeries || lwc.SeriesType?.Line,
+  };
+  const seriesType = ctorByType[type];
+  if (!seriesType) {
+    return null;
+  }
+  return chart.addSeries(seriesType, options);
 }
 
 function overlayValue(overlays, type) {
