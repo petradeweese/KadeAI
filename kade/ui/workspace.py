@@ -29,6 +29,7 @@ def intent_to_workspace_mode(intent: str) -> str:
         "radar": "market",
         "premarket_gameplan": "market",
         "trade_idea": "trade",
+        "trade_followup": "trade",
         "trade_idea_opinion": "trade",
         "target_move": "trade",
         "target_move_scenario": "trade",

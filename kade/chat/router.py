@@ -17,6 +17,8 @@ class ChatActionRouter:
             return {"premarket_gameplan_request": action.payload or {}}
         if action.intent == "trade_idea":
             return {"trade_idea_request": action.payload or {}}
+        if action.intent == "trade_followup":
+            return {"trade_idea_request": action.payload or {}}
         if action.intent == "target_move":
             return {"target_move_request": action.payload or {}}
         if action.intent == "trade_plan":

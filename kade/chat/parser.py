@@ -12,10 +12,12 @@ class ChatIntentParser:
     existing deterministic handlers.
     """
 
-    def parse(self, text: str) -> InterpretedAction:
+    def parse(self, text: str, conversation_context: dict[str, object] | None = None) -> InterpretedAction:
         normalized = text.strip()
         lowered = normalized.lower()
+        context = dict(conversation_context or {})
         extracted = _extract_trade_context(normalized)
+        merged = _merge_with_conversation_context(extracted, context)
 
         if not normalized:
             return InterpretedAction(intent="invalid", source="heuristic", confidence=1.0)
@@ -23,12 +25,15 @@ class ChatIntentParser:
         if lowered.startswith(("status", "radar", "trade_idea", "target_move", "trade_plan", "trade_plan_check", "trade_review", "visual_explain", "premarket_gameplan", "strategy_analysis")):
             return InterpretedAction(intent="explicit_command", payload={"command": normalized}, source="explicit", confidence=1.0)
 
+        if _should_route_trade_followup(lowered, merged, context):
+            return InterpretedAction(intent="trade_followup", payload=_trade_payload_from_context(merged), source="heuristic", confidence=0.83)
+
         if any(phrase in lowered for phrase in ("how did", "post-trade", "post trade", "review this trade", "grade this trade")):
-            return InterpretedAction(intent="trade_review", payload=_trade_payload_from_context(extracted), source="heuristic", confidence=0.76)
+            return InterpretedAction(intent="trade_review", payload=_trade_payload_from_context(merged), source="heuristic", confidence=0.76)
         if any(phrase in lowered for phrase in ("performance", "stats", "expectancy", "win rate", "strategy")):
             return InterpretedAction(intent="strategy_analysis", source="heuristic", confidence=0.72)
         if any(phrase in lowered for phrase in ("manage", "tracking", "still valid", "active trade", "plan check")):
-            return InterpretedAction(intent="trade_plan_check", payload=_trade_payload_from_context(extracted), source="heuristic", confidence=0.74)
+            return InterpretedAction(intent="trade_plan_check", payload=_trade_payload_from_context(merged), source="heuristic", confidence=0.74)
         if "premarket" in lowered or "morning" in lowered:
             return InterpretedAction(intent="premarket_gameplan", source="heuristic", confidence=0.82)
         if "market" in lowered and ("doing" in lowered or "overview" in lowered):
@@ -40,9 +45,9 @@ class ChatIntentParser:
             if symbol:
                 return InterpretedAction(intent="visual_explain", payload={"symbol": symbol}, source="heuristic", confidence=0.75)
         if "trade plan" in lowered or "plan" in lowered:
-            return InterpretedAction(intent="trade_plan", payload=_trade_payload_from_context(extracted), source="heuristic", confidence=0.7)
+            return InterpretedAction(intent="trade_plan", payload=_trade_payload_from_context(merged), source="heuristic", confidence=0.7)
         if any(phrase in lowered for phrase in ("put", "call", "trade idea", "think about", "consider", "long", "short", "bullish", "bearish")):
-            return InterpretedAction(intent="trade_idea", payload=_trade_payload_from_context(extracted), source="heuristic", confidence=0.73)
+            return InterpretedAction(intent="trade_idea", payload=_trade_payload_from_context(merged), source="heuristic", confidence=0.73)
 
         return InterpretedAction(intent="status", payload={"command": "status"}, source="fallback", confidence=0.5)
 
@@ -63,6 +68,71 @@ def _extract_trade_context(text: str) -> dict[str, object]:
     target = _extract_target(text)
     horizon = _extract_horizon(text)
     return {"symbol": symbol, "direction": direction, "target": target, **horizon}
+
+
+def _merge_with_conversation_context(extracted: dict[str, object], context: dict[str, object]) -> dict[str, object]:
+    merged = dict(extracted)
+    for key in ("symbol", "direction", "target", "horizon_minutes", "horizon_label"):
+        value = merged.get(key)
+        if value is None or value == "":
+            context_value = context.get(f"active_{key}", context.get(key))
+            if context_value is not None and context_value != "":
+                merged[key] = context_value
+    return merged
+
+
+def _should_route_trade_followup(lowered: str, extracted: dict[str, object], context: dict[str, object]) -> bool:
+    if not _has_active_trade_context(context, extracted):
+        return False
+    if _is_explicit_system_question(lowered):
+        return False
+
+    followup_patterns = (
+        "if it goes to",
+        "if it went to",
+        "if it goes under",
+        "if it went under",
+        "if it breaks",
+        "if it break",
+        "would",
+        "would be reasonable",
+        "would be a reasonable",
+        "could it reach",
+        "what if it drops to",
+        "does",
+        "make sense",
+    )
+    if any(pattern in lowered for pattern in followup_patterns):
+        return True
+
+    question_like = "?" in lowered or lowered.startswith(("if ", "would ", "could ", "does ", "what if"))
+    has_price_level = bool(re.search(r"\b\d{1,5}(?:\.\d{1,4})?\b", lowered))
+    return question_like and has_price_level
+
+
+def _has_active_trade_context(context: dict[str, object], extracted: dict[str, object]) -> bool:
+    mode = str(context.get("mode", context.get("active_workspace_mode", ""))).strip().lower()
+    symbol = extracted.get("symbol") or context.get("active_symbol")
+    direction = extracted.get("direction") or context.get("active_direction")
+    return bool(symbol and direction and mode == "trade")
+
+
+def _is_explicit_system_question(lowered: str) -> bool:
+    return any(
+        phrase in lowered
+        for phrase in (
+            "system status",
+            "workstation",
+            "are you online",
+            "provider",
+            "latency",
+            "health check",
+            "runtime",
+            "api status",
+            "dashboard status",
+            "market doing",
+        )
+    )
 
 
 def _extract_symbol(tokens: list[str]) -> str | None:
@@ -104,6 +174,25 @@ def _extract_symbol(tokens: list[str]) -> str | None:
         "ON",
         "AN",
         "A",
+        "IF",
+        "WOULD",
+        "COULD",
+        "REASONABLE",
+        "WENT",
+        "UNDER",
+        "OVER",
+        "BREAKS",
+        "BREAK",
+        "DROPS",
+        "DROP",
+        "DOES",
+        "MAKE",
+        "SENSE",
+        "IT",
+        "GOES",
+        "REACH",
+        "WHAT",
+        "BE",
     }
     for token in tokens:
         clean = "".join(ch for ch in token if ch.isalpha()).upper()

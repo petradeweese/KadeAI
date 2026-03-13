@@ -182,21 +182,23 @@ class ChatService:
         return cleaned
 
     def _interpret(self, text: str) -> InterpretedAction:
-        parsed = self.parser.parse(text)
-        if parsed.intent == "explicit_command" or not self.llm_enabled or self.llm_provider is None:
+        context = self._conversation_context()
+        parsed = self.parser.parse(text, conversation_context=context)
+        if parsed.intent in {"explicit_command", "trade_followup"} or not self.llm_enabled or self.llm_provider is None:
             return parsed
 
         generation = self.llm_provider.generate(
             prompt=(
                 "Map the user request to one intent in this whitelist only: "
-                "status,radar,premarket_gameplan,trade_idea,target_move,trade_plan,trade_plan_check,trade_review,visual_explain,strategy_analysis. "
+                "status,radar,premarket_gameplan,trade_idea,trade_followup,target_move,trade_plan,trade_plan_check,trade_review,visual_explain,strategy_analysis. "
+                "If active context has mode=trade plus symbol and direction, default follow-up questions to trade_followup unless the user explicitly asks a system-status question. "
                 "Return strict JSON: {\"intent\":\"...\",\"symbol\":\"\",\"direction\":\"\"}. "
-                "No trade decisioning. User request: "
-                f"{text}"
+                "No trade decisioning. Active context: "
+                f"{json.dumps(context, default=str)}. User request: {text}"
             ),
             system_prompt="You are an intent parser. Only map language to deterministic action names.",
             temperature=0.0,
-            max_tokens=80,
+            max_tokens=90,
         )
         if not generation.success:
             return parsed
@@ -212,6 +214,7 @@ class ChatService:
             "radar",
             "premarket_gameplan",
             "trade_idea",
+            "trade_followup",
             "target_move",
             "trade_plan",
             "trade_plan_check",
@@ -226,4 +229,39 @@ class ChatService:
             mapped_payload["symbol"] = str(payload["symbol"]).upper()
         if payload.get("direction"):
             mapped_payload["direction"] = str(payload["direction"]).lower()
+
+        if intent == "trade_followup":
+            for key in ("active_symbol", "active_direction", "active_target"):
+                if context.get(key) and key.replace("active_", "") not in mapped_payload:
+                    mapped_payload[key.replace("active_", "")] = context[key]
+
         return InterpretedAction(intent=intent, payload=mapped_payload, source="llm", confidence=0.85)
+
+    def _conversation_context(self) -> dict[str, object]:
+        latest_idea = dict(getattr(self.interaction.state, "latest_trade_idea_opinion", {}) or {})
+        latest_plan = dict(getattr(self.interaction.state, "latest_trade_plan", {}) or {})
+        latest_intent = str(getattr(self.interaction.state, "latest_routed_intent", "") or "")
+
+        active_symbol = latest_idea.get("symbol") or latest_plan.get("symbol")
+        active_direction = latest_idea.get("direction") or latest_plan.get("direction")
+        active_target = latest_idea.get("target") or latest_plan.get("target")
+
+        trade_intents = {
+            "trade_idea_opinion",
+            "trade_idea",
+            "target_move",
+            "target_move_scenario",
+            "trade_plan",
+            "visual_explain",
+            "visual_explainability",
+            "trade_followup",
+        }
+        mode = "trade" if latest_intent in trade_intents or (active_symbol and active_direction) else "overview"
+
+        return {
+            "mode": mode,
+            "active_workspace_mode": mode,
+            "active_symbol": active_symbol,
+            "active_direction": active_direction,
+            "active_target": active_target,
+        }
