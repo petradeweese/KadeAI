@@ -352,13 +352,19 @@ class OperatorBackend:
             return {}
 
         payload = yaml.safe_load(path.read_text(encoding="utf-8")) or {}
-        provider_block = payload.get("providers")
-        if not isinstance(provider_block, dict):
-            provider_block = dict(payload.get("execution", {}).get("providers", {}))
+        execution_cfg = dict(payload)
+        if not isinstance(execution_cfg.get("providers"), dict):
+            nested_providers = dict(dict(execution_cfg.get("execution", {})).get("providers", {}))
+            if nested_providers:
+                execution_cfg["providers"] = nested_providers
 
-        cfg = {"execution.yaml": {"execution": {"providers": dict(provider_block)}}}
+        cfg = {"execution.yaml": execution_cfg}
         merged = apply_runtime_env_overrides(cfg)
-        return dict(merged.get("execution.yaml", {}).get("execution", {}).get("providers", {}))
+        merged_execution = dict(merged.get("execution.yaml", {}))
+        provider_block = merged_execution.get("providers")
+        if not isinstance(provider_block, dict):
+            provider_block = dict(dict(merged_execution.get("execution", {})).get("providers", {}))
+        return dict(provider_block)
 
     def _remember(self, role: str, text: str, metadata: dict[str, object] | None = None) -> None:
         self._history.append({"role": role, "text": text, "timestamp": datetime.utcnow().isoformat(), "metadata": metadata or {}})
