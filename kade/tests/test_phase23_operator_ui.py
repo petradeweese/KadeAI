@@ -379,3 +379,28 @@ def test_dashboard_visual_chart_bars_are_non_empty_when_provider_has_data() -> N
     assert isinstance(bars, list)
     assert len(bars) > 0
     assert visual["fallback"]["available"] is True
+
+def test_trade_followup_question_stays_in_active_trade_context() -> None:
+    backend = OperatorBackend(llm_enabled=False)
+
+    first = backend.chat("what do you think about a put on NVDA exit of 182.00")
+    assert first["interpreted_action"]["intent"] == "trade_idea"
+    assert first["layout_state"]["active_workspace_mode"] == "trade"
+
+    followup = backend.chat("if it went under 182.5 would 181.50 be reasonable")
+
+    assert followup["interpreted_action"]["intent"] == "trade_followup"
+    assert followup["layout_state"]["active_workspace_mode"] == "trade"
+    assert followup["interpreted_action"]["payload"]["symbol"] == "NVDA"
+    assert followup["interpreted_action"]["payload"]["direction"] == "put"
+    assert followup["command_response"]["intent"] == "trade_idea_opinion"
+    assert "workstation is currently functioning" not in followup["reply"].lower()
+
+def test_trade_followup_context_does_not_override_explicit_system_status_question() -> None:
+    parser = ChatIntentParser()
+    parsed = parser.parse(
+        "what's the system status right now",
+        conversation_context={"mode": "trade", "active_symbol": "NVDA", "active_direction": "put"},
+    )
+
+    assert parsed.intent == "status"

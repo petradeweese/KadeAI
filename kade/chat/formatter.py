@@ -4,7 +4,7 @@ from __future__ import annotations
 class ChatFormatter:
     def format_deterministic(self, command_response: dict[str, object], intent: str) -> str:
         raw = dict(command_response.get("raw_result", {}))
-        if intent == "trade_idea":
+        if intent in {"trade_idea", "trade_followup"}:
             opinion = dict(raw.get("trade_idea_opinion", {}))
             symbol = opinion.get("symbol", "N/A")
             direction = str(opinion.get("direction", "idea")).lower()
